@@ -1442,8 +1442,8 @@ window.SAFELEX_DB = (function () {
     const total = cd.deck.length;
     const burst = deck.querySelector('.burst');
     const was = deck.offsetHeight;
-    deck.classList.remove('advance'); deck.classList.add('settled');
-    deck.style.height = '';
+    deck.classList.remove('advance', 'dragging'); deck.classList.add('settled');
+    deck.style.height = ''; deck.style.removeProperty('--p');
     deck.innerHTML = deckHtml('next');
     if (burst) deck.appendChild(burst); // сплеск догорає поверх нової картки
     // Нова картка іншої висоти: колода плавно підлаштовується, а кнопки під нею не стрибають
@@ -1456,8 +1456,14 @@ window.SAFELEX_DB = (function () {
     const bar = document.querySelector('.trainer .progress div'), counter = document.querySelector('.trainer .counter');
     if (bar) bar.style.width = cd.i / total * 100 + '%';
     if (counter) counter.textContent = `${cd.i + 1}/${total}`;
-    document.getElementById('cNo').textContent = `Ще вчу · ${cd.again}`;
-    document.getElementById('cYes').textContent = `Знаю · ${cd.known}`;
+    const tally = (id, text) => {
+      const el = document.getElementById(id);
+      if (el.textContent === text) return;
+      el.textContent = text;
+      el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+    };
+    tally('cNo', `Ще вчу · ${cd.again}`);
+    tally('cYes', `Знаю · ${cd.known}`);
   }
 
   // Картка плавно відлітає вправо («Знаю») або вліво («Ще вчу»), а стос одночасно підсувається вгору
@@ -1470,11 +1476,14 @@ window.SAFELEX_DB = (function () {
     if (card) {
       card.classList.remove('enter', 'reveal', 'lift', 'dragging');
       card.style.transform = '';
+      // без свайпу (кнопка чи стрілка) картка стартує з місця — інша крива розгону
+      card.classList.toggle('from-rest', !card.style.getPropertyValue('--dx'));
       card.classList.add(knows ? 'fly-yes' : 'fly-no');
     }
     vibrate(knows ? 20 : [30, 40, 30]);
     // «Сплеск» у центрі колоди: зелена ✓ або червона ↺
     if (deck) {
+      deck.classList.remove('dragging');
       deck.classList.add('advance');
       const b = document.createElement('span');
       b.className = 'burst ' + (knows ? 'yes' : 'no');
@@ -1488,7 +1497,11 @@ window.SAFELEX_DB = (function () {
   // Свайп картки пальцем. Позиція малюється раз на кадр (rAF); швидкий змах зараховується й на коротшій відстані
   const SWIPE_DIST = 90, FLICK_DIST = 40, FLICK_SPEED = .5; // px, px, px/мс
   let drag = null, dragMoved = false, dragFrame = 0;
-  const resetDrag = card => { card.style.transform = ''; ['--yes', '--no', '--dx', '--rot'].forEach(v => card.style.removeProperty(v)); };
+  const resetDrag = card => {
+    card.style.transform = ''; ['--yes', '--no', '--dx', '--rot'].forEach(v => card.style.removeProperty(v));
+    const deck = card.closest('.deck');
+    if (deck) { deck.classList.remove('dragging'); deck.style.removeProperty('--p'); } // стос пружно опускається назад
+  };
   function paintDrag() {
     dragFrame = 0;
     if (!drag || !dragMoved) return;
@@ -1497,6 +1510,7 @@ window.SAFELEX_DB = (function () {
     card.style.setProperty('--dx', dx + 'px'); card.style.setProperty('--rot', rot + 'deg');
     card.style.setProperty('--yes', Math.max(0, Math.min(1, dx / SWIPE_DIST)));
     card.style.setProperty('--no', Math.max(0, Math.min(1, -dx / SWIPE_DIST)));
+    card.parentElement.style.setProperty('--p', Math.min(1, Math.abs(dx) / (SWIPE_DIST * 1.6)));
   }
   document.addEventListener('pointerdown', e => {
     const card = e.target.closest('.deck .flash');
@@ -1512,6 +1526,7 @@ window.SAFELEX_DB = (function () {
       dragMoved = true;
       // анімації «появи» і «підйому» сильніші за inline-transform — знімаємо, щоб картка йшла за пальцем
       drag.card.classList.remove('enter', 'reveal', 'lift'); drag.card.classList.add('dragging');
+      drag.card.parentElement.classList.add('dragging');
     }
     const dt = e.timeStamp - drag.t;
     if (dt > 0) drag.v = drag.v * .5 + (dx - drag.dx) / dt * .5; // згладжена швидкість
