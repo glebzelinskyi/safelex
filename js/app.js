@@ -344,7 +344,35 @@ window.SAFELEX_DB = (function () {
   }
 
   // Значок звання (кольоровий кружок із кількістю днів)
-  const badge = (r, got, big) => `<span class="badge t${RANKS.indexOf(r)} ${got ? '' : 'locked'} ${big ? 'big' : ''} ${r.days >= 100 ? 'w3' : ''}"><b>${r.days || 'К'}</b><small>${r.days ? plural(r.days, 'день', 'дні', 'днів') : 'старт'}</small></span>`;
+  // Значок звання — погон: на сержантських лички, на офіцерських зірочки, у старших офіцерів просвіти,
+  // у генерала — зигзаг і велика зірка. Порядок — як у списку RANKS
+  const starPts = (cx, cy, r) => Array.from({ length: 10 }, (_, i) => {
+    const a = Math.PI / 5 * i - Math.PI / 2, k = i % 2 ? r * .42 : r;
+    return `${(cx + k * Math.cos(a)).toFixed(1)},${(cy + k * Math.sin(a)).toFixed(1)}`;
+  }).join(' ');
+  const star = (cx, cy, r) => `<polygon class="pg-g" points="${starPts(cx, cy, r)}"/>`;
+  const stripe = (y, h = 3) => `<rect class="pg-g" x="9" y="${y}" width="22" height="${h}" rx="1"/>`;
+  const lines = '<rect class="pg-g" x="14.5" y="14" width="2" height="46"/><rect class="pg-g" x="23.5" y="14" width="2" height="46"/>';
+  const PG = [
+    '<text class="pg-g pg-k" x="20" y="44" text-anchor="middle">К</text>',      // Курсант
+    '',                                                                        // Рядовий
+    stripe(42) + stripe(47) + stripe(52),                                      // Сержант
+    stripe(40, 14),                                                            // Старший сержант
+    star(20, 32, 3.6) + star(20, 44, 3.6),                                     // Прапорщик
+    star(14, 46, 3.8) + star(26, 46, 3.8),                                     // Лейтенант
+    star(14, 46, 3.8) + star(26, 46, 3.8) + star(20, 35, 3.8),                 // Старший лейтенант
+    star(14, 46, 3.8) + star(26, 46, 3.8) + star(20, 35, 3.8) + star(20, 25, 3.8), // Капітан
+    lines + star(20, 38, 6.5),                                                 // Майор
+    lines + star(20, 30, 5.5) + star(20, 46, 5.5),                             // Підполковник
+    lines + star(20, 24, 5) + star(20, 37, 5) + star(20, 50, 5),               // Полковник
+    '<path class="pg-z" d="M9,52 l3.7,-5 3.7,5 3.6,-5 3.7,5 3.7,-5 3.6,5"/>' + star(20, 33, 7.5) // Генерал
+  ];
+  const badge = (r, got, big) => {
+    const i = RANKS.indexOf(r);
+    return `<span class="pogon ${got ? 'got' : 'locked'} ${i >= 5 ? 'officer' : ''} ${big ? 'big' : ''}" title="${esc(r.title)}">
+      <svg viewBox="0 0 40 66" aria-hidden="true"><path class="pg-b" d="M6,12 L20,3 L34,12 V60 a4,4 0 0 1 -4,4 H10 a4,4 0 0 1 -4,-4 Z"/>
+      <circle class="pg-g" cx="20" cy="12" r="2.6"/>${PG[i] || ''}</svg></span>`;
+  };
 
   // Святковий екран на нове звання
   function celebrate(r) {
@@ -624,12 +652,11 @@ window.SAFELEX_DB = (function () {
               const peek = previewTerms(list);
               return `
               <a class="topic" href="#/guide/${c.id}" style="--i:${no++}">
-                <span class="tp-no">${pad(no)}</span>
+                <span class="tp-no" style="--p:${Math.round((pc.mastered + pc.learning * 0.5) / k * 100)}"><svg viewBox="0 0 44 44" aria-hidden="true"><circle class="tn-t" cx="22" cy="22" r="20"/><circle class="tn-v" cx="22" cy="22" r="20" pathLength="100"/></svg><b>${pad(no)}</b></span>
                 <span class="tp-body">
                   <span class="tp-title">${esc(c.title)}</span>
                   ${c.en ? `<span class="tp-en">${esc(c.en)}</span>` : ''}
                   <span class="tp-peek">напр.: ${peek.map(t => esc(t.en)).join(', ')}</span>
-                  <span class="tp-bar"><i style="width:${(pc.mastered + pc.learning * 0.5) / k * 100}%"></i></span>
                 </span>
                 <span class="tp-count"><em data-count="${list.length}">${list.length}</em><small>${pc.mastered ? `вивч. ${pc.mastered}` : plural(list.length, 'термін', 'терміни', 'термінів')}</small></span>
               </a>`;
@@ -940,7 +967,12 @@ window.SAFELEX_DB = (function () {
           </details>
         </div>
         <div class="section-head"><h2>Звання</h2><span class="meta">за серію днів</span></div>
-        <div class="ranks">${RANKS.map(r => `<span class="rank">${badge(r, best >= r.days)}<span>${esc(r.title)}</span></span>`).join('')}</div>
+        <div class="ranks">${RANKS.map(r => {
+          const got = best >= r.days, cur = r === rank, nx = r === nextRank(best);
+          return `<span class="rank ${cur ? 'cur' : ''} ${nx ? 'nx' : ''} ${got ? 'got' : ''}" style="--i:${RANKS.indexOf(r)}">${badge(r, got)}
+            <span class="rk-t">${esc(r.title)}</span>
+            <span class="rk-d">${cur ? 'ви тут' : nx ? `ще ${nDays(r.days - best)}` : r.days ? nDays(r.days) : 'старт'}</span></span>`;
+        }).join('')}</div>
         <div class="section-head"><h2>Збережені</h2>${saved.length >= 2 ? `<a href="#/train?cat=fav">Тренувати</a>` : ''}</div>
         ${saved.length ? `<div class="list">${saved.map(t => `
           <a class="row" href="#/term/${t.id}">

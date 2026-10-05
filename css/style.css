@@ -1379,3 +1379,75 @@ body { font-size: var(--fs-base); line-height: 1.5; font-feature-settings: 'kern
 /* Рядки розбиваються рівномірно — без одного слова-«сироти» в останньому рядку */
 .hero h1, .section-head h2, .daily-txt .t, .nr-txt, .tp-title, .q-card .q, .flash .big, .term-head .abbr, .card .ua-big, .cel-card h2, .empty b, .empty-box b { text-wrap: balance; }
 .card p, .hero .lead, .tod-ex, .flash .flash-ex, .mode-body span, .how-list li, .empty, .empty-box span:last-child { text-wrap: pretty; }
+
+/* =====================================================================
+   Довідник: номер розділу в кружечку, навколо — кільце прогресу вивчення
+   ===================================================================== */
+.tp-no { position: relative; width: 46px; height: 46px; border: none; border-radius: 50%; background: none; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.tp-no > svg { position: absolute; inset: 0; width: 46px; height: 46px; transform: rotate(-90deg); }
+.tp-no > svg circle { fill: none; stroke-width: 3; }
+.tn-t { stroke: var(--line-2); }
+.tn-v { stroke: var(--accent); stroke-linecap: round; stroke-dasharray: 100 100; stroke-dashoffset: calc(100 - var(--p, 0)); animation: tnfill 1s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 40ms + 250ms); }
+.tp-no[style*="--p:0"] .tn-v { display: none; }
+@keyframes tnfill { from { stroke-dashoffset: 100; } }
+.tp-no b { position: relative; width: 36px; height: 36px; border-radius: 50%; background: var(--accent-soft); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; color: var(--accent-2); font-variant-numeric: tabular-nums; letter-spacing: -.3px; transition: background .2s, color .2s; }
+.topic:active .tp-no b { background: var(--accent); color: #fff; border: none; }
+@media (hover: hover) { .topic:hover .tp-no b { background: var(--accent); color: #fff; } .topic:hover .tp-no { border: none; } }
+.topic:active .tp-no { background: none; }
+
+/* =====================================================================
+   «Моє»: плитки в стилі «Завдання дня» — живі градієнти
+   ===================================================================== */
+.me-stats > span, .me-stats > span:nth-child(1):not(.lv0), .me-stats > span:nth-child(1).lv3, .me-stats > span:nth-child(1).lv4 {
+  position: relative; overflow: hidden; isolation: isolate; border: none; color: #fff;
+  background-size: 300% 300%; animation: shimmer 10s ease infinite;
+}
+.me-stats > span:nth-child(1), .me-stats > span:nth-child(1):not(.lv0) { background-image: linear-gradient(120deg, #FF9A4D, #F2471D, #E8264F, #FF6A2D, #FF9A4D); box-shadow: 0 10px 26px rgba(242, 80, 40, .32); }
+.me-stats > span:nth-child(2) { background-image: linear-gradient(120deg, #FFD36B, #F2A31D, #E07A1F, #FFC24D, #FFD36B); box-shadow: 0 10px 26px rgba(242, 163, 29, .28); color: #3A1F00; animation-delay: -3s; }
+.me-stats > span:nth-child(3) { background-image: linear-gradient(120deg, #2BD98A, #0E9F6E, #0B7F8C, #1FC48D, #2BD98A); box-shadow: 0 10px 26px rgba(20, 180, 120, .28); animation-delay: -6s; }
+.me-stats > span::after { content: ''; position: absolute; z-index: -1; right: -40px; top: -40px; width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.28), transparent 70%); pointer-events: none; }
+.me-stats > span b, .me-stats > span:nth-child(1):not(.lv0) b { color: inherit; }
+.me-stats > span:nth-child(2) b { color: #3A1F00; }
+.me-stats > span .ms-hint, .me-stats > span:nth-child(1):not(.lv0) .ms-hint { color: inherit; opacity: .88; }
+.me-stats .fl svg { fill: var(--yellow); filter: drop-shadow(0 0 6px rgba(255, 220, 90, .7)); }
+.me-stats .lv0 .fl svg { fill: rgba(255,255,255,.7); filter: none; }
+.me-stats .ms-bar { background: rgba(0,0,0,.18); }
+.me-stats .ms-bar i { background: #fff; }
+#app.enter .me-stats > span { animation: pop .4s cubic-bezier(.2, 1.3, .4, 1) both, shimmer 10s ease infinite; }
+
+/* =====================================================================
+   Звання — погони
+   ===================================================================== */
+.pogon { display: inline-flex; width: 40px; height: 66px; flex-shrink: 0; filter: drop-shadow(0 4px 8px rgba(0,0,0,.35)); }
+.pogon svg { width: 100%; height: 100%; fill: none; stroke: none; }
+.pg-b { fill: #1F3466; stroke: rgba(242, 193, 78, .45); stroke-width: 1; }
+.pogon.officer .pg-b { stroke: #F2C14E; stroke-width: 1.4; }
+.pg-g { fill: #F2C14E; }
+.pg-k { font: 800 17px var(--font); }
+.pg-z { fill: none; stroke: #F2C14E; stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+.pogon.locked { filter: none; }
+.pogon.locked .pg-b { fill: rgba(255,255,255,.03); stroke: rgba(255,255,255,.16); }
+.pogon.locked .pg-g { fill: rgba(255,255,255,.16); }
+.pogon.locked .pg-z { stroke: rgba(255,255,255,.16); }
+.pogon.big { width: 52px; height: 86px; }
+.cel-card .pogon.big { width: 66px; height: 108px; animation: pgin .6s cubic-bezier(.3, 1.5, .5, 1) both; }
+@keyframes pgin { from { transform: translateY(-20px) scale(.6) rotate(-12deg); opacity: 0; } }
+
+.ranks { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 6px; padding: 16px 8px; }
+.rank { position: relative; gap: 6px; padding: 10px 2px 8px; border-radius: 12px; transition: background .2s; }
+.rank .rk-t { font-size: 12.5px; font-weight: 700; line-height: 1.2; color: var(--text-2); }
+.rank .rk-d { font-size: 11px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+.rank:not(.got) .rk-t { color: var(--muted); }
+/* поточне звання — підсвічене, погон «дихає» */
+.rank.cur { background: var(--accent-soft); box-shadow: inset 0 0 0 1px rgba(255, 141, 77, .45); }
+.rank.cur .rk-t { color: var(--text); }
+.rank.cur .rk-d { color: #fff; background: var(--accent); padding: 2px 8px; border-radius: 6px; font-weight: 700; }
+.rank.cur .pogon { animation: pgfloat 3s ease-in-out infinite; }
+@keyframes pgfloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+/* наступне — пунктирна рамка і скільки лишилося */
+.rank.nx { box-shadow: inset 0 0 0 1px var(--line-2); }
+.rank.nx .rk-d { color: var(--accent-2); }
+#app.enter .ranks .rank { animation: pop .4s cubic-bezier(.2, 1.3, .4, 1) both; animation-delay: calc(var(--i, 0) * 40ms); }
+.me-head .pogon.big { animation: pgin .6s cubic-bezier(.3, 1.5, .5, 1) both; }
+.me-stats > span:nth-child(3) { background-image: linear-gradient(120deg, #1DB877, #0E9467, #0B7480, #17A878, #1DB877); }
+.me-stats > span:nth-child(1) b, .me-stats > span:nth-child(3) b, .me-stats > span:nth-child(1):not(.lv0) b { color: #fff; }
