@@ -1474,6 +1474,11 @@ window.SAFELEX_DB = (function () {
     cd.busy = true;
     drag = null;
     if (card) {
+      // картка ще пружно вертається після короткого свайпу — виліт починається звідти, де вона зараз, а не з центру
+      if (!card.style.getPropertyValue('--dx')) {
+        const x = new DOMMatrix(getComputedStyle(card).transform).e;
+        if (Math.abs(x) > 2) { card.style.setProperty('--dx', x + 'px'); card.style.setProperty('--rot', x / 18 + 'deg'); }
+      }
       card.classList.remove('enter', 'reveal', 'lift', 'dragging');
       card.style.transform = '';
       // без свайпу (кнопка чи стрілка) картка стартує з місця — інша крива розгону
