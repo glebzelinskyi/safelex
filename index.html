@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>SafeLex — англо-український словник рятувальника</title>
+  <meta name="description" content="Автономний англо-український словник пожежно-рятувальної термінології з довідником і тренажером.">
+  <meta name="theme-color" content="#0A1122">
+
+  <!-- PWA: маніфест та іконки -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="SafeLex">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <link rel="stylesheet" href="css/fonts.css">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ЕКРАН ЗАВАНТАЖЕННЯ -->
+  <div id="splash" aria-hidden="true">
+    <img class="splash-emblem" src="icons/emblem.png" alt="">
+    <div class="splash-center">
+      <div class="logo logo-xl"><span>SL</span><small>EN · UA</small></div>
+      <div class="splash-name">Safe<span>Lex</span></div>
+      <div class="splash-sub">Англо-український словник<br>пожежно-рятувальної термінології</div>
+    </div>
+    <div class="splash-bottom">
+      <div class="splash-bar"><div></div></div>
+      <div class="splash-text">Завантаження бази термінів…</div>
+      <div class="splash-credit">
+        <img src="icons/ldubzhd-logo-white.png" alt="">
+        <span>Кафедра іноземних мов та перекладознавства<br>ЛДУ БЖД</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Сюди JavaScript малює поточний екран -->
+  <main id="app"></main>
+
+  <!-- НИЖНЄ МЕНЮ -->
+  <nav class="tabbar" aria-label="Головне меню">
+    <a href="#/" data-tab="home">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Пошук
+    </a>
+    <a href="#/guide" data-tab="guide">
+      <svg viewBox="0 0 24 24"><path d="M4 4h6a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H4zM20 4h-6a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h6z"/></svg>Довідник
+    </a>
+    <a href="#/train" data-tab="train">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>Тренажер
+    </a>
+    <a href="#/me" data-tab="me">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Моє
+    </a>
+  </nav>
+
+  <script src="data/terms.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
