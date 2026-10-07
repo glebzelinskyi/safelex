@@ -1810,3 +1810,4 @@ html.vt #app.enter .section > * { animation: none; }
 .best-ex { margin-top: 2px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 15px; line-height: 1.5; color: var(--text-2); }
 .best-act { display: flex; gap: 8px; margin-top: 6px; }
 .best .pill { background: rgba(10, 17, 34, .4); border-color: var(--tb, var(--line-2)); }
+html.sheet-open, html.sheet-open body { overflow: hidden; }

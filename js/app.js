@@ -353,11 +353,12 @@ window.SAFELEX_DB = (function () {
     doneDays.add(dayKey());
     store.set('safelex:days', [...doneDays].sort().slice(-400));
     store.set('safelex:dailyScore', { date: dayKey(), score, total });
-    const s = streak();
-    store.set('safelex:best', Math.max(store.get('safelex:best', 0), s));
+    const s = streak(), prevBest = store.get('safelex:best', 0);
+    store.set('safelex:best', Math.max(prevBest, s));
     const seen = new Set(store.get('safelex:ranksSeen', []));
     const r = RANKS.find(r => r.days === s);
-    if (!r || seen.has(r.days)) return null;
+    // свято — лише за справді нове звання: вище за те, що вже є (після перерваної серії звання не «отримують» удруге)
+    if (!r || seen.has(r.days) || r.days <= prevBest) return null;
     seen.add(r.days); store.set('safelex:ranksSeen', [...seen]);
     return r;
   }
@@ -500,12 +501,16 @@ window.SAFELEX_DB = (function () {
     const close = () => {
       if (wrap.classList.contains('out')) return;
       wrap.classList.add('out'); sh.style.transform = '';
+      document.documentElement.classList.remove('sheet-open');
       setTimeout(() => wrap.remove(), 260);
       document.removeEventListener('keydown', onKey);
     };
     const onKey = e => { if (e.key === 'Escape') close(); };
     document.addEventListener('keydown', onKey);
     wrap.addEventListener('click', e => { if (e.target === wrap || e.target.closest('[data-action="sheet-close"]')) close(); });
+    // сторінка позаду не прокручується, поки панель відкрита
+    wrap.addEventListener('touchmove', e => { if (e.target === wrap) e.preventDefault(); }, { passive: false });
+    document.documentElement.classList.add('sheet-open');
     // жест: потягнути панель донизу
     let y0 = null, dy = 0;
     sh.addEventListener('touchstart', e => { if (sh.scrollTop <= 0) { y0 = e.touches[0].clientY; dy = 0; } }, { passive: true });
@@ -865,13 +870,14 @@ window.SAFELEX_DB = (function () {
 
   // Картка «Завдання дня»: вогник із серією, тиждень і шлях до наступного звання
   function dailyCard() {
-    const done = doneToday(), days = streak(), res = store.get('safelex:dailyScore', {});
-    const next = nextRank(days), prev = rankOf(days);
+    const done = doneToday(), days = streak(), best = bestStreak(), res = store.get('safelex:dailyScore', {});
+    // звання — за найкращою серією (як у «Моє»); до наступного треба дійти поточною серією
+    const next = nextRank(best), prev = rankOf(best);
     // Сьогодні і 6 наступних днів: у кожному — яку серію ви матимете, якщо не пропускати; зірка — день нового звання
     const base = done ? days : days + 1;
     const week = [0, 1, 2, 3, 4, 5, 6].map(i => {
       const d = new Date(); d.setDate(d.getDate() + i);
-      const n = base + i, r = RANKS.find(r => r.days === n);
+      const n = base + i, r = RANKS.find(r => r.days === n && r.days > best); // лише звання, яких ще немає
       const inner = i === 0 && done ? I.flame : r ? badge(r, true) : `<b class="len${String(n).length}">${n}</b>`;
       return `<span class="wd ${i === 0 ? 'today' : ''} ${i === 0 && done ? 'on' : ''} ${r ? 'rk' : ''}" ${r ? `title="День ${n}: звання «${esc(r.title)}»"` : ''}><i>${inner}</i>${i === 0 ? 'Сьогодні' : ['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'][d.getDay()]}</span>`;
     }).join('');
@@ -891,7 +897,7 @@ window.SAFELEX_DB = (function () {
         ${next ? `
           <span class="next-rank">
             <span class="nr-main">
-              <span class="nr-bar"><span style="width:${Math.round((days - from) / (next.days - from) * 100)}%"></span></span>
+              <span class="nr-bar"><span style="width:${Math.max(0, Math.round((days - from) / (next.days - from) * 100))}%"></span></span>
               <span class="nr-txt">${esc(prev.title)} → <b>${esc(next.title)}</b> · ще ${nDays(next.days - days)}</span>
             </span>
             <span class="nr-pg">${badge(next, true)}</span>
@@ -1711,10 +1717,10 @@ window.SAFELEX_DB = (function () {
 
   // Після завдання дня: смужка до наступного звання помітно підростає на сьогоднішній день
   function rankProgress(days) {
-    const next = nextRank(days), cur = rankOf(days);
+    const best = bestStreak(), next = nextRank(best), cur = rankOf(best);
     if (!next) return `<div class="res-rank top">${badge(cur, true, false, true)}<span class="rr-body"><span class="k">Найвище звання</span><b>${esc(cur.title)}</b></span></div>`;
     const span = next.days - cur.days, pct = d => Math.round(Math.min(1, Math.max(0, (d - cur.days) / span)) * 100);
-    const fresh = cur.days === days && days > 0; // звання отримано саме сьогодні
+    const fresh = !!tr.rank; // звання отримано саме сьогодні
     return `
       <button class="res-rank" data-rank="${RANKS.indexOf(next)}">
         <span class="rr-pg">${badge(next, true)}</span>
@@ -2172,6 +2178,7 @@ window.SAFELEX_DB = (function () {
     guideObs?.disconnect();
     document.querySelector('.celebrate')?.remove();
     document.querySelector('.sheet-wrap')?.remove();
+    document.documentElement.classList.remove('sheet-open');
     document.body.classList.remove('dark', 'kb');
     // після жесту «назад» новий екран стає на місце одразу, без зворотного руху
     if (app.style.transform) {
@@ -2386,7 +2393,10 @@ window.SAFELEX_DB = (function () {
     const html = document.documentElement;
     html.dataset.nav = TABS.includes(hashOf(e.oldURL)) && TABS.includes(hashOf(e.newURL)) ? 'tab' : navDir;
     html.classList.add('vt');
-    document.startViewTransition(route).finished.finally(() => html.classList.remove('vt'));
+    const vt = document.startViewTransition(route);
+    // швидкі натискання переривають попередній перехід — це нормально, не помилка
+    vt.ready.catch(() => {});
+    vt.finished.catch(() => {}).finally(() => html.classList.remove('vt'));
   });
   route();
 
