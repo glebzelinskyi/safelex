@@ -1471,3 +1471,74 @@ body { font-size: var(--fs-base); line-height: 1.5; font-feature-settings: 'kern
 .me-head .pogon.big { animation: pgin .6s cubic-bezier(.3, 1.5, .5, 1) both; }
 .me-stats > span:nth-child(3) { background-image: linear-gradient(120deg, #1DB877, #0E9467, #0B7480, #17A878, #1DB877); }
 .me-stats > span:nth-child(1) b, .me-stats > span:nth-child(3) b, .me-stats > span:nth-child(1):not(.lv0) b { color: #fff; }
+
+/* =====================================================================
+   Телефон: зручність однією рукою
+   Кнопки — не менше 44 px (рекомендація Apple), безпечні зони екрана з усіх боків,
+   кнопки тренажера ближче до великого пальця, липкі панелі там, де довгі списки
+   ===================================================================== */
+body { overflow-x: clip; }
+#app {
+  min-height: 100vh; min-height: 100dvh;
+  padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right);
+  transition: transform .22s cubic-bezier(.2, .8, .3, 1), opacity .22s ease; /* жест «назад» */
+}
+#app.swiping { transition: none; }
+#app.swipe-out { transform: translateX(100%) !important; opacity: 0 !important; }
+
+/* Довге натискання на посилання не відкриває системне меню з попереднім переглядом */
+a, button { -webkit-touch-callout: none; }
+
+/* Підкладка під рядком стану (годинник, батарея) — з’являється, коли сторінку прокрутили */
+body::after {
+  content: ''; position: fixed; left: 0; right: 0; top: 0; z-index: 45; pointer-events: none;
+  height: env(safe-area-inset-top);
+  background: rgba(10, 17, 34, .88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  opacity: 0; transition: opacity .2s ease;
+}
+html.scrolled body::after { opacity: 1; }
+
+/* Нижнє меню: безпечні зони збоку (телефон боком), ховається над клавіатурою */
+.tabbar { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); transition: transform .2s ease; }
+@media (hover: none) { body.kb .tabbar { transform: translateY(110%); } }
+
+/* Більші зони дотику */
+.icon-btn { width: 44px; height: 44px; }
+.hm-nav .icon-btn { width: 44px; height: 44px; border-radius: var(--r-sm); }
+.pill { height: 42px; }
+.tod-more { padding: 9px 12px; }
+.searchbox .clear { width: 38px; height: 38px; border-radius: 10px; }
+.install-card .x { width: 40px; height: 40px; border-radius: 10px; }
+.section-head a, .section-head .link-sm { padding: 10px 0 10px 12px; margin: -10px 0; }
+.chip { min-height: 40px; }
+.letters .chip { min-width: 42px; }
+
+/* Довідник: фільтр і літери прилипають угорі, поки гортаєте довгий список */
+.gbar {
+  position: sticky; top: env(safe-area-inset-top); z-index: 5;
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 6px var(--gutter) 10px; background: var(--bg);
+  transition: box-shadow .2s ease;
+}
+html.scrolled .gbar { box-shadow: 0 1px 0 var(--line), 0 10px 18px -10px rgba(0, 0, 0, .6); }
+.gbar .chip.active { background: var(--tc, var(--accent)); border-color: var(--tc, var(--accent)); color: var(--bg); }
+.gbar + .section { padding-top: 4px; }
+.letter-h { top: calc(var(--gbar, 0px) + env(safe-area-inset-top)); }
+
+/* Тренажер: «Далі» завжди під пальцем — не треба гортати до кнопки після відповіді */
+.trainer > [data-action="next"] {
+  position: sticky; z-index: 3; bottom: calc(12px + env(safe-area-inset-bottom));
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .55);
+}
+/* Картки, спринт і пари займають увесь екран — кнопки опускаються ближче до великого пальця */
+.flash-inner { min-height: clamp(320px, calc(100dvh - 280px - env(safe-area-inset-top) - env(safe-area-inset-bottom)), 480px); }
+.sp-card { min-height: clamp(200px, calc(100dvh - 400px - env(safe-area-inset-top) - env(safe-area-inset-bottom)), 380px); justify-content: center; }
+.match { grid-auto-rows: minmax(clamp(66px, calc((100dvh - 330px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) / 5), 92px), auto); }
+.row-btns .btn { min-height: 54px; }
+
+/* Телефон боком: менше порожнечі згори, картки нижчі */
+@media (orientation: landscape) and (max-height: 500px) {
+  .flash-inner { min-height: 240px; }
+  .sp-card { min-height: 0; }
+  .match { grid-auto-rows: minmax(56px, auto); }
+}

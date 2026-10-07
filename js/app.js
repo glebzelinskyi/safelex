@@ -145,9 +145,16 @@ window.SAFELEX_DB = (function () {
   // (за посиланням чи з ярлика), history.back() вивів би з додатка — тоді йдемо на головну
   // Глибина зберігається в самому записі історії, тож вона правильна і після кнопки «Назад» на Android
   let navDepth = history.state?.d || 0;
+  // Позиція прокрутки кожного екрана: «Назад» повертає туди, де ви були в списку, а не на його початок
+  const scrollAt = {};
+  let restoreY = null;
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   window.addEventListener('hashchange', () => {
+    scrollAt[navDepth] = window.scrollY;
+    const from = navDepth;
     if (history.state?.d == null) history.replaceState({ d: navDepth + 1 }, '');
     navDepth = history.state.d;
+    restoreY = navDepth < from ? scrollAt[navDepth] ?? null : null;
   });
   function goBack() {
     if (navDepth > 0) history.back(); else location.hash = '#/';
@@ -684,12 +691,14 @@ window.SAFELEX_DB = (function () {
         </div>
         <h1>${all ? 'Усі терміни' : esc(c.title)}</h1>
         ${all ? '' : `<p class="lead">${esc(c.desc)}</p>`}
+      </header>
+      <div class="gbar ${all ? '' : toneOf(id)}" id="gbar">
         <label class="searchbox small">
           ${I.search}
           <input id="gq" type="search" value="${esc(gv.filter)}" placeholder="Фільтр у ${all ? 'довіднику' : 'розділі'}" aria-label="Фільтр" enterkeyhint="search" autocomplete="off" autocapitalize="off" spellcheck="false">
         </label>
         ${letters.length > 1 ? `<div class="chips scroll letters">${letters.map(l => `<button class="chip ${gv.letter === l ? 'active' : ''}" data-letter="${l}">${l}</button>`).join('')}</div>` : ''}
-      </header>
+      </div>
       <section class="section">
         ${isMarch ? `
           <div class="march-box" id="march">
@@ -704,9 +713,18 @@ window.SAFELEX_DB = (function () {
         <a class="btn train-cta" href="#/train?cat=${all ? 'all' : id}">${I.target}Тренувати ${all ? 'всі терміни' : 'цей розділ'}</a>
       </section>`;
     const input = document.getElementById('gq');
-    input.addEventListener('input', () => { gv.filter = input.value; applyGuideFilter(); });
+    input.addEventListener('input', () => { gv.filter = input.value; applyGuideFilter(); guideToTop(); });
     input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); });
     applyGuideFilter();
+    // Літери-заголовки в списку прилипають одразу під панеллю фільтра
+    app.style.setProperty('--gbar', document.getElementById('gbar').offsetHeight + 'px');
+  }
+  // Після вибору літери чи фільтра список починається одразу під панеллю, а не десь унизу
+  function guideToTop() {
+    const list = document.getElementById('glist'), bar = document.getElementById('gbar');
+    if (!list || !bar) return;
+    const y = list.getBoundingClientRect().top + window.scrollY - bar.offsetHeight - parseFloat(getComputedStyle(bar).top) - 8;
+    if (window.scrollY > y) window.scrollTo(0, y);
   }
 
   function applyGuideFilter() {
@@ -1770,7 +1788,13 @@ window.SAFELEX_DB = (function () {
     stopTicker();
     guideObs?.disconnect();
     document.querySelector('.celebrate')?.remove();
-    document.body.classList.remove('dark');
+    document.body.classList.remove('dark', 'kb');
+    // після жесту «назад» новий екран стає на місце одразу, без зворотного руху
+    if (app.style.transform) {
+      app.classList.add('swiping'); app.classList.remove('swipe-out');
+      app.style.transform = app.style.opacity = '';
+      requestAnimationFrame(() => app.classList.remove('swiping'));
+    }
 
     switch (parts[0]) {
       case undefined: case 'search':
@@ -1792,6 +1816,14 @@ window.SAFELEX_DB = (function () {
       default: renderHome();
     }
     document.querySelectorAll('.tabbar a').forEach(a => a.classList.toggle('active', a.dataset.tab === tab));
+    const y = restoreY; restoreY = null;
+    if (y) {
+      // список довідника малюється порціями — домальовуємо, доки не дійдемо до потрібного місця
+      while (document.getElementById('glist') && gv.shown < gv.items.length && document.documentElement.scrollHeight < y + innerHeight) renderMoreTerms();
+      window.scrollTo(0, y);
+      app.classList.remove('enter'); // повернення — без анімації появи, екран просто на місці
+      return;
+    }
     window.scrollTo(0, 0);
     // Плавна поява нового екрана
     app.classList.remove('enter'); void app.offsetWidth; app.classList.add('enter');
@@ -1836,7 +1868,7 @@ window.SAFELEX_DB = (function () {
     if (d.letter) {
       gv.letter = gv.letter === d.letter ? '' : d.letter;
       document.querySelectorAll('[data-letter]').forEach(b => b.classList.toggle('active', b.dataset.letter === gv.letter));
-      applyGuideFilter(); return;
+      applyGuideFilter(); guideToTop(); return;
     }
     if (d.mt) { matchTap(d.mt, d.id); return; }
     if (d.day) { showDay(d.day, el); return; }
@@ -1905,6 +1937,55 @@ window.SAFELEX_DB = (function () {
       : e.key === ' ' ? document.querySelector('.flash') : null;
     if (btn) { e.preventDefault(); btn.click(); }
   });
+
+  /* ---------- Телефон: жести й дрібниці, як у справжньому застосунку ---------- */
+  // Під час прокрутки під рядком стану з’являється підкладка, щоб текст не налазив на годинник
+  const onScroll = () => document.documentElement.classList.toggle('scrolled', window.scrollY > 8);
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // Відкрита клавіатура — нижнє меню ховається, щоб не займало пів екрана над нею
+  document.addEventListener('focusin', e => { if (e.target.matches('input')) document.body.classList.add('kb'); });
+  document.addEventListener('focusout', () => document.body.classList.remove('kb'));
+
+  // Повторне натискання на поточну вкладку — плавно вгору; на «Пошуку», якщо вже вгорі, — одразу до поля пошуку
+  document.querySelector('.tabbar').addEventListener('click', e => {
+    const a = e.target.closest('a');
+    if (!a || a.getAttribute('href') !== (location.hash || '#/')) return;
+    e.preventDefault();
+    if (window.scrollY > 10) window.scrollTo({ top: 0, behavior: 'smooth' });
+    else if (a.dataset.tab === 'home') document.getElementById('q')?.focus();
+  });
+
+  // У встановленому додатку на iPhone немає системного жесту «назад» — робимо свій:
+  // потягніть від лівого краю екрана вправо (працює там, де є кнопка «Назад»)
+  if (isIOS && isStandalone()) {
+    let on = false, sx = 0, sy = 0, dx = 0, t0 = 0;
+    document.addEventListener('touchstart', e => {
+      const t = e.touches[0];
+      on = e.touches.length === 1 && t.clientX < 24 && !document.body.classList.contains('dark') && !!app.querySelector('[data-action="back"]');
+      if (on) { sx = t.clientX; sy = t.clientY; dx = 0; t0 = performance.now(); }
+    }, { passive: true });
+    document.addEventListener('touchmove', e => {
+      if (!on) return;
+      const t = e.touches[0];
+      dx = Math.max(0, t.clientX - sx);
+      if (dx < 10 && Math.abs(t.clientY - sy) > 10) { on = false; app.style.transform = app.style.opacity = ''; return; } // це прокрутка
+      e.preventDefault();
+      app.classList.add('swiping');
+      app.style.transform = `translateX(${dx}px)`;
+      app.style.opacity = 1 - dx / innerWidth * .5;
+    }, { passive: false });
+    const endSwipe = () => {
+      if (!on) return;
+      on = false;
+      app.classList.remove('swiping');
+      const fast = dx > 40 && dx / (performance.now() - t0) > .5;
+      if (dx > innerWidth / 3 || fast) { app.classList.add('swipe-out'); vibrate(10); setTimeout(goBack, 160); }
+      else app.style.transform = app.style.opacity = '';
+    };
+    document.addEventListener('touchend', endSwipe);
+    document.addEventListener('touchcancel', endSwipe);
+  }
 
   window.addEventListener('hashchange', route);
   route();
