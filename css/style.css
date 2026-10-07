@@ -1599,3 +1599,28 @@ html.scrolled .gbar { box-shadow: 0 1px 0 var(--line), 0 10px 18px -10px rgba(0,
 .miss a { flex-direction: column; align-items: stretch; gap: 2px; padding: 12px 14px; }
 .miss a b { white-space: normal; }
 .miss a span { text-align: left; line-height: 1.4; }
+
+/* =====================================================================
+   Переходи між екранами (View Transitions; iOS 18+, Chrome на Android)
+   Крива — як у системних переходах iOS: швидкий старт, довге м’яке гальмування
+   ===================================================================== */
+.tabbar { view-transition-name: tabbar; }
+::view-transition-group(tabbar) { animation-duration: .25s; }
+::view-transition-old(root), ::view-transition-new(root) {
+  animation-duration: .42s; animation-timing-function: cubic-bezier(.32, .72, 0, 1); animation-fill-mode: both;
+}
+html[data-nav="forward"]::view-transition-new(root) { animation-name: vt-push-in; box-shadow: -10px 0 30px rgba(0, 0, 0, .45); }
+html[data-nav="forward"]::view-transition-old(root) { animation-name: vt-push-out; }
+html[data-nav="back"]::view-transition-new(root) { animation-name: vt-pop-in; }
+html[data-nav="back"]::view-transition-old(root) { animation-name: vt-pop-out; z-index: 1; box-shadow: -10px 0 30px rgba(0, 0, 0, .45); }
+html[data-nav="tab"]::view-transition-old(root) { animation: vt-fade-out .16s ease both; }
+html[data-nav="tab"]::view-transition-new(root) { animation: vt-fade-in .22s ease both; }
+@keyframes vt-push-in { from { transform: translateX(100%); } }
+@keyframes vt-push-out { to { transform: translateX(-30%); filter: brightness(.7); } }
+@keyframes vt-pop-in { from { transform: translateX(-30%); filter: brightness(.7); } }
+@keyframes vt-pop-out { to { transform: translateX(100%); } }
+@keyframes vt-fade-out { to { opacity: 0; } }
+@keyframes vt-fade-in { from { opacity: 0; transform: translateY(6px); } }
+/* під час переходу загальна «поява» екрана не потрібна — рух уже дає сам перехід */
+html.vt #app.enter > * { animation: none; }
+html.vt #app.enter .section > * { animation: none; }

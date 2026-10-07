@@ -168,7 +168,9 @@ window.SAFELEX_DB = (function () {
     if (history.state?.d == null) history.replaceState({ d: navDepth + 1 }, '');
     navDepth = history.state.d;
     restoreY = navDepth < from ? scrollAt[navDepth] ?? null : null;
+    navDir = navDepth < from ? 'back' : 'forward';
   });
+  let navDir = 'forward';
   function goBack() {
     if (navDepth > 0) history.back(); else location.hash = '#/';
   }
@@ -2000,7 +2002,18 @@ window.SAFELEX_DB = (function () {
     document.addEventListener('touchcancel', endSwipe);
   }
 
-  window.addEventListener('hashchange', route);
+  // Перехід між екранами, як в iOS: новий виїжджає справа, «Назад» — навпаки, між вкладками — м’яке перетікання.
+  // Нижнє меню в цей час стоїть на місці. Де браузер цього не вміє (старіші iOS/Android) — звичайна поява екрана
+  const TABS = ['', '#', '#/', '#/guide', '#/train', '#/me'];
+  window.addEventListener('hashchange', e => {
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!document.startViewTransition || reduce || app.style.transform || document.hidden) return route();
+    const hashOf = u => { const i = u.indexOf('#'); return i < 0 ? '' : u.slice(i); };
+    const html = document.documentElement;
+    html.dataset.nav = TABS.includes(hashOf(e.oldURL)) && TABS.includes(hashOf(e.newURL)) ? 'tab' : navDir;
+    html.classList.add('vt');
+    document.startViewTransition(route).finished.finally(() => html.classList.remove('vt'));
+  });
   route();
 
   /* ---------- Екран завантаження ---------- */
