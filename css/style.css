@@ -1438,17 +1438,29 @@ body { font-size: var(--fs-base); line-height: 1.5; font-feature-settings: 'kern
 /* =====================================================================
    Звання — погони
    ===================================================================== */
-.pogon { display: inline-flex; width: 40px; height: 66px; flex-shrink: 0; filter: drop-shadow(0 4px 8px rgba(0,0,0,.35)); }
-.pogon svg { width: 100%; height: 100%; fill: none; stroke: none; }
-.pg-b { fill: #1F3466; stroke: rgba(242, 193, 78, .45); stroke-width: 1; }
-.pogon.officer .pg-b { stroke: #F2C14E; stroke-width: 1.4; }
-.pg-g { fill: #F2C14E; }
-.pg-k { font: 800 17px var(--font); }
-.pg-z { fill: none; stroke: #F2C14E; stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+.pogon { display: inline-flex; width: 40px; height: 66px; flex-shrink: 0; filter: drop-shadow(0 4px 8px rgba(0,0,0,.4)); }
+.pogon svg { width: 100%; height: 100%; fill: none; stroke: none; overflow: visible; }
+/* Кольори за зразками ДСНС: темно-синє поле, золотисті зірки й емблеми, сіро-блакитний кант генералів */
+.pg-f { fill: #0E0F5A; stroke: rgba(255,255,255,.16); stroke-width: .8; }
+.pg-gen { stroke: #A7B3D8; stroke-width: 1.6; }
+.pg-g { fill: #D6B25A; }
+.pg-l { fill: #F4DE98; opacity: .85; }
+.pg-d { fill: #8E6C27; opacity: .7; }
+.pg-tw { stroke: #7A5A1E; stroke-width: 3.4; stroke-dasharray: .5 .8; stroke-linecap: butt; }
+.pg-wr { fill: none; stroke: #8E6C27; stroke-width: 1.1; stroke-dasharray: 1.1 .7; }
+.pg-bl { fill: #2E6CC4; }
+.pg-tz { fill: none; stroke: #F1D48A; stroke-width: .9; stroke-linecap: round; stroke-linejoin: round; }
+.pg-k { font: 400 19px Georgia, 'Times New Roman', serif; }
+/* ще не отримане звання — той самий погон, лише сірим контуром */
 .pogon.locked { filter: none; }
-.pogon.locked .pg-b { fill: rgba(255,255,255,.03); stroke: rgba(255,255,255,.16); }
-.pogon.locked .pg-g { fill: rgba(255,255,255,.16); }
-.pogon.locked .pg-z { stroke: rgba(255,255,255,.16); }
+.pogon.locked .pg-f { fill: rgba(255,255,255,.035); stroke: rgba(255,255,255,.16); }
+.pogon.locked .pg-gen { stroke: rgba(255,255,255,.22); }
+.pogon.locked .pg-g { fill: rgba(255,255,255,.2); }
+.pogon.locked .pg-l, .pogon.locked .pg-d { opacity: 0; }
+.pogon.locked .pg-tw { stroke: rgba(255,255,255,.12); }
+.pogon.locked .pg-wr { stroke: rgba(255,255,255,.12); }
+.pogon.locked .pg-bl { fill: rgba(255,255,255,.08); }
+.pogon.locked .pg-tz { stroke: rgba(255,255,255,.3); }
 .pogon.big { width: 52px; height: 86px; }
 .cel-card .pogon.big { width: 66px; height: 108px; animation: pgin .6s cubic-bezier(.3, 1.5, .5, 1) both; }
 @keyframes pgin { from { transform: translateY(-20px) scale(.6) rotate(-12deg); opacity: 0; } }
