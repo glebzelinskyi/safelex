@@ -1542,3 +1542,60 @@ html.scrolled .gbar { box-shadow: 0 1px 0 var(--line), 0 10px 18px -10px rgba(0,
   .sp-card { min-height: 0; }
   .match { grid-auto-rows: minmax(56px, auto); }
 }
+
+/* =====================================================================
+   ЦИФРИ
+   У Onest цифри за замовчуванням різної ширини, а «табличні» (однакової ширини)
+   лишають дірку після одиниці: 1298 виглядає як «1 298». Тому:
+   • великі показники — Unbounded (шрифт заголовків), щільно, з пропорційними цифрами;
+   • числа в списках і підписах — пропорційні, без дірок;
+   • лічильник і таймер мають ширину з запасом, тож числа не «стрибають» і без табличних цифр.
+   ===================================================================== */
+:root { --font-num: 'Unbounded', 'Onest', system-ui, sans-serif; }
+.me-stats b, .st-tiles b, .st-due b, .fire b, .result-screen .score, .sp-score b {
+  font-family: var(--font-num); font-weight: 700; font-variant-numeric: proportional-nums lining-nums; letter-spacing: -.04em;
+}
+.tp-count, .rk-d, .st-cat-top .mono, .hm-cell, .ab-d, .wd i b, .mode-meta, .tp-no b, .opt .key, .legend, .meta, .crumb, .hm-title, .badge b, .cel-days {
+  font-variant-numeric: proportional-nums lining-nums;
+}
+/* старіші правила вище з такою ж або більшою вагою теж ставили табличні цифри — перебиваємо */
+.me-stats em, .rank .rk-d, .hm .hm-cell, .counter, .card-tally, .mt-miss, .rounds b, .st-cat-top .mono { font-variant-numeric: proportional-nums lining-nums; }
+/* лічильник і таймер: ширина з запасом, тож зміна цифр не зсуває смужку прогресу */
+.counter { min-width: 48px; }
+
+/* Великі показники: однаковий розмір і висота рядка — числа стоять на одній лінії в сусідніх плитках */
+.me-stats b { font-size: 26px; line-height: 1; gap: 4px; margin-bottom: 4px; }
+.me-stats .fl svg { width: 18px; height: 18px; margin-top: -2px; }
+.st-tiles b { font-size: 24px; line-height: 1.1; }
+.st-due b { font-size: 19px; line-height: 1.15; }
+.result-screen .score { letter-spacing: -.05em; }
+.sp-score b { font-size: 17px; }
+@media (max-width: 360px) { .me-stats b { font-size: 22px; } .st-tiles b { font-size: 21px; } }
+
+/* Вогник серії: число по центру полум’я; довгі серії — дрібніше, щоб не вилазили за вогник */
+.fire b { font-size: 21px; margin-top: 18px; }
+.fire b.len3 { font-size: 18px; }
+.fire b.len4 { font-size: 15px; }
+
+/* Дні тижня: кружечки більші, тризначні числа не впираються в краї */
+.wd i { width: 40px; height: 40px; }
+.wd i b { font-size: 14px; letter-spacing: -.02em; line-height: 1; }
+.wd i b.len3 { font-size: 12.5px; letter-spacing: -.04em; }
+.wd i b.len4 { font-size: 10.5px; letter-spacing: -.05em; }
+@media (max-width: 360px) { .wd i { width: 34px; height: 34px; } .wd i b.len3 { font-size: 11px; } }
+
+/* Цифри в кружечках днів — точно по центру: рядок обрізається до висоти великої літери
+   (Safari 18.2+ і Chrome 133+; старіші браузери просто показують як раніше) */
+.wd i b { text-box: trim-both cap alphabetic; }
+
+/* Номер розділу й кількість термінів — рівні колонки праворуч */
+.tp-count { min-width: 48px; text-align: right; line-height: 1.15; }
+.tp-count small { margin-top: 2px; }
+
+/* Рядок про наступне звання — звичайне перенесення, без «вирівнювання» в два куці рядки */
+.nr-txt { text-wrap: pretty; }
+
+/* «Варто повторити»: термін зверху, переклад під ним — довгий переклад не ламається рваним правим краєм */
+.miss a { flex-direction: column; align-items: stretch; gap: 2px; padding: 12px 14px; }
+.miss a b { white-space: normal; }
+.miss a span { text-align: left; line-height: 1.4; }

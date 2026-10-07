@@ -97,7 +97,20 @@ window.SAFELEX_DB = (function () {
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const shuffle = arr => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const pad = n => String(n).padStart(2, '0');
-  const vibrate = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) { /* не всі телефони підтримують */ } };
+  // Вібрація: Android — navigator.vibrate; iPhone його не підтримує, але з iOS 18 дає системний
+  // тактильний відгук, коли перемикається <input switch> — натискаємо прихований перемикач
+  let hapticLabel = null;
+  function iosHaptic() {
+    if (!hapticLabel) {
+      hapticLabel = document.createElement('label');
+      hapticLabel.setAttribute('aria-hidden', 'true');
+      hapticLabel.style.cssText = 'position:fixed;left:-100px;top:0;width:1px;height:1px;opacity:0;pointer-events:none';
+      hapticLabel.innerHTML = '<input type="checkbox" switch tabindex="-1">';
+      document.body.appendChild(hapticLabel);
+    }
+    hapticLabel.click();
+  }
+  const vibrate = p => { try { navigator.vibrate ? navigator.vibrate(p) : iosHaptic(); } catch (e) { /* не всі телефони підтримують */ } };
   const short = c => c.short || c.title.split(' · ')[0];
   const fmtTime = s => `${Math.floor(s / 60)}:${pad(s % 60)}`;
   function plural(n, one, few, many) {
@@ -531,14 +544,14 @@ window.SAFELEX_DB = (function () {
     const week = [0, 1, 2, 3, 4, 5, 6].map(i => {
       const d = new Date(); d.setDate(d.getDate() + i);
       const n = base + i, r = RANKS.find(r => r.days === n);
-      const inner = i === 0 && done ? I.flame : r ? I.star : `<b>${n}</b>`;
+      const inner = i === 0 && done ? I.flame : r ? I.star : `<b class="len${String(n).length}">${n}</b>`;
       return `<span class="wd ${i === 0 ? 'today' : ''} ${i === 0 && done ? 'on' : ''} ${r ? 'rk' : ''}" ${r ? `title="День ${n}: звання «${esc(r.title)}»"` : ''}><i>${inner}</i>${i === 0 ? 'Сьогодні' : ['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'][d.getDay()]}</span>`;
     }).join('');
     const from = prev ? prev.days : 0;
     return `
       <a class="daily ${done ? 'done' : ''}" href="#/train/daily">
         <span class="daily-top">
-          <span class="fire ${days ? 'lit' : ''}">${I.flame}<b data-count="${days}">${days}</b></span>
+          <span class="fire ${days ? 'lit' : ''}">${I.flame}<b class="len${String(days).length}" data-count="${days}">${days}</b></span>
           <span class="daily-txt">
             <span class="k">${days ? `${plural(days, 'день', 'дні', 'днів')} поспіль` : 'Серія ще не почалася'}</span>
             <span class="t">${done ? 'Сьогодні виконано' : 'Завдання дня'}</span>
@@ -1944,7 +1957,7 @@ window.SAFELEX_DB = (function () {
   window.addEventListener('scroll', onScroll, { passive: true });
 
   // Відкрита клавіатура — нижнє меню ховається, щоб не займало пів екрана над нею
-  document.addEventListener('focusin', e => { if (e.target.matches('input')) document.body.classList.add('kb'); });
+  document.addEventListener('focusin', e => { if (e.target.matches('input:not([type=checkbox])')) document.body.classList.add('kb'); });
   document.addEventListener('focusout', () => document.body.classList.remove('kb'));
 
   // Повторне натискання на поточну вкладку — плавно вгору; на «Пошуку», якщо вже вгорі, — одразу до поля пошуку
