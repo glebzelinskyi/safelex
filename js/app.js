@@ -601,33 +601,160 @@ window.SAFELEX_DB = (function () {
   let lastQuery = '';
   let searchCat = 'all';
 
-  // Підсвічує збіг із пошуковим запитом
-  function highlight(text, q) {
-    if (!q) return esc(text);
-    const i = text.toLowerCase().indexOf(q.toLowerCase());
-    if (i < 0) return esc(text);
-    return esc(text.slice(0, i)) + '<mark>' + esc(text.slice(i, i + q.length)) + '</mark>' + esc(text.slice(i + q.length));
+  /* ---------- Розумний пошук (і на головній, і у фільтрі довідника) ----------
+     • слова в будь-якому порядку: «hose fire» знайде «fire hose»;
+     • форми слів: «рукава», «рукавом» → «рукав»; «hoses», «ladders» → «hose», «ladder»;
+     • одруківки: «evacuaton», «рукв» — прощаємо 1–2 помилки залежно від довжини слова;
+     • не та розкладка: «рщыу» → «hose», «hernfd» → «рукав»;
+     • апостроф будь-який (’ ʼ '), наголоси ігноруються;
+     • абревіатури за розшифровкою, синоніми, і нарешті — речення-приклади.
+     Найкращі збіги першими: точний термін → початок терміна → ціле слово → форма слова → одруківка → приклад. */
+  const normS = s => String(s ?? '').toLowerCase().replace(/\u0301/g, '').replace(/[’ʼ`´‘]/g, "'").replace(/ё/g, 'е');
+  const WORD_RE = /[a-z0-9а-яіїєґ']+/g;
+  const wordsOf = s => (normS(s).match(WORD_RE) || []).map(w => w.replace(/^'+|'+$/g, '')).filter(Boolean);
+  const isCyr = w => /[а-яіїєґ]/.test(w);
+  const UA_END = /(ями|ами|ові|еві|ого|ому|ими|ими|ої|ою|ею|ям|ам|ах|ях|ів|їв|ом|ем|ий|ій|ей|а|я|у|ю|і|ї|и|е|о|ь)$/;
+  function stem(w) {
+    const s = isCyr(w) ? w.replace(UA_END, '') : w.length > 4 ? w.replace(/(ies|ing|es|ed|s)$/, '') : w;
+    return s.length >= 3 ? s : w;
+  }
+  // Розкладки: латинська клавіша → українська літера і навпаки (плюс «російські» ы, э, ъ, ё)
+  const EN_KEYS = "qwertyuiop[]asdfghjkl;'zxcvbnm,.`", UA_KEYS = "йцукенгшщзхїфівапролджєячсмитьбю'";
+  const toUA = {}, toEN = {};
+  [...EN_KEYS].forEach((c, i) => { toUA[c] = UA_KEYS[i]; toEN[UA_KEYS[i]] = c; });
+  Object.assign(toEN, { 'ы': 's', 'э': "'", 'ъ': ']', 'ё': '`' });
+  const swapLayout = q => /[a-z]/.test(q) && !isCyr(q) ? [...q].map(c => toUA[c] ?? c).join('')
+    : isCyr(q) && !/[a-z]/.test(q) ? [...q].map(c => toEN[c] ?? c).join('') : '';
+
+  // Індекс будується один раз, при першому пошуку
+  let sIdx = null;
+  function searchIndex() {
+    if (sIdx) return sIdx;
+    sIdx = new Map();
+    for (const t of TERMS) {
+      const en = [...new Set([t.en, ...(t.forms || []), ...(t.syn || [])].map(normS))];
+      sIdx.set(t, {
+        en, full: normS(t.full), ua: normS(t.ua), sense: normS(t.uaShort), senseW: wordsOf(t.uaShort), headW: wordsOf(t.en)[0] || '',
+        enW: [...new Set(en.flatMap(wordsOf).concat(wordsOf(t.full)))],
+        uaW: [...new Set(wordsOf(t.ua))],
+        ex: normS(`${t.exEn || ''} ${t.exUa || ''}`)
+      });
+    }
+    return sIdx;
+  }
+  const allowTypos = n => n >= 8 ? 2 : n >= 5 ? 1 : 0; // у коротких словах одруківок не шукаємо: «hose» ≠ «home»
+
+  // Наскільки добре одне слово запиту збігається з терміном: 0 — ніяк
+  function tokenScore(tk, st, x, marks) {
+    let best = 0, hit = '';
+    const tryWords = (words, exact, prefix) => {
+      for (const w of words) {
+        if (w === tk) { if (exact > best) { best = exact; hit = w; } }
+        else if (w.startsWith(tk)) { if (prefix > best) { best = prefix; hit = tk; } }
+        else if (st !== tk && w.startsWith(st) && 6 > best) { best = 6; hit = st; }
+      }
+    };
+    tryWords(x.enW, 12, 9);
+    tryWords(x.uaW, 11, 8);
+    if (best) { marks.add(hit); return { s: best }; }
+    if (tk.length >= 3 && (x.en.some(e => e.includes(tk)) || x.ua.includes(tk) || x.full.includes(tk))) { marks.add(tk); return { s: 5 }; }
+    // одруківка: порівнюємо зі словом цілком або з його початком такої ж довжини
+    const k = allowTypos(tk.length);
+    if (k) for (const w of isCyr(tk) ? x.uaW : x.enW) {
+      if (w[0] !== tk[0] || w.length < tk.length - k) continue; // перша літера зазвичай правильна — так і швидше
+      if (typos(w, tk) <= k || (w.length > tk.length && typos(w.slice(0, tk.length), tk) <= k)) { marks.add(w); return { s: 3, fuzzy: true }; }
+    }
+    if (tk.length >= 3 && (x.ex.includes(tk) || (st.length >= 4 && x.ex.includes(st)))) return { s: 1, ex: true };
+    return null;
   }
 
-  // Пошук: спочатку ті, що починаються з запиту, далі — що містять
-  function search(q, cat) {
-    q = q.trim().toLowerCase();
-    if (!q) return [];
-    const res = [];
-    for (const t of TERMS) {
-      if (cat !== 'all' && t.cat !== cat) continue;
-      const en = t.find || [t.en.toLowerCase()], full = (t.full || '').toLowerCase(), ua = t.ua.toLowerCase();
-      let score = -1;
-      if (en.includes(q)) score = 0;
-      else if (en.some(f => f.startsWith(q))) score = 1;
-      else if (en.some(f => f.includes(q))) score = 2;
-      else if (full.split(/[\s,/-]+/).some(w => w.startsWith(q))) score = 3;
-      else if (ua.split(/[\s,/()«»-]+/).some(w => w.startsWith(q))) score = 4;
-      else if (full.includes(q) || ua.includes(q)) score = 5;
-      if (score >= 0) res.push({ t, score });
+  function rankTerms(q, pool) {
+    const idx = searchIndex(), tokens = wordsOf(q), nq = normS(q).trim();
+    if (!tokens.length) return { list: [], marks: [] };
+    const stems = tokens.map(stem), marks = new Set(), out = [];
+    for (const t of pool) {
+      const x = idx.get(t);
+      if (!x) continue;
+      let sum = 0, fuzzy = false, ex = true;
+      const m = new Set();
+      for (let i = 0; i < tokens.length; i++) {
+        const r = tokenScore(tokens[i], stems[i], x, m);
+        if (!r) { sum = -1; break; }
+        sum += r.s; fuzzy ||= !!r.fuzzy; ex &&= !!r.ex;
+        // збіг на початку головного перекладу чи терміна важить більше, ніж десь у поясненні
+        if (!r.fuzzy && !r.ex) {
+          if (x.headW.startsWith(tokens[i]) || x.senseW[0]?.startsWith(stems[i])) sum += 6;
+          else if (x.senseW.some(w => w.startsWith(stems[i]))) sum += 3;
+        }
+      }
+      if (sum < 0) continue;
+      // збіг усього запиту
+      if (x.en.includes(nq) || x.full === nq || x.sense === nq) sum += 100;
+      else if (x.en.some(e => e.startsWith(nq)) || x.sense.startsWith(nq)) sum += 40;
+      else if (x.en.some(e => e.includes(nq)) || x.ua.includes(nq)) sum += 15;
+      if (t.core) sum += 3;
+      if (recent.includes(t.id)) sum += 2;
+      sum -= t.en.length * .04; // коротший термін — ймовірніше саме він
+      out.push({ t, score: sum, fuzzy: fuzzy && sum < 100, ex });
+      m.forEach(w => marks.add(w));
     }
-    return res.sort((a, b) => a.score - b.score || a.t.en.localeCompare(b.t.en)).map(r => r.t);
+    out.sort((a, b) => b.score - a.score || a.t.en.localeCompare(b.t.en));
+    return { list: out, marks: [...marks] };
   }
+
+  // Пошук із запасним варіантом: якщо нічого путнього — пробуємо іншу розкладку клавіатури
+  let ssMemo = { key: '', pool: null, res: null };
+  function smartSearch(q, pool = TERMS) {
+    q = q.trim();
+    if (ssMemo.key === q && ssMemo.pool === pool) return ssMemo.res;
+    const res = smartSearchRaw(q, pool);
+    ssMemo = { key: q, pool, res };
+    return res;
+  }
+  function smartSearchRaw(q, pool) {
+    const main = rankTerms(q, pool);
+    const good = main.list.filter(r => !r.fuzzy && !r.ex).length;
+    if (good < 2) {
+      const alt = swapLayout(normS(q));
+      if (alt) {
+        const sw = rankTerms(alt, pool), swGood = sw.list.filter(r => !r.fuzzy && !r.ex).length;
+        if (swGood > good) return { ...sw, layout: alt };
+      }
+    }
+    return main;
+  }
+  const search = (q, cat = 'all') => smartSearch(q, cat === 'all' ? TERMS : TERMS.filter(t => t.cat === cat)).list.map(r => r.t);
+
+  // Підсвічує знайдені слова (на початку слів, з урахуванням форм і одруківок)
+  function highlight(text, marks) {
+    text = String(text ?? '');
+    if (!marks || !marks.length) return esc(text);
+    const list = [...new Set(marks)].filter(Boolean).sort((a, b) => b.length - a.length)
+      .map(m => m.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/'/g, "['’ʼ]"));
+    if (!list.length) return esc(text);
+    const re = new RegExp(`(^|[^a-zа-яіїєґ0-9])(${list.join('|')})`, 'giu');
+    let out = '', last = 0, m;
+    const low = text.replace(/\u0301/g, ' ').replace(/ё/gi, 'е');
+    while ((m = re.exec(low))) {
+      const start = m.index + m[1].length, end = start + m[2].length;
+      out += esc(text.slice(last, start)) + '<mark>' + esc(text.slice(start, end)) + '</mark>';
+      last = end;
+      if (re.lastIndex === m.index) re.lastIndex++;
+    }
+    return out + esc(text.slice(last));
+  }
+
+  // Історія запитів і підказки для порожнього поля
+  const qHist = store.get('safelex:qhist', []);
+  function rememberQuery(q) {
+    q = q.trim();
+    if (q.length < 2) return;
+    const i = qHist.findIndex(x => x.toLowerCase() === q.toLowerCase());
+    if (i >= 0) qHist.splice(i, 1);
+    qHist.unshift(q); qHist.length = Math.min(qHist.length, 8);
+    store.set('safelex:qhist', qHist);
+  }
+  const TRY_Q = ['arson', 'рукав', 'foam', 'breathing apparatus', 'вогнегасник', 'hydrant', 'дим', 'rescue'];
 
   function renderHome() {
     app.innerHTML = `
@@ -649,8 +776,12 @@ window.SAFELEX_DB = (function () {
       </header>
       <section class="section" id="homeBody"></section>`;
     const input = document.getElementById('q');
-    input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); }); // ховає клавіатуру
-    input.addEventListener('input', () => { lastQuery = input.value; drawHome(); });
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') { rememberQuery(input.value); input.blur(); } }); // ховає клавіатуру
+    // під час швидкого набору перемальовуємо не на кожну літеру, а після короткої паузи
+    let typing = 0;
+    input.addEventListener('input', () => { lastQuery = input.value; clearTimeout(typing); typing = setTimeout(drawHome, lastQuery.trim() ? 70 : 0); });
+    // відкрили результат — запит потрапляє в історію
+    document.getElementById('homeBody').addEventListener('click', e => { if (e.target.closest('a.result, .best a')) rememberQuery(lastQuery); });
     drawHome();
   }
 
@@ -660,22 +791,76 @@ window.SAFELEX_DB = (function () {
     if (!body) return;
     const q = lastQuery.trim();
     document.querySelector('.searchbox .clear')?.toggleAttribute('hidden', !lastQuery);
-    chips.innerHTML = q
-      ? `<button class="chip ${searchCat === 'all' ? 'active' : ''}" data-cat="all">Усі</button>` +
-        CATEGORIES.map(c => `<button class="chip ${searchCat === c.id ? 'active' : ''}" data-cat="${c.id}">${esc(short(c))}</button>`).join('')
+    if (!q) {
+      // порожнє поле: нещодавні запити або приклади, що можна шукати
+      chips.innerHTML = qHist.length
+        ? `<span class="qc-label">Ви шукали</span>${qHist.map(h => `<button class="chip qc" data-q="${esc(h)}">${esc(h)}</button>`).join('')}<button class="chip qc-x" data-action="qhist-clear" aria-label="Очистити історію">${I.x}</button>`
+        : `<span class="qc-label">Спробуйте</span>${TRY_Q.map(h => `<button class="chip qc" data-q="${esc(h)}">${esc(h)}</button>`).join('')}`;
+      chips.removeAttribute('hidden');
+      body.innerHTML = installCard() + dailyCard() + termOfDayCard() + recentBlock(); countUp(body); return;
+    }
+    const all = smartSearch(q);
+    const counts = {};
+    all.list.forEach(r => { counts[r.t.cat] = (counts[r.t.cat] || 0) + 1; });
+    if (searchCat !== 'all' && !counts[searchCat]) searchCat = 'all';
+    const cats = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+    chips.innerHTML = cats.length > 1
+      ? `<button class="chip ${searchCat === 'all' ? 'active' : ''}" data-cat="all">Усі <em>${all.list.length}</em></button>` +
+        cats.map(c => `<button class="chip ${searchCat === c ? 'active' : ''}" data-cat="${c}">${esc(short(catById[c]))} <em>${counts[c]}</em></button>`).join('')
       : '';
-    chips.toggleAttribute('hidden', !q);
-    if (!q) { body.innerHTML = installCard() + dailyCard() + termOfDayCard() + recentBlock(); countUp(body); return; }
-    const res = search(q, searchCat);
-    body.innerHTML = !res.length
-      ? `<div class="empty"><b>Нічого не знайдено</b>${searchCat === 'all' ? 'Перевірте написання або спробуйте шукати українською.' : 'У цьому розділі збігів немає — оберіть «Усі», щоб шукати по всій базі.'}</div>`
-      : `<span class="meta">${res.length} ${plural(res.length, 'результат', 'результати', 'результатів')}${res.length > MAX_RESULTS ? ` · показано перші ${MAX_RESULTS}, уточніть запит` : ''}</span>
-        ${res.slice(0, MAX_RESULTS).map(t => `
-          <a class="result ${toneOf(t.cat)}" href="#/term/${t.id}">
-            <span class="top"><span class="en">${highlight(t.en, q)}</span><span class="tag">${esc(short(catById[t.cat]))}</span></span>
-            ${t.full ? `<span class="full">${highlight(t.full, q)}</span>` : ''}
-            <span class="ua">${highlight(t.ua, q)}</span>
-          </a>`).join('')}`;
+    chips.toggleAttribute('hidden', cats.length < 2);
+    const res = searchCat === 'all' ? all.list : all.list.filter(r => r.t.cat === searchCat);
+    const marks = all.marks;
+    if (!res.length) {
+      body.innerHTML = `<div class="empty-box sr-empty"><span class="eb-ic">${I.search}</span><b>Нічого не знайдено</b>
+        <span>Перевірте написання або спробуйте шукати іншою мовою — пошук розуміє і англійські, і українські слова.</span></div>
+        <div class="qchips-try"><span class="qc-label">Спробуйте</span>${TRY_Q.slice(0, 5).map(h => `<button class="chip qc" data-q="${esc(h)}">${esc(h)}</button>`).join('')}</div>`;
+      return;
+    }
+    const top = res[0], best = !top.fuzzy && !top.ex && top.score >= 100 ? top.t : null;
+    const rest = best ? res.slice(1) : res;
+    const fuzzyOnly = res.every(r => r.fuzzy || r.ex);
+    const notes = [
+      all.layout ? `<div class="sr-note">${I.search}<span>Схоже, була інша розкладка — показано для «<b>${esc(all.layout)}</b>»</span></div>` : '',
+      fuzzyOnly && res.some(r => r.fuzzy) ? `<div class="sr-note">${I.search}<span>Точних збігів немає. Можливо, ви мали на увазі <button class="link-sm" data-q="${esc(top.t.en)}">${esc(top.t.en)}</button>?</span></div>` : ''
+    ].join('');
+    const row = r => `
+      <a class="result ${toneOf(r.t.cat)}" href="#/term/${r.t.id}">
+        <span class="top"><span class="en">${highlight(r.t.en, marks)}</span><span class="tag">${esc(short(catById[r.t.cat]))}</span></span>
+        ${r.t.full ? `<span class="full">${highlight(r.t.full, marks)}</span>` : ''}
+        <span class="ua">${highlight(r.t.ua, marks)}</span>
+        ${r.ex ? `<span class="sr-ex">знайдено в прикладі: «${highlight(exSnippet(r.t, marks.concat(wordsOf(q))), marks.concat(wordsOf(q)))}»</span>` : ''}
+      </a>`;
+    body.innerHTML = notes + (best ? bestCard(best, marks) : '') +
+      (rest.length ? `<span class="meta">${best ? 'Ще ' : ''}${res.length - (best ? 1 : 0)} ${plural(res.length - (best ? 1 : 0), 'результат', 'результати', 'результатів')}${rest.length > MAX_RESULTS ? ` · показано перші ${MAX_RESULTS}` : ''}</span>` : '') +
+      rest.slice(0, MAX_RESULTS).map(row).join('');
+  }
+
+  // Точний збіг — одразу з перекладом і прикладом, щоб не відкривати картку
+  function bestCard(t, marks) {
+    const fav = favs.has(t.id);
+    return `
+      <div class="best ${toneOf(t.cat)}">
+        <span class="best-k">Точний збіг · ${esc(short(catById[t.cat]))}</span>
+        <a class="best-en" href="#/term/${t.id}">${highlight(t.en, marks)}</a>
+        ${t.tr ? `<span class="ipa">${esc(t.tr)}</span>` : ''}
+        ${t.full ? `<span class="best-full">${esc(t.full)}</span>` : ''}
+        <span class="best-ua">${esc(t.ua)}</span>
+        ${t.exEn ? `<span class="best-ex">“${esc(t.exEn)}”</span>` : ''}
+        <span class="best-act">
+          <a class="pill" href="#/term/${t.id}">Детальніше</a>
+          <button class="pill ${fav ? 'on' : ''}" data-action="fav" data-id="${t.id}" aria-pressed="${fav}">${I.star}<span>${fav ? 'Збережено' : 'Зберегти'}</span></button>
+        </span>
+      </div>`;
+  }
+  // Шматок речення-прикладу навколо знайденого слова
+  function exSnippet(t, words) {
+    const src = t.exEn && words.some(w => normS(t.exEn).includes(w)) ? t.exEn : t.exUa || t.exEn || '';
+    const low = normS(src), w = words.find(w => w.length >= 3 && low.includes(w)) || '';
+    const i = w ? low.indexOf(w) : 0;
+    if (src.length <= 70) return src;
+    const a = Math.max(0, i - 30), b = Math.min(src.length, i + 40);
+    return (a ? '…' : '') + src.slice(a, b) + (b < src.length ? '…' : '');
   }
 
   // Картка «Завдання дня»: вогник із серією, тиждень і шлях до наступного звання
@@ -768,7 +953,7 @@ window.SAFELEX_DB = (function () {
   const sortKey = t => t.en.replace(/^[^a-z0-9]+/i, '');
   const sortedTerms = cat => sortedCache[cat] ||= poolFor(cat).slice().sort((a, b) => sortKey(a).localeCompare(sortKey(b), 'en', { sensitivity: 'base' }));
   const letterOf = t => { const c = (t.en.match(/[a-z0-9]/i) || ['#'])[0].toUpperCase(); return /[A-Z]/.test(c) ? c : '#'; }; // «(alarm) card» → A
-  const gv = { cat: '', filter: '', letter: '', items: [], shown: 0, lastLetter: '' };
+  const gv = { cat: '', filter: '', letter: '', items: [], shown: 0, lastLetter: '', marks: [] };
   let guideObs = null;
 
   // 3 найвпізнаваніші терміни розділу для плитки: спершу ключові та абревіатури, коротші першими
@@ -887,12 +1072,16 @@ window.SAFELEX_DB = (function () {
   }
 
   function applyGuideFilter() {
-    const q = gv.filter.trim().toLowerCase();
-    gv.items = sortedTerms(gv.cat).filter(t => (!gv.letter || letterOf(t) === gv.letter) &&
-      (!q || (t.find || [t.en.toLowerCase()]).some(f => f.includes(q)) || t.ua.toLowerCase().includes(q) || (t.full || '').toLowerCase().includes(q)));
+    const q = gv.filter.trim();
+    const base = sortedTerms(gv.cat).filter(t => !gv.letter || letterOf(t) === gv.letter);
+    // з фільтром — той самий розумний пошук, що й на головній (найкращі збіги першими); без фільтра — за абеткою
+    const found = q ? smartSearch(q, base) : null;
+    gv.items = found ? found.list.map(r => r.t) : base;
+    gv.marks = found ? found.marks : [];
     gv.shown = 0; gv.lastLetter = '';
     document.getElementById('glist').innerHTML = gv.items.length ? '' : `<div class="empty"><b>Нічого не знайдено</b>Змініть фільтр або оберіть іншу літеру.</div>`;
-    document.getElementById('gcount').textContent = q || gv.letter ? `Знайдено: ${gv.items.length}` : '';
+    document.getElementById('gcount').innerHTML = found?.layout ? `Знайдено: ${gv.items.length} · показано для «<b>${esc(found.layout)}</b>» (інша розкладка)`
+      : q || gv.letter ? `Знайдено: ${gv.items.length}` : '';
     document.getElementById('march')?.toggleAttribute('hidden', !!(q || gv.letter));
     renderMoreTerms();
   }
@@ -906,7 +1095,7 @@ window.SAFELEX_DB = (function () {
     for (const t of part) {
       const l = letterOf(t);
       if (l !== gv.lastLetter && !gv.filter.trim()) { html += `<div class="letter-h">${l}</div>`; gv.lastLetter = l; }
-      html += `<a class="row" href="#/term/${t.id}"><span class="body"><span class="en">${esc(t.en)}</span><span class="sub">${esc(t.ua)}</span></span>${favs.has(t.id) ? `<span class="fav-dot">${I.star}</span>` : ''}${I.chev}</a>`;
+      html += `<a class="row" href="#/term/${t.id}"><span class="body"><span class="en">${highlight(t.en, gv.marks)}</span><span class="sub">${highlight(t.ua, gv.marks)}</span></span>${favs.has(t.id) ? `<span class="fav-dot">${I.star}</span>` : ''}${I.chev}</a>`;
     }
     list.insertAdjacentHTML('beforeend', html);
     gv.shown += part.length;
@@ -2111,6 +2300,7 @@ window.SAFELEX_DB = (function () {
         if (box) { box.outerHTML = termOfDayCard(); document.querySelector('.tod').classList.add('swap'); }
         break;
       }
+      case 'qhist-clear': qHist.length = 0; store.set('safelex:qhist', []); drawHome(); break;
       case 'recent-clear': recent.length = 0; store.set('safelex:recent', []); drawHome(); break;
       case 'cel-close': document.querySelector('.celebrate')?.remove(); break;
       case 'reset':
@@ -2186,6 +2376,9 @@ window.SAFELEX_DB = (function () {
   // Перехід між екранами, як в iOS: новий виїжджає справа, «Назад» — навпаки, між вкладками — м’яке перетікання.
   // Нижнє меню в цей час стоїть на місці. Де браузер цього не вміє (старіші iOS/Android) — звичайна поява екрана
   const TABS = ['', '#', '#/', '#/guide', '#/train', '#/me'];
+  // Індекс пошуку будуємо заздалегідь, поки користувач роздивляється екран — перший запит буде миттєвим
+  (window.requestIdleCallback || (f => setTimeout(f, 1200)))(() => searchIndex());
+
   window.addEventListener('hashchange', e => {
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (!document.startViewTransition || reduce || app.style.transform || document.hidden) return route();

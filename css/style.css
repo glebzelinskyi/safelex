@@ -1776,3 +1776,37 @@ html.vt #app.enter .section > * { animation: none; }
 .cel-card .cel-days, .cel-card p, .cel-card .cel-next, .cel-card .btn { animation: rise .4s 1.3s ease-out both; }
 /* наступне звання — уже в кольорі, але приглушене: ціль видно, і її хочеться «засвітити» */
 .rh-nx .pogon, .rr-pg .pogon { opacity: .55; filter: saturate(.7) drop-shadow(0 3px 6px rgba(0,0,0,.35)); }
+
+/* =====================================================================
+   Розумний пошук: підказки, історія, точний збіг, лічильники розділів
+   ===================================================================== */
+#qchips { align-items: center; }
+.qc-label { flex-shrink: 0; align-self: center; margin-right: 2px; font-size: 12px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); }
+.chip.qc { font-weight: 600; color: var(--text); background: var(--surface); border-color: var(--line); }
+.chip.qc-x { display: inline-flex; align-items: center; justify-content: center; min-width: 40px; padding: 0 10px; color: var(--muted); }
+.chip em { font-style: normal; font-weight: 700; opacity: .65; margin-left: 2px; }
+.chip.active em { opacity: .9; }
+.qchips-try { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; justify-content: center; }
+.sr-empty .eb-ic { background: var(--surface-2); color: var(--muted); }
+
+.sr-note { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: 12px; background: rgba(242, 193, 78, .1); border: 1px solid rgba(242, 193, 78, .25); font-size: 14px; line-height: 1.45; color: var(--text-2); animation: rise .25s ease-out both; }
+.sr-note > svg { width: 18px; height: 18px; color: var(--yellow); margin-top: 1px; }
+.sr-note b { color: var(--text); }
+.sr-note .link-sm { font-size: 14px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.sr-ex { font-size: 13px; line-height: 1.4; color: var(--muted); }
+.sr-ex mark { background: rgba(242, 193, 78, .2); }
+
+/* Точний збіг — розгорнута картка */
+.best {
+  position: relative; display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: 18px;
+  background: var(--ts, var(--surface)); border: 1px solid var(--tb, var(--line-2)); box-shadow: inset 4px 0 0 var(--t1, var(--accent));
+  animation: rise .25s ease-out both;
+}
+.best-k { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--tc, var(--accent-2)); }
+.best-en { font-size: 28px; font-weight: 800; line-height: 1.15; letter-spacing: -.3px; color: var(--tc, var(--text)); text-decoration: none; word-break: break-word; }
+.best-en mark { background: none; color: inherit; }
+.best-full { font-size: 14px; font-weight: 500; color: var(--muted); }
+.best-ua { font-size: 18px; font-weight: 700; line-height: 1.35; color: var(--text); }
+.best-ex { margin-top: 2px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 15px; line-height: 1.5; color: var(--text-2); }
+.best-act { display: flex; gap: 8px; margin-top: 6px; }
+.best .pill { background: rgba(10, 17, 34, .4); border-color: var(--tb, var(--line-2)); }
