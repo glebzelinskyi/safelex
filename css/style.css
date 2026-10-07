@@ -1636,3 +1636,143 @@ html[data-nav="tab"]::view-transition-new(root) { animation: vt-fade-in .22s eas
 /* під час переходу загальна «поява» екрана не потрібна — рух уже дає сам перехід */
 html.vt #app.enter > * { animation: none; }
 html.vt #app.enter .section > * { animation: none; }
+
+/* =====================================================================
+   ЗВАННЯ — мотивація: картка поточного звання, панель звання, відблиск погона,
+   святковий екран із перевертанням погона, прогрес після завдання дня
+   ===================================================================== */
+:root { --gold: #E8C468; --gold-2: #F4DE98; --rank-bg: linear-gradient(135deg, #18226A 0%, #10173F 55%, #121A33 100%); }
+
+/* металевий відблиск, що час від часу пробігає погоном */
+.pg-glint { animation: glint 5s ease-in-out infinite; }
+@keyframes glint { 0%, 58% { transform: skewX(-18deg) translateX(0); } 82%, 100% { transform: skewX(-18deg) translateX(72px); } }
+
+/* Картка поточного звання в «Моє» */
+.rank-hero {
+  position: relative; overflow: hidden; display: flex; align-items: center; gap: 14px; width: 100%; margin-top: 6px;
+  padding: 14px 14px 14px 12px; border-radius: 20px; border: 1px solid rgba(242, 193, 78, .28);
+  background: radial-gradient(120% 140% at 0% 0%, rgba(46, 108, 196, .38), transparent 60%), var(--rank-bg);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .07);
+  color: var(--text); font: inherit; text-align: left; cursor: pointer; transition: transform .12s ease;
+}
+.rank-hero:active { transform: scale(.985); }
+.rank-hero::after { content: ''; position: absolute; right: -40px; top: -60px; width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(circle, rgba(242, 193, 78, .16), transparent 70%); pointer-events: none; }
+.rh-pg { display: flex; flex-shrink: 0; }
+.rh-pg .pogon.big { width: 56px; height: 92px; animation: pgin .6s cubic-bezier(.3, 1.5, .5, 1) both; }
+.rh-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; position: relative; z-index: 1; }
+.rh-body .k { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--gold); }
+.rh-body > b { font-size: 24px; font-weight: 800; line-height: 1.15; letter-spacing: -.3px; text-wrap: balance; }
+.rh-bar { height: 6px; margin-top: 6px; border-radius: 3px; background: rgba(255, 255, 255, .12); overflow: hidden; }
+.rh-bar i { display: block; height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--gold), var(--gold-2)); box-shadow: 0 0 10px rgba(242, 193, 78, .6); animation: grow .9s .25s cubic-bezier(.2, .8, .2, 1) both; }
+.rh-next { font-size: 13px; line-height: 1.35; color: var(--text-2); }
+.rh-next b { color: var(--gold-2); font-weight: 700; }
+.rh-nx { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; position: relative; z-index: 1; }
+.rh-nx .pogon { width: 26px; height: 43px; }
+.rh-nx small { font-size: 10px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); }
+
+/* Сітка звань: кожне — кнопка, отримані з галочкою */
+.rank { border: none; background: none; font: inherit; color: inherit; cursor: pointer; -webkit-user-select: none; user-select: none; transition: transform .12s ease, background .2s; }
+.rank:active { transform: scale(.94); }
+.rk-ok { position: absolute; top: 6px; right: calc(50% - 30px); width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--ok); color: #fff; box-shadow: 0 0 0 2px var(--surface); z-index: 1; }
+.rk-ok svg { width: 10px; height: 10px; stroke-width: 3.6; }
+
+/* Нижня панель */
+.sheet-wrap { position: fixed; inset: 0; z-index: 150; display: flex; align-items: flex-end; justify-content: center; background: rgba(4, 9, 22, .62); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); animation: fade .25s ease; }
+.sheet-wrap.out { animation: sheetfade .26s ease forwards; }
+@keyframes sheetfade { to { opacity: 0; } }
+.sheet {
+  width: 100%; max-width: var(--maxw); max-height: 92vh; max-height: 92dvh; overflow-y: auto; overscroll-behavior: contain;
+  padding: 8px 20px calc(20px + env(safe-area-inset-bottom));
+  border-radius: 26px 26px 0 0; border: 1px solid var(--line-2); border-bottom: none;
+  background: radial-gradient(120% 60% at 50% 0%, rgba(46, 108, 196, .22), transparent 70%), var(--surface);
+  box-shadow: 0 -20px 50px rgba(0, 0, 0, .5);
+  animation: sheetin .44s cubic-bezier(.32, .72, 0, 1); transition: transform .3s cubic-bezier(.32, .72, 0, 1);
+}
+.sheet.drag { transition: none; }
+.sheet-wrap.out .sheet { transform: translateY(100%) !important; transition: transform .26s ease-in; }
+@keyframes sheetin { from { transform: translateY(100%); } }
+.sheet-grip { display: block; width: 40px; height: 5px; margin: 0 auto 6px; border-radius: 3px; background: rgba(255, 255, 255, .22); }
+.sheet-body { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.sheet-body.swap { animation: swapin .32s cubic-bezier(.2, .8, .3, 1); }
+@keyframes swapin { from { opacity: 0; transform: translateY(8px); } }
+.sheet-body > .btn { margin-top: 10px; }
+
+/* Панель звання */
+.rs-top { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+.rs-nav:disabled { opacity: .25; cursor: default; }
+.rs-pg { position: relative; display: flex; justify-content: center; padding: 8px 0 4px; }
+.rs-pg .pogon.big { position: relative; width: 84px; height: 138px; animation: pgin .55s cubic-bezier(.3, 1.5, .5, 1) both; }
+.rs-glow { position: absolute; left: 50%; top: 50%; width: 220px; height: 220px; margin: -110px 0 0 -110px; border-radius: 50%; background: radial-gradient(circle, rgba(242, 193, 78, .3), transparent 62%); opacity: 0; pointer-events: none; }
+.rs-pg.got .rs-glow { opacity: 1; animation: glowpulse 3.2s ease-in-out infinite; }
+@keyframes glowpulse { 50% { transform: scale(1.12); opacity: .7; } }
+.rs-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--surface-2); color: var(--text-2); }
+.rs-chip svg { width: 13px; height: 13px; stroke-width: 3.2; }
+.rs-chip.got { background: var(--ok-soft); color: var(--ok-line); }
+.rs-chip.cur { background: var(--accent); color: #fff; }
+.rs-chip.nx { background: var(--accent-soft); color: var(--accent-2); }
+.rs-group { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--gold); opacity: .85; margin-top: 2px; }
+.rs-title { margin: 0; font: 800 26px/1.15 var(--font); letter-spacing: -.3px; text-wrap: balance; }
+.rs-ins, .rs-text { margin: 0; max-width: 330px; font-size: 15px; line-height: 1.45; color: var(--text-2); text-wrap: pretty; }
+.rs-prog { width: 100%; margin-top: 6px; padding: 14px; border-radius: 14px; background: var(--surface-2); display: flex; flex-direction: column; gap: 8px; text-align: left; }
+.rs-prog-top { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); }
+.rs-prog-top b { color: var(--text); }
+.rs-bar { height: 8px; border-radius: 4px; background: rgba(255, 255, 255, .08); overflow: hidden; }
+.rs-bar i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), #F2C14E); animation: grow .8s .15s cubic-bezier(.2, .8, .2, 1) both; }
+.rs-left { font-size: 14px; line-height: 1.45; color: var(--text-2); }
+.rs-left b { color: var(--text); }
+.rs-done { display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; padding: 12px 14px; border-radius: 12px; background: var(--ok-soft); color: var(--ok-line); font-size: 14px; font-weight: 600; text-align: left; }
+.rs-done svg { width: 16px; height: 16px; stroke-width: 3; }
+.rs-dots { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-top: 12px; }
+.rs-dots i { width: 6px; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .14); transition: width .25s ease; }
+.rs-dots i.got { background: rgba(242, 193, 78, .6); }
+.rs-dots i.on { width: 18px; background: var(--accent-2); }
+
+/* «Завдання дня»: погон наступного звання поруч зі смужкою; у тижні — міні-погон у день нового звання */
+.next-rank { flex-direction: row; align-items: center; gap: 12px; }
+.nr-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
+.nr-txt b { font-weight: 800; }
+.nr-pg { display: flex; flex-shrink: 0; position: relative; z-index: 1; }
+.nr-pg .pogon { width: 24px; height: 40px; animation: pgfloat 3s ease-in-out infinite; }
+.wd.rk i .pogon { width: 15px; height: 25px; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .35)); }
+.wd.rk i .pogon svg { width: 100%; height: 100%; fill: none; stroke: none; }
+
+/* Після завдання дня: смужка до наступного звання підростає */
+.res-rank {
+  display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px; border-radius: var(--r);
+  border: 1px solid rgba(242, 193, 78, .3); background: var(--rank-bg); color: var(--text); font: inherit; text-align: left; cursor: pointer;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, .3); animation: rise .4s .3s ease-out both;
+}
+.res-rank:active { transform: scale(.985); }
+.rr-pg { display: flex; flex-shrink: 0; }
+.rr-pg .pogon { width: 34px; height: 56px; }
+.rr-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.rr-body .k, .res-rank .k { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--gold); }
+.rr-body b { font-size: 18px; font-weight: 800; letter-spacing: -.2px; }
+.rr-bar { height: 8px; margin-top: 4px; border-radius: 4px; background: rgba(255, 255, 255, .1); overflow: hidden; }
+.rr-bar i { display: block; height: 100%; width: var(--to); border-radius: 4px; background: linear-gradient(90deg, var(--gold), var(--gold-2)); box-shadow: 0 0 12px rgba(242, 193, 78, .6); animation: rrfill 1.1s .75s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes rrfill { from { width: var(--from); } }
+.rr-txt { font-size: 13px; color: var(--text-2); }
+.rr-txt em { font-style: normal; font-weight: 800; color: var(--gold-2); }
+
+/* Святковий екран: старий погон перевертається — з’являється новий на тлі променів */
+.cel-card { border-color: rgba(242, 193, 78, .32); background: radial-gradient(120% 70% at 50% 0%, rgba(46, 108, 196, .4), transparent 62%), var(--rank-bg); }
+.cel-stage { position: relative; width: 150px; height: 150px; margin: -6px 0 2px; display: flex; align-items: center; justify-content: center; perspective: 600px; }
+.cel-rays {
+  position: absolute; inset: -24px; border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, rgba(242, 193, 78, .28) 0deg 7deg, transparent 7deg 18deg);
+  -webkit-mask: radial-gradient(circle, #000 22%, transparent 68%); mask: radial-gradient(circle, #000 22%, transparent 68%);
+  animation: rays 16s linear infinite, raysin .7s .8s ease-out both;
+}
+@keyframes rays { to { transform: rotate(360deg); } }
+@keyframes raysin { from { opacity: 0; } }
+.cel-old, .cel-new { position: absolute; display: flex; -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+.cel-stage .pogon.big { width: 72px; height: 118px; animation: none; }
+.cel-old { animation: celout .45s .35s cubic-bezier(.5, 0, .75, 0) both; }
+.cel-new { animation: celin .65s .8s cubic-bezier(.25, 1.45, .5, 1) both; }
+@keyframes celout { to { transform: rotateY(90deg) scale(.92); } }
+@keyframes celin { from { transform: rotateY(-90deg) scale(.92); } }
+.cel-k { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); animation: rise .4s 1.1s ease-out both; }
+.cel-card h2 { margin: 0; font-size: 26px; letter-spacing: -.3px; animation: rise .4s 1.2s ease-out both; }
+.cel-card .cel-days, .cel-card p, .cel-card .cel-next, .cel-card .btn { animation: rise .4s 1.3s ease-out both; }
+/* наступне звання — уже в кольорі, але приглушене: ціль видно, і її хочеться «засвітити» */
+.rh-nx .pogon, .rr-pg .pogon { opacity: .55; filter: saturate(.7) drop-shadow(0 3px 6px rgba(0,0,0,.35)); }

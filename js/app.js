@@ -420,31 +420,66 @@ window.SAFELEX_DB = (function () {
     genEmblem + stars(1, 41), genEmblem + stars(2, 41), genEmblem + stars(3, 41), // Генерал-майор … генерал-полковник
     genEmblem + star8(20, 36, 7.6)                                             // Генерал
   ];
-  const badge = (r, got, big) => {
+  // shine — металевий відблиск, що час від часу пробігає погоном (поточне й щойно отримане звання)
+  let pgUid = 0;
+  const badge = (r, got, big, shine) => {
     const i = RANKS.indexOf(r), gen = r.title.startsWith('Генерал');
+    const shape = gen ? '<path d="M5,63 V11 L12,3.5 H28 L35,11 V63 Z"/>' : '<rect x="5" y="3" width="30" height="60" rx="2"/>';
     const field = gen
       ? '<path class="pg-f pg-gen" d="M5,63 V11 L12,3.5 H28 L35,11 V63 Z"/><circle class="pg-g" cx="20" cy="10" r="2.6"/><circle class="pg-l" cx="19.3" cy="9.3" r="1"/>'
       : '<rect class="pg-f" x="5" y="3" width="30" height="60" rx="2"/>';
+    const id = shine && got ? 'pg' + (++pgUid) : '';
+    const glint = id ? `<defs><clipPath id="${id}c">${shape}</clipPath><linearGradient id="${id}g" x1="0" x2="1">
+        <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
+      <g clip-path="url(#${id}c)"><rect class="pg-glint" x="-16" y="-10" width="12" height="90" fill="url(#${id}g)" transform="skewX(-18)"/></g>` : '';
     return `<span class="pogon ${got ? 'got' : 'locked'} ${big ? 'big' : ''}" title="${esc(r.title)}">
-      <svg viewBox="0 0 40 66" aria-hidden="true">${field}${PG[i] || ''}</svg></span>`;
+      <svg viewBox="0 0 40 66" aria-hidden="true">${field}${PG[i] || ''}${glint}</svg></span>`;
   };
+  // Що зображено на погоні (за зразками ДСНС) і до якого складу належить звання
+  const RANK_INS = [
+    'Темно-синій погон із золотою літерою «К».', 'Чистий темно-синій погон, без знаків розрізнення.',
+    'Одна трикутна зірка.', 'Трикутна зірка й золота планка внизу погона.', 'Дві трикутні зірки й золота планка.',
+    'Одна восьмикутна зірка.', 'Дві восьмикутні зірки.', 'Три восьмикутні зірки.', 'Чотири восьмикутні зірки.',
+    'Гілочки дуба й одна восьмикутна зірка.', 'Гілочки дуба й дві восьмикутні зірки.', 'Гілочки дуба й три восьмикутні зірки.',
+    'Погон із кантом і ґудзиком; емблема з тризубом у дубовому вінку й одна зірка.',
+    'Погон із кантом і ґудзиком; емблема з тризубом і дві зірки.',
+    'Погон із кантом і ґудзиком; емблема з тризубом і три зірки.',
+    'Погон із кантом і ґудзиком; емблема з тризубом і велика восьмикутна зірка.'
+  ];
+  const rankGroup = i => i === 0 ? 'Курсант навчального закладу' : i === 1 ? 'Рядовий склад' : i <= 4 ? 'Молодший начальницький склад'
+    : i <= 8 ? 'Середній начальницький склад' : i <= 11 ? 'Старший начальницький склад' : 'Вищий начальницький склад';
+  // Коли буде звання, якщо не пропускати жодного дня
+  function rankDate(need) {
+    const left = need - streak();
+    if (left <= 0) return null;
+    const d = new Date(); d.setDate(d.getDate() + (doneToday() ? left : left - 1));
+    const opts = { day: 'numeric', month: 'long' };
+    if (d.getFullYear() !== new Date().getFullYear()) opts.year = 'numeric';
+    return d.toLocaleDateString('uk-UA', opts);
+  }
 
-  // Святковий екран на нове звання
+  // Святковий екран на нове звання: старий погон перевертається — і на його місці новий, з відблиском і променями
   function celebrate(r) {
     const colors = ['#FFC53D', '#D4570F', '#F28A45', '#7FD49B', '#9DB4D8', '#fff'];
-    const bits = Array.from({ length: 40 }, (_, i) =>
-      `<i style="left:${Math.random() * 100}%;background:${colors[i % colors.length]};animation-delay:${(Math.random() * 0.6).toFixed(2)}s;animation-duration:${(1.8 + Math.random() * 1.4).toFixed(2)}s;transform:rotate(${Math.floor(Math.random() * 360)}deg)"></i>`).join('');
+    const bits = Array.from({ length: 48 }, (_, i) =>
+      `<i style="left:${Math.random() * 100}%;background:${colors[i % colors.length]};animation-delay:${(.7 + Math.random() * 0.7).toFixed(2)}s;animation-duration:${(1.8 + Math.random() * 1.4).toFixed(2)}s;transform:rotate(${Math.floor(Math.random() * 360)}deg)"></i>`).join('');
+    const prev = RANKS[RANKS.indexOf(r) - 1], next = nextRank(r.days);
     const el = document.createElement('div');
     el.className = 'celebrate';
     el.innerHTML = `
       <div class="confetti">${bits}</div>
       <div class="cel-card" role="dialog" aria-label="Нове звання">
-        ${badge(r, true, true)}
-        <span class="cel-days">${I.flame}${nDays(r.days)} поспіль!</span>
-        <h2>Нове звання: ${esc(r.title)}</h2>
+        <div class="cel-stage">
+          <i class="cel-rays"></i>
+          ${prev ? `<span class="cel-old">${badge(prev, true, true)}</span>` : ''}
+          <span class="cel-new">${badge(r, true, true, true)}</span>
+        </div>
+        <span class="cel-k">Присвоєно звання</span>
+        <h2>${esc(r.title)}</h2>
+        <span class="cel-days">${I.flame}${nDays(r.days)} поспіль</span>
         <p>${esc(r.text)}</p>
-        ${nextRank(r.days) ? `<span class="cel-next">Наступне — «${esc(nextRank(r.days).title)}» за ${nDays(nextRank(r.days).days)}</span>` : ''}
-        <button class="btn" data-action="cel-close">Продовжити</button>
+        ${next ? `<span class="cel-next">Наступне — «${esc(next.title)}» за серію ${nDays(next.days)}</span>` : ''}
+        <button class="btn" data-action="cel-close">Служу Україні!</button>
       </div>`;
     // Закривається кнопкою, торканням поза карткою або клавішею Esc
     el.addEventListener('click', e => { if (e.target === el) el.remove(); });
@@ -453,6 +488,79 @@ window.SAFELEX_DB = (function () {
     document.body.appendChild(el);
     el.querySelector('.btn').focus({ preventScroll: true });
     vibrate([30, 60, 30, 60, 120]);
+  }
+
+  /* ---------- Нижня панель (як у застосунках iOS): тягніть донизу або торкніться поза нею, щоб закрити ---------- */
+  function openSheet(html, cls = '') {
+    document.querySelector('.sheet-wrap')?.remove();
+    const wrap = document.createElement('div');
+    wrap.className = 'sheet-wrap';
+    wrap.innerHTML = `<div class="sheet ${cls}" role="dialog" aria-modal="true"><i class="sheet-grip"></i><div class="sheet-body">${html}</div></div>`;
+    const sh = wrap.firstElementChild;
+    const close = () => {
+      if (wrap.classList.contains('out')) return;
+      wrap.classList.add('out'); sh.style.transform = '';
+      setTimeout(() => wrap.remove(), 260);
+      document.removeEventListener('keydown', onKey);
+    };
+    const onKey = e => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', onKey);
+    wrap.addEventListener('click', e => { if (e.target === wrap || e.target.closest('[data-action="sheet-close"]')) close(); });
+    // жест: потягнути панель донизу
+    let y0 = null, dy = 0;
+    sh.addEventListener('touchstart', e => { if (sh.scrollTop <= 0) { y0 = e.touches[0].clientY; dy = 0; } }, { passive: true });
+    sh.addEventListener('touchmove', e => {
+      if (y0 == null) return;
+      dy = Math.max(0, e.touches[0].clientY - y0);
+      if (dy > 0) { e.preventDefault(); sh.classList.add('drag'); sh.style.transform = `translateY(${dy}px)`; }
+    }, { passive: false });
+    sh.addEventListener('touchend', () => {
+      if (y0 == null) return;
+      y0 = null; sh.classList.remove('drag');
+      if (dy > 90) close(); else sh.style.transform = '';
+    });
+    document.body.appendChild(wrap);
+    vibrate(10);
+    return { wrap, sheet: sh, close };
+  }
+
+  // Картка звання: погон крупно, що на ньому зображено, скільки лишилося і коли буде, якщо не пропускати
+  function rankSheetHtml(i) {
+    const r = RANKS[i], best = bestStreak(), days = streak(), cur = rankOf(best);
+    const got = best >= r.days, isCur = r === cur, isNext = r === nextRank(best);
+    const status = isCur ? '<span class="rs-chip cur">Ваше звання</span>' : got ? `<span class="rs-chip got">${I.check}Отримано</span>`
+      : isNext ? '<span class="rs-chip nx">Наступне</span>' : '<span class="rs-chip">Ще попереду</span>';
+    const prevDays = RANKS[i - 1]?.days ?? 0, left = Math.max(0, r.days - days);
+    const pct = got ? 100 : Math.round(Math.min(1, Math.max(0, (days - prevDays) / (r.days - prevDays || 1))) * 100);
+    const when = got ? '' : rankDate(r.days);
+    return `
+      <div class="rs-top">
+        <button class="icon-btn rs-nav" data-rank="${i - 1}" ${i ? '' : 'disabled'} aria-label="Попереднє звання">${I.back}</button>
+        <span class="rs-pg ${got ? 'got' : ''}"><i class="rs-glow"></i>${badge(r, got, true, got)}</span>
+        <button class="icon-btn rs-nav" data-rank="${i + 1}" ${i < RANKS.length - 1 ? '' : 'disabled'} aria-label="Наступне звання"><svg viewBox="0 0 24 24" style="stroke-width:2.4"><path d="m9 6 6 6-6 6"/></svg></button>
+      </div>
+      ${status}
+      <span class="rs-group">${rankGroup(i)}</span>
+      <h2 class="rs-title">${esc(r.title)}</h2>
+      <p class="rs-ins">${RANK_INS[i]}</p>
+      ${got ? `<p class="rs-text">${esc(r.text)}</p>` : `
+        <div class="rs-prog">
+          <div class="rs-prog-top"><span>Серія зараз: <b>${nDays(days)}</b></span><span>потрібно ${r.days}</span></div>
+          <div class="rs-bar"><i style="width:${pct}%"></i></div>
+          <span class="rs-left">Ще <b>${nDays(left)}</b> поспіль${when ? ` · це <b>${when}</b>, якщо не пропускати` : ''}</span>
+        </div>`}
+      ${doneToday() ? `<span class="rs-done">${I.check}Завдання дня сьогодні виконано — наступне завтра</span>`
+        : `<a class="btn" href="#/train/daily">${I.flame}Виконати завдання дня</a>`}
+      <span class="rs-dots">${RANKS.map((x, k) => `<i class="${k === i ? 'on' : ''} ${best >= x.days ? 'got' : ''}"></i>`).join('')}</span>`;
+  }
+  function openRank(i) {
+    i = Math.max(0, Math.min(RANKS.length - 1, i));
+    const open = document.querySelector('.sheet.rank-sheet .sheet-body');
+    if (open) { // гортання стрілками — вміст міняється плавно, панель лишається
+      open.innerHTML = rankSheetHtml(i); open.classList.remove('swap'); void open.offsetWidth; open.classList.add('swap');
+      vibrate(8); return;
+    }
+    openSheet(rankSheetHtml(i), 'rank-sheet');
   }
 
   /* ---------- Установка як додаток (кнопка «Встановити») ---------- */
@@ -579,7 +687,7 @@ window.SAFELEX_DB = (function () {
     const week = [0, 1, 2, 3, 4, 5, 6].map(i => {
       const d = new Date(); d.setDate(d.getDate() + i);
       const n = base + i, r = RANKS.find(r => r.days === n);
-      const inner = i === 0 && done ? I.flame : r ? I.star : `<b class="len${String(n).length}">${n}</b>`;
+      const inner = i === 0 && done ? I.flame : r ? badge(r, true) : `<b class="len${String(n).length}">${n}</b>`;
       return `<span class="wd ${i === 0 ? 'today' : ''} ${i === 0 && done ? 'on' : ''} ${r ? 'rk' : ''}" ${r ? `title="День ${n}: звання «${esc(r.title)}»"` : ''}><i>${inner}</i>${i === 0 ? 'Сьогодні' : ['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'][d.getDay()]}</span>`;
     }).join('');
     const from = prev ? prev.days : 0;
@@ -597,8 +705,11 @@ window.SAFELEX_DB = (function () {
         <span class="week">${week}</span>
         ${next ? `
           <span class="next-rank">
-            <span class="nr-bar"><span style="width:${Math.round((days - from) / (next.days - from) * 100)}%"></span></span>
-            <span class="nr-txt">${esc(prev.title)} · до звання «${esc(next.title)}» ще ${nDays(next.days - days)}</span>
+            <span class="nr-main">
+              <span class="nr-bar"><span style="width:${Math.round((days - from) / (next.days - from) * 100)}%"></span></span>
+              <span class="nr-txt">${esc(prev.title)} → <b>${esc(next.title)}</b> · ще ${nDays(next.days - days)}</span>
+            </span>
+            <span class="nr-pg">${badge(next, true)}</span>
           </span>` : `<span class="nr-txt">Найвище звання — «Генерал»</span>`}
       </a>`;
   }
@@ -993,22 +1104,37 @@ window.SAFELEX_DB = (function () {
     });
   }
 
+  // Картка поточного звання: погон із відблиском, смужка до наступного звання і його погон
+  function rankHero(rank, best, days) {
+    const i = RANKS.indexOf(rank), next = nextRank(best);
+    const from = rank.days, pct = next ? Math.round(Math.min(1, Math.max(0, (days - from) / (next.days - from))) * 100) : 100;
+    return `
+      <button class="rank-hero" data-rank="${i}" aria-label="Ваше звання: ${esc(rank.title)}">
+        <span class="rh-pg">${badge(rank, true, true, true)}</span>
+        <span class="rh-body">
+          <span class="k">Ваше звання · ${i + 1} з ${RANKS.length}</span>
+          <b>${esc(rank.title)}</b>
+          ${next ? `
+            <span class="rh-bar"><i style="width:${pct}%"></i></span>
+            <span class="rh-next">до «${esc(next.title)}» — ще <b>${nDays(Math.max(0, next.days - days))}</b> поспіль</span>`
+          : '<span class="rh-next">Найвище звання служби цивільного захисту</span>'}
+        </span>
+        ${next ? `<span class="rh-nx">${badge(next, true)}<small>далі</small></span>` : ''}
+      </button>`;
+  }
+
   function renderMe() {
     const days = streak(), best = bestStreak(), p = progressOf(TERMS), n = TERMS.length || 1;
     const saved = TERMS.filter(t => favs.has(t.id));
     const rank = rankOf(best);
     app.innerHTML = `
       <header class="hero">
-        <div class="me-head">
-          ${badge(rank, true)}
-          <span class="me-title"><span class="k">Ваше звання</span><b>${esc(rank.title)}</b>
-            <span class="s">${nextRank(best) ? `Наступне — «${esc(nextRank(best).title)}»: серія ${nDays(nextRank(best).days)}` : 'Найвище звання в додатку'}</span></span>
-        </div>
+        ${rankHero(rank, best, days)}
         <div class="me-stats">
           <span class="lv${streakLv(days)}"><b class="fl">${I.flame}<em data-count="${days}">${days}</em></b>${plural(days, 'день', 'дні', 'днів')} поспіль
             <small class="ms-hint">${streakHint(days, best)}</small></span>
           <span class="lv${streakLv(best)}"><b><em data-count="${best}">${best}</em></b>рекорд серії
-            <small class="ms-hint">${nextRank(best) ? `до «${esc(nextRank(best).title)}» ще ${nDays(nextRank(best).days - best)}` : 'найвище звання'}</small></span>
+            <small class="ms-hint">${!best ? 'ще попереду' : days >= best ? 'це ваш рекорд — тримайте!' : `поточна серія — ${nDays(days)}`}</small></span>
           <span class="lv${masteredLv(p.mastered / n)}"><b><em data-count="${p.mastered}">${p.mastered}</em></b>вивчено
             <small class="ms-hint">${Math.round(p.mastered / n * 100)}% бази · вчу ${p.learning}</small>
             <i class="ms-bar"><i style="width:${p.mastered / n * 100}%"></i></i></span>
@@ -1032,12 +1158,13 @@ window.SAFELEX_DB = (function () {
             ${learnHelp()}
           </details>
         </div>
-        <div class="section-head"><h2>Звання</h2><span class="meta">за серію днів</span></div>
-        <div class="ranks">${RANKS.map(r => {
+        <div class="section-head"><h2>Звання</h2><span class="meta">${RANKS.filter(r => best >= r.days).length} з ${RANKS.length} · торкніться</span></div>
+        <div class="ranks">${RANKS.map((r, i) => {
           const got = best >= r.days, cur = r === rank, nx = r === nextRank(best);
-          return `<span class="rank ${cur ? 'cur' : ''} ${nx ? 'nx' : ''} ${got ? 'got' : ''}" style="--i:${RANKS.indexOf(r)}">${badge(r, got)}
+          return `<button class="rank ${cur ? 'cur' : ''} ${nx ? 'nx' : ''} ${got ? 'got' : ''}" style="--i:${i}" data-rank="${i}" aria-label="${esc(r.title)}">
+            ${got && !cur ? `<i class="rk-ok">${I.check}</i>` : ''}${badge(r, got, false, cur)}
             <span class="rk-t">${esc(r.title)}</span>
-            <span class="rk-d">${cur ? 'ви тут' : nx ? `ще ${nDays(r.days - best)}` : r.days ? nDays(r.days) : 'старт'}</span></span>`;
+            <span class="rk-d">${cur ? 'ви тут' : nx ? `ще ${nDays(r.days - best)}` : r.days ? nDays(r.days) : 'старт'}</span></button>`;
         }).join('')}</div>
         <div class="section-head"><h2>Збережені</h2>${saved.length >= 2 ? `<a href="#/train?cat=fav">Тренувати</a>` : ''}</div>
         ${saved.length ? `<div class="list">${saved.map(t => `
@@ -1393,6 +1520,24 @@ window.SAFELEX_DB = (function () {
     ? `<span class="res-gain"><i>${I.check}</i>+${gained} ${plural(gained, 'галочка', 'галочки', 'галочок')}${learned ? ` · ${learned} ${plural(learned, 'термін', 'терміни', 'термінів')} вивчено` : ''}</span>`
     : `<span class="res-gain muted">Нових галочок немає — сьогодні ці терміни вже зараховано</span>`;
 
+  // Після завдання дня: смужка до наступного звання помітно підростає на сьогоднішній день
+  function rankProgress(days) {
+    const next = nextRank(days), cur = rankOf(days);
+    if (!next) return `<div class="res-rank top">${badge(cur, true, false, true)}<span class="rr-body"><span class="k">Найвище звання</span><b>${esc(cur.title)}</b></span></div>`;
+    const span = next.days - cur.days, pct = d => Math.round(Math.min(1, Math.max(0, (d - cur.days) / span)) * 100);
+    const fresh = cur.days === days && days > 0; // звання отримано саме сьогодні
+    return `
+      <button class="res-rank" data-rank="${RANKS.indexOf(next)}">
+        <span class="rr-pg">${badge(next, true)}</span>
+        <span class="rr-body">
+          <span class="k">Наступне звання</span>
+          <b>${esc(next.title)}</b>
+          <span class="rr-bar"><i style="--from:0%;--to:${fresh ? 2 : pct(days)}%;${fresh ? '' : `--from:${pct(days - 1)}%`}"></i></span>
+          <span class="rr-txt">${fresh ? `<em>«${esc(cur.title)}» — ваше!</em>` : '<em>+1 день</em>'} · ще ${nDays(next.days - days)} поспіль</span>
+        </span>
+      </button>`;
+  }
+
   function quizResult() {
     const pct = tr.base ? tr.score / tr.base : 0;
     const daily = tr.mode === 'daily', days = streak();
@@ -1405,6 +1550,7 @@ window.SAFELEX_DB = (function () {
         ${daily ? `<span class="res-fire">${I.flame}${nDays(days)} поспіль</span>` : ''}
         ${gainLine(tr.gained, tr.learned)}
       </div>
+      ${daily ? rankProgress(days) : ''}
       ${missList(tr.missed)}
       ${daily ? `<a class="btn" href="#/">Готово</a>` : `
         <button class="btn" data-action="restart">Ще раз</button>
@@ -1836,6 +1982,7 @@ window.SAFELEX_DB = (function () {
     stopTicker();
     guideObs?.disconnect();
     document.querySelector('.celebrate')?.remove();
+    document.querySelector('.sheet-wrap')?.remove();
     document.body.classList.remove('dark', 'kb');
     // після жесту «назад» новий екран стає на місце одразу, без зворотного руху
     if (app.style.transform) {
@@ -1905,7 +2052,7 @@ window.SAFELEX_DB = (function () {
 
   /* =================== НАТИСКАННЯ =================== */
   document.addEventListener('click', e => {
-    const el = e.target.closest('[data-action],[data-cat],[data-q],[data-pick],[data-tcat],[data-letter],[data-mt],[data-sprint],[data-day]');
+    const el = e.target.closest('[data-action],[data-cat],[data-q],[data-pick],[data-tcat],[data-letter],[data-mt],[data-sprint],[data-day],[data-rank]');
     if (!el) return;
     const d = el.dataset;
 
@@ -1920,6 +2067,7 @@ window.SAFELEX_DB = (function () {
     }
     if (d.mt) { matchTap(d.mt, d.id); return; }
     if (d.day) { showDay(d.day, el); return; }
+    if (d.rank) { if (!el.disabled) openRank(+d.rank); return; }
     if (d.sprint) { if (ticker && !sp.over) sprintAnswer(d.sprint === '1'); return; }
 
     switch (d.action) {
