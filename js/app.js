@@ -2412,9 +2412,20 @@ window.SAFELEX_DB = (function () {
   // Встановлений додаток (особливо на iPhone) часто не перезапускається днями,
   // а лише «прокидається» з фону. Тому при кожному поверненні в додаток
   // перевіряємо, чи не вийшла нова версія, і тихо оновлюємося.
-  const BG_RELOAD_MS = 30 * 60 * 1000; // якщо додаток був у фоні довше 30 хв
-  let hiddenAt = 0;
+  // Перезавантажуємо лише тоді, коли файли на сервері справді змінилися
+  // (порівнюємо їхні ETag), а не щоразу — інакше сторінка блимала б при кожному відкритті.
+  const VERSION_FILES = ['index.html', 'js/app.js', 'data/terms.js', 'css/style.css'];
+  let loadedVersion = null;
   let reloadPending = false;
+
+  function serverVersion() {
+    return Promise.all(VERSION_FILES.map(f =>
+      fetch(f, { method: 'HEAD', cache: 'no-store' }).then(r => {
+        if (!r.ok) throw new Error(f);
+        return (r.headers.get('etag') || '').replace(/^W\//, '');
+      })
+    )).then(tags => tags.some(Boolean) ? tags.join('|') : null);
+  }
   const inMode = () => location.hash.startsWith('#/train/');
 
   // Перезавантажуємо лише там, де користувач нічого не втратить (не посеред тренування)
@@ -2440,12 +2451,16 @@ window.SAFELEX_DB = (function () {
     navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController) safeReload(); });
 
     window.addEventListener('load', () => {
+      if (navigator.onLine) serverVersion().then(v => { loadedVersion = v; }).catch(() => {});
       navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
         document.addEventListener('visibilitychange', () => {
-          if (document.visibilityState === 'hidden') { hiddenAt = Date.now(); return; }
-          if (!navigator.onLine) return;
+          if (document.visibilityState !== 'visible' || !navigator.onLine) return;
           reg.update().catch(() => {});
-          if (hiddenAt && Date.now() - hiddenAt > BG_RELOAD_MS) safeReload(); // свіжі терміни після довгої паузи
+          serverVersion().then(v => {
+            if (!v) return;
+            if (!loadedVersion) { loadedVersion = v; return; }
+            if (v !== loadedVersion) safeReload(); // на сервері нова версія — підтягуємо свіжі терміни
+          }).catch(() => {});
         });
       }).catch(() => {});
     });
