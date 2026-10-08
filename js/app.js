@@ -512,7 +512,6 @@ window.SAFELEX_DB = (function () {
 
   window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault(); installEvent = e;
-    if (!location.hash || location.hash === '#/') drawHome();
   });
   window.addEventListener('appinstalled', () => {
     installEvent = null; store.set('safelex:hideInstall', true);
@@ -522,9 +521,8 @@ window.SAFELEX_DB = (function () {
   function installCard() {
     if (isStandalone() || store.get('safelex:hideInstall', false)) return '';
     let text = '', btn = '';
-    if (installEvent) { text = 'Додайте SafeLex на екран телефона — працюватиме як звичайний застосунок, навіть без інтернету.'; btn = `<button class="btn" data-action="install">Встановити</button>`; }
+    if (installEvent || isAndroid) { text = 'Додайте SafeLex на екран телефона — працюватиме як звичайний застосунок, навіть без інтернету.'; btn = `<button class="btn" data-action="install">Встановити</button>`; }
     else if (isIOS) text = 'Щоб встановити на iPhone: натисніть «Поділитися» внизу Safari, потім «На екран „Додому“».';
-    else if (isAndroid) text = 'Щоб встановити: меню ⋮ у Chrome → «Встановити додаток» або «Додати на головний екран».';
     else return '';
     return `
       <div class="install-card">
@@ -2117,7 +2115,10 @@ window.SAFELEX_DB = (function () {
         vibrate(15);
         break;
       }
-      case 'install': if (installEvent) { installEvent.prompt(); installEvent.userChoice.finally(() => { installEvent = null; route(); }); } break;
+      case 'install':
+        if (installEvent) { installEvent.prompt(); installEvent.userChoice.finally(() => { installEvent = null; route(); }); }
+        else alert('Щоб встановити: меню ⋮ у Chrome → «Встановити додаток» або «Додати на головний екран».');
+        break;
       case 'hide-install': store.set('safelex:hideInstall', true); el.closest('.install-card')?.remove(); break;
       case 'next': nextQuestion(); break;
       case 'check': submitTyped(false); break;
@@ -2225,9 +2226,8 @@ window.SAFELEX_DB = (function () {
   route();
 
   const splash = document.getElementById('splash');
-  let splashSeen = false;
-  try { splashSeen = !!sessionStorage.getItem('safelex:splash'); sessionStorage.setItem('safelex:splash', '1'); } catch {}
-  if (splashSeen) splash.remove();
+  try { localStorage.setItem('safelex:launched', '1'); } catch {}
+  if (document.documentElement.classList.contains('returning')) splash.remove();
   else setTimeout(() => { splash.classList.add('hide'); setTimeout(() => splash.remove(), 400); }, 700);
 
   function showUpdateToast() {

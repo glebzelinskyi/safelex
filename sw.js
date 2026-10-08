@@ -1,4 +1,4 @@
-const VERSION = 9;
+const VERSION = 10;
 const CACHE = 'safelex-v' + VERSION;
 const NET_TIMEOUT_MS = 3000, SLOW_WINDOW_MS = 30000;
 let slowUntil = 0;
@@ -11,6 +11,7 @@ const ASSETS = [
   './fonts/onest-latin-wght-normal.woff2',
   './fonts/unbounded-cyrillic-wght-normal.woff2',
   './fonts/unbounded-latin-wght-normal.woff2',
+  './js/boot.js',
   './js/app.js',
   './data/terms.js',
   './manifest.webmanifest',
