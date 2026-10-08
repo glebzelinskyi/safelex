@@ -48,7 +48,8 @@ window.SAFELEX_DB = (function () {
 
   const { cats: CATEGORIES, terms: TERMS, march: MARCH_STEPS, sources: SOURCES } = window.SAFELEX_DB;
   const app = document.getElementById('app');
-  const catById = Object.fromEntries(CATEGORIES.map(c => [c.id, c]));
+  const lookup = entries => Object.assign(Object.create(null), Object.fromEntries(entries));
+  const catById = lookup(CATEGORIES.map(c => [c.id, c]));
 
   (function checkTerms() {
     const ids = new Set();
@@ -61,8 +62,8 @@ window.SAFELEX_DB = (function () {
     TERMS.length = 0;
     valid.forEach(t => TERMS.push(t));
   })();
-  const termById = Object.fromEntries(TERMS.map(t => [t.id, t]));
-  const byCat = {};
+  const termById = lookup(TERMS.map(t => [t.id, t]));
+  const byCat = Object.create(null);
   TERMS.forEach(t => (byCat[t.cat] ||= []).push(t));
   const CORE = TERMS.filter(t => t.core);
   const srcTitle = t => SOURCES[t.src]?.title || '';
@@ -668,7 +669,7 @@ window.SAFELEX_DB = (function () {
     qHist.unshift(q); qHist.length = Math.min(qHist.length, 8);
     store.set('safelex:qhist', qHist);
   }
-  const TRY_Q = ['arson', 'рукав', 'foam', 'breathing apparatus', 'вогнегасник', 'hydrant', 'дим', 'rescue'];
+  const TRY_Q = ['arson', 'горіння', 'fire alarm', 'breathing apparatus', 'вогнегасник', 'first aid', 'задимлення', 'false alarm'];
 
   function renderHome() {
     app.innerHTML = `
@@ -683,7 +684,7 @@ window.SAFELEX_DB = (function () {
         </div>
         <label class="searchbox">
           ${I.search}
-          <input id="q" type="search" value="${esc(lastQuery)}" placeholder="hose, arson, рукав…" aria-label="Пошук терміна" enterkeyhint="search" autocomplete="off" autocapitalize="off" spellcheck="false">
+          <input id="q" type="search" value="${esc(lastQuery)}" placeholder="arson, fire alarm, горіння…" aria-label="Пошук терміна" enterkeyhint="search" autocomplete="off" autocapitalize="off" spellcheck="false">
           <button class="clear" data-action="clear" aria-label="Очистити" ${lastQuery ? '' : 'hidden'}>${I.x}</button>
         </label>
         <div class="chips scroll" id="qchips"></div>
@@ -1466,6 +1467,7 @@ window.SAFELEX_DB = (function () {
 
   function runMode(mode, cat) {
     cat = cat || trainCat;
+    if (!['all', 'core', 'fav'].includes(cat) && !catById[cat]) cat = 'all';
     if (mode === 'daily') return startQuiz('daily', 'all');
     if (mode === 'quiz' || mode === 'mistakes') return startQuiz(mode, cat);
     if (mode === 'cards') return startCards(cat);
@@ -1624,7 +1626,8 @@ window.SAFELEX_DB = (function () {
 
   function rateCard(knows) {
     const t = cd.deck[cd.i];
-    const g = grade(t.id, knows);
+    const repeat = !knows && cd.requeued.has(t.id);
+    const g = repeat ? (logAnswer(false), { gain: 0, mastered: false }) : grade(t.id, knows);
     if (g.gain > 0) cd.gained++;
     if (g.mastered) cd.learned++;
     if (knows) cd.known++;
@@ -1958,7 +1961,7 @@ window.SAFELEX_DB = (function () {
     app.classList.remove('enter');
     sp.total++;
     if (right) { sp.score++; vibrate(15); logAnswer(true); }
-    else { vibrate([40, 60, 40]); grade(p.t.id, false); if (!sp.missed.includes(p.t)) sp.missed.push(p.t); }
+    else { vibrate([40, 60, 40]); logAnswer(false); if (!sp.missed.includes(p.t)) sp.missed.push(p.t); }
     sp.flash = right ? 'ok' : 'bad';
     nextPair(); drawSprint();
   }
