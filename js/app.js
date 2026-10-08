@@ -2221,7 +2221,11 @@ window.SAFELEX_DB = (function () {
     html.classList.add('vt');
     const vt = document.startViewTransition(route);
     vt.ready.catch(() => {});
-    vt.finished.catch(() => {}).finally(() => html.classList.remove('vt'));
+    vt.finished.catch(() => {}).finally(() => {
+      clearTimeout(route.enterTimer);
+      app.classList.remove('enter');
+      html.classList.remove('vt');
+    });
   });
   route();
 
