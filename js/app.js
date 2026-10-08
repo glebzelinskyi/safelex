@@ -2230,25 +2230,6 @@ window.SAFELEX_DB = (function () {
   if (splashSeen) splash.remove();
   else setTimeout(() => { splash.classList.add('hide'); setTimeout(() => splash.remove(), 400); }, 700);
 
-  const VERSION_FILES = ['index.html', 'js/app.js', 'data/terms.js', 'css/style.css'];
-  let loadedVersion = null;
-  let reloadPending = false;
-
-  function serverVersion() {
-    return Promise.all(VERSION_FILES.map(f =>
-      fetch(f, { method: 'HEAD', cache: 'no-store' }).then(r => {
-        if (!r.ok) throw new Error(f);
-        return (r.headers.get('etag') || '').replace(/^W\//, '');
-      })
-    )).then(tags => tags.some(Boolean) ? tags.join('|') : null);
-  }
-  const inMode = () => location.hash.startsWith('#/train/');
-
-  function safeReload() {
-    if (inMode()) { reloadPending = true; showUpdateToast(); return; }
-    location.reload();
-  }
-
   function showUpdateToast() {
     if (document.querySelector('.update-toast')) return;
     const t = document.createElement('button');
@@ -2258,23 +2239,14 @@ window.SAFELEX_DB = (function () {
     document.body.appendChild(t);
   }
 
-  window.addEventListener('hashchange', () => { if (reloadPending && !inMode()) location.reload(); });
-
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     const hadController = !!navigator.serviceWorker.controller;
-    navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController) safeReload(); });
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController) showUpdateToast(); });
 
     window.addEventListener('load', () => {
-      if (navigator.onLine) serverVersion().then(v => { loadedVersion = v; }).catch(() => {});
       navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
         document.addEventListener('visibilitychange', () => {
-          if (document.visibilityState !== 'visible' || !navigator.onLine) return;
-          reg.update().catch(() => {});
-          serverVersion().then(v => {
-            if (!v) return;
-            if (!loadedVersion) { loadedVersion = v; return; }
-            if (v !== loadedVersion) safeReload();
-          }).catch(() => {});
+          if (document.visibilityState === 'visible' && navigator.onLine) reg.update().catch(() => {});
         });
       }).catch(() => {});
     });
