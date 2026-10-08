@@ -46,6 +46,11 @@ window.SAFELEX_DB = (function () {
 (function () {
   'use strict';
 
+  if (window.top !== window.self) {
+    document.body.innerHTML = `<a href="${location.href.replace(/"/g, '%22')}" target="_top" style="display:block;padding:40px 16px;text-align:center;color:#fff">Відкрити SafeLex на офіційному сайті</a>`;
+    return;
+  }
+
   const { cats: CATEGORIES, terms: TERMS, march: MARCH_STEPS, sources: SOURCES } = window.SAFELEX_DB;
   const app = document.getElementById('app');
   const lookup = entries => Object.assign(Object.create(null), Object.fromEntries(entries));
@@ -1139,6 +1144,7 @@ window.SAFELEX_DB = (function () {
           <span class="about-dep">Кафедра іноземних мов та перекладознавства</span>
         </div>
         <p class="meta" style="text-align:center">Версія 3.0 · ${new Date().getFullYear()}</p>
+        <p class="meta" style="text-align:center">© 2026 Зелінський Г. С., Пальчевська О. С. Усі права захищено.<br>Копіювання, зміна й поширення застосунку без письмового дозволу авторів заборонені.</p>
       </section>`;
   }
 

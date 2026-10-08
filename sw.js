@@ -62,7 +62,7 @@ self.addEventListener('fetch', event => {
   event.waitUntil(fromNetwork.then(() => saved).catch(() => {}));
   const wait = Date.now() < slowUntil ? 0 : NET_TIMEOUT_MS;
   const slowNetwork = new Promise(resolve => setTimeout(resolve, wait))
-    .then(fromCache).then(hit => {
+    .then(() => caches.match(req, { ignoreSearch: true })).then(hit => {
       if (!hit) return fromNetwork;
       if (wait) slowUntil = Date.now() + SLOW_WINDOW_MS;
       return hit;
