@@ -1,22 +1,15 @@
-/* =====================================================================
-   SafeLex — стилі
-   Темна тема ДСНС: глибокий синій + сигнальний помаранчевий.
-   Поверхні плоскі, без градієнтів і світіння; колір — лише там, де він щось означає.
-   Кожен розділ має свій колір-мітку — класи tone-0…tone-5 (див. нижче).
-   Основні кольори змінюються в одному місці — у блоці :root.
-   ===================================================================== */
 :root {
-  --bg: #0A1122;          /* фон застосунку */
-  --surface: #111A2F;     /* плитки, списки */
-  --surface-2: #18233D;   /* поля, кнопки на плитках */
-  --surface-3: #202D4B;   /* натиснуті стани */
+  --bg: #0A1122;
+  --surface: #111A2F;
+  --surface-2: #18233D;
+  --surface-3: #202D4B;
   --line: rgba(255,255,255,.08);
   --line-2: rgba(255,255,255,.14);
   --text: #EEF1F7;
   --text-2: #B6BFD2;
   --muted: #7D889F;
-  --accent: #EE6A1F;      /* помаранчевий ДСНС */
-  --accent-2: #FF8D4D;    /* помаранчевий для тексту на темному */
+  --accent: #EE6A1F;
+  --accent-2: #FF8D4D;
   --accent-soft: rgba(238, 106, 31, .14);
   --yellow: #F2C14E;
   --navy: #0C1E46;
@@ -25,23 +18,21 @@
   --st-mastered: #3DB477; --st-learning: #E9A23B; --st-new: rgba(255,255,255,.1);
 
   --font: 'Onest', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-display: 'Unbounded', 'Onest', system-ui, sans-serif; /* заголовки сторінок і логотип */
-  --font-card: 'Onest', system-ui, -apple-system, sans-serif;  /* плитки й картки */
+  --font-display: 'Unbounded', 'Onest', system-ui, sans-serif;
+  --font-card: 'Onest', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
-  --r: 14px;              /* картки */
-  --r-sm: 10px;           /* кнопки, поля */
+  --r: 14px;
+  --r-sm: 10px;
   --gutter: 16px;
   --maxw: 520px;
 }
 
-/* Кольори розділів (1-й, 2-й, 3-й… розділ у CATEGORIES).
-   --tc — колір англійського терміна і мітки розділу, --tt — текст на заливці кольором розділу */
-.tone-0 { --tc: #F39A66; --t1: #E07A3F; --ts: rgba(224, 122, 63, .13); --tb: rgba(224, 122, 63, .35); --tt: #1B0E05; } /* помаранчевий */
-.tone-1 { --tc: #8DB0EE; --t1: #5F86D6; --ts: rgba(95, 134, 214, .13); --tb: rgba(95, 134, 214, .35); --tt: #fff; }    /* синій */
-.tone-2 { --tc: #E8C468; --t1: #CFA53E; --ts: rgba(207, 165, 62, .13); --tb: rgba(207, 165, 62, .35); --tt: #1E1600; } /* жовтий */
-.tone-3 { --tc: #EE8C96; --t1: #CC5A67; --ts: rgba(204, 90, 103, .13); --tb: rgba(204, 90, 103, .35); --tt: #fff; }    /* червоний */
-.tone-4 { --tc: #72CFA6; --t1: #3EA67A; --ts: rgba(62, 166, 122, .13); --tb: rgba(62, 166, 122, .35); --tt: #04170F; } /* зелений */
-.tone-5 { --tc: #B6A8EE; --t1: #8572D0; --ts: rgba(133, 114, 208, .13); --tb: rgba(133, 114, 208, .35); --tt: #fff; }    /* фіолетовий */
+.tone-0 { --tc: #F39A66; --t1: #E07A3F; --ts: rgba(224, 122, 63, .13); --tb: rgba(224, 122, 63, .35); --tt: #1B0E05; }
+.tone-1 { --tc: #8DB0EE; --t1: #5F86D6; --ts: rgba(95, 134, 214, .13); --tb: rgba(95, 134, 214, .35); --tt: #fff; }
+.tone-2 { --tc: #E8C468; --t1: #CFA53E; --ts: rgba(207, 165, 62, .13); --tb: rgba(207, 165, 62, .35); --tt: #1E1600; }
+.tone-3 { --tc: #EE8C96; --t1: #CC5A67; --ts: rgba(204, 90, 103, .13); --tb: rgba(204, 90, 103, .35); --tt: #fff; }
+.tone-4 { --tc: #72CFA6; --t1: #3EA67A; --ts: rgba(62, 166, 122, .13); --tb: rgba(62, 166, 122, .35); --tt: #04170F; }
+.tone-5 { --tc: #B6A8EE; --t1: #8572D0; --ts: rgba(133, 114, 208, .13); --tb: rgba(133, 114, 208, .35); --tt: #fff; }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -68,7 +59,6 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 }
 body.dark #app { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
 
-/* ---------- Логотип ---------- */
 .logo {
   width: 40px; height: 40px; border-radius: 10px;
   background: var(--accent); color: #fff;
@@ -82,7 +72,6 @@ body.dark #app { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
 .brand-name { font-family: var(--font-display); font-weight: 700; font-size: 18px; letter-spacing: -.2px; }
 .brand-name span, .splash-name span { color: var(--accent-2); }
 
-/* ---------- Екран завантаження ---------- */
 #splash {
   position: fixed; inset: 0; z-index: 100;
   background: var(--bg); color: #fff;
@@ -103,9 +92,6 @@ body.dark #app { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
 .splash-credit { display: flex; align-items: center; gap: 12px; margin-top: 14px; font-size: 12px; line-height: 1.35; color: var(--muted); text-align: left; }
 .splash-credit img { height: 46px; width: auto; }
 
-/* =====================================================================
-   Шапка екрана
-   ===================================================================== */
 .hero {
   position: relative;
   padding: calc(16px + env(safe-area-inset-top)) var(--gutter) 8px;
@@ -113,7 +99,6 @@ body.dark #app { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
 }
 .hero h1 { margin: 8px 0 0; font-family: var(--font-display); font-weight: 700; font-size: 28px; line-height: 1.15; letter-spacing: -.5px; }
 .hero .lead { font-size: 14px; color: var(--muted); line-height: 1.45; margin: -6px 0 0; }
-/* Шапка розділу: тонка лінія кольору розділу зверху */
 .hero.tinted { padding-bottom: 18px; }
 .hero.tinted::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--t1, transparent); }
 .hero.tinted .lead { color: var(--text-2); }
@@ -134,7 +119,6 @@ body.dark #app { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
 }
 .icon-btn.on svg { fill: var(--yellow); stroke: var(--yellow); }
 
-/* ---------- Поле пошуку ---------- */
 .searchbox {
   display: flex; align-items: center; gap: 10px;
   height: 52px; padding: 0 8px 0 14px; border-radius: 12px;
@@ -151,7 +135,6 @@ body.dark #app { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
 .searchbox input::placeholder { color: var(--muted); }
 .searchbox .clear { border: none; background: var(--surface-2); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-2); }
 
-/* ---------- Фільтри ---------- */
 .chips { display: flex; gap: 6px; flex-wrap: wrap; }
 .chips.scroll { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 calc(var(--gutter) * -1); padding: 0 var(--gutter); }
 .chips.scroll::-webkit-scrollbar { display: none; }
@@ -163,7 +146,6 @@ body.dark #app { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
 .chip.active { background: var(--text); color: var(--bg); border-color: var(--text); }
 .letters .chip { min-width: 38px; text-align: center; font-family: var(--font-mono); font-weight: 700; }
 
-/* ---------- Секції ---------- */
 .section { padding: 12px var(--gutter) 0; display: flex; flex-direction: column; gap: 12px; }
 .section-head { display: flex; justify-content: space-between; align-items: baseline; margin-top: 14px; padding: 0 2px; }
 .section-head h2 { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: .1px; }
@@ -175,12 +157,10 @@ body.dark #app { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
 .empty { text-align: center; padding: 32px 24px; color: var(--muted); font-size: 15px; line-height: 1.5; }
 .empty b { display: block; color: var(--text); font-size: 16px; margin-bottom: 6px; }
 
-/* ---------- Плитки, списки ---------- */
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: flex; flex-direction: column; gap: 8px; }
 .card p { margin: 0; font-size: 16px; line-height: 1.55; color: var(--text-2); }
 .card .ua-big { font-weight: 700; font-size: 20px; line-height: 1.3; }
 .card .ex-en { font-style: italic; color: var(--text); }
-/* overflow: clip, а не hidden — інакше «липкі» літери в довіднику не прилипають */
 .list { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; overflow: clip; }
 .row {
   display: flex; align-items: center; gap: 14px;
@@ -201,7 +181,6 @@ body.dark #app { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
 .s-learning { background: var(--st-learning); }
 .s-new { background: var(--st-new); }
 
-/* Результати пошуку */
 .result {
   display: flex; flex-direction: column; gap: 4px;
   background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--t1); border-radius: 12px; padding: 12px 14px;
@@ -214,7 +193,6 @@ body.dark #app { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
 mark { background: rgba(242, 193, 78, .25); color: inherit; border-radius: 3px; padding: 0 1px; }
 .tag { flex-shrink: 0; font-size: 11px; font-weight: 600; color: var(--muted); white-space: nowrap; }
 
-/* ---------- Кнопки ---------- */
 .btn {
   min-height: 50px; padding: 10px 18px; border-radius: 12px; border: none; cursor: pointer; text-align: center;
   display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -232,7 +210,6 @@ mark { background: rgba(242, 193, 78, .25); color: inherit; border-radius: 3px; 
 .pill.on { color: var(--yellow); border-color: rgba(242, 193, 78, .5); }
 .pill.on svg { fill: currentColor; }
 
-/* ---------- Встановлення й оновлення ---------- */
 .install-card {
   display: flex; align-items: flex-start; gap: 12px;
   padding: 14px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line-2);
@@ -252,14 +229,6 @@ mark { background: rgba(242, 193, 78, .25); color: inherit; border-radius: 3px; 
 }
 .update-toast b { font-size: 15px; }
 
-/* галочка «малюється» */
-
-  
-  
-
-/* «сьогодні» ще не виконано — рамка розходиться хвилею */
-
-/* Термін дня */
 .tod {
   border-radius: var(--r); padding: 16px;
   display: flex; flex-direction: column; gap: 12px; color: var(--text);
@@ -286,16 +255,12 @@ mark { background: rgba(242, 193, 78, .25); color: inherit; border-radius: 3px; 
 .tod-actions { display: flex; gap: 8px; }
 .ipa { font-family: var(--font-mono); font-size: 14px; font-weight: 500; color: var(--muted); letter-spacing: .2px; }
 
-/* Нещодавні */
 .recent { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
 .recent a { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 12px 14px; border-bottom: 1px solid var(--line); text-decoration: none; color: var(--text); }
 .recent a:last-child { border-bottom: none; }
 .recent b { font-family: var(--font-mono); font-size: 14px; font-weight: 600; white-space: nowrap; color: var(--accent-2); flex-shrink: 0; max-width: 55%; overflow: hidden; text-overflow: ellipsis; }
 .recent span { font-size: 14px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; min-width: 0; }
 
-/* =====================================================================
-   Довідник: список розділів
-   ===================================================================== */
 .az-row {
   display: flex; align-items: center; gap: 14px; padding: 14px;
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--r);
@@ -340,17 +305,14 @@ mark { background: rgba(242, 193, 78, .25); color: inherit; border-radius: 3px; 
 .gmore { height: 1px; }
 .train-cta { margin-top: 8px; }
 
-/* ---------- Картка терміна ---------- */
 .term-head { gap: 18px; padding-bottom: 22px; }
 .term-head .abbr { font-family: var(--font-mono); font-size: 38px; font-weight: 600; color: var(--text); letter-spacing: -.8px; line-height: 1.1; word-break: break-word; }
 .term-head .ipa { font-size: 16px; color: var(--text-2); }
 .term-head .full { font-size: 16px; font-weight: 500; color: var(--text-2); }
-/* Довгі терміни («full first-alarm assignment») — дрібнішим шрифтом, щоб влізли на екран */
 .term-head .abbr.long { font-size: 28px; }
 .term-head .abbr.xlong { font-size: 22px; line-height: 1.25; }
 .core-tag { align-self: flex-start; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: var(--yellow); }
 .core-tag svg { width: 13px; height: 13px; fill: currentColor; stroke: none; }
-/* Кілька значень перекладу — нумерованим списком */
 .card .senses { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px;
   font-weight: 600; font-size: 17px; line-height: 1.35; }
 .card .senses li:first-child { font-size: 20px; font-weight: 700; }
@@ -361,7 +323,6 @@ mark { background: rgba(242, 193, 78, .25); color: inherit; border-radius: 3px; 
 .rel { display: flex; gap: 8px; flex-wrap: wrap; }
 .rel a { padding: 8px 12px; border-radius: var(--r-sm); background: var(--surface); border: 1px solid var(--line); color: var(--accent-2); font-family: var(--font-mono); font-size: 14px; font-weight: 600; text-decoration: none; }
 
-/* ---------- Розробка (ЛДУ БЖД) і «Про додаток» ---------- */
 .dev-card {
   display: flex; flex-direction: column; gap: 14px; padding: 16px; margin-top: 8px;
   border-radius: var(--r); background: var(--surface); border: 1px solid var(--line);
@@ -369,7 +330,6 @@ mark { background: rgba(242, 193, 78, .25); color: inherit; border-radius: 3px; 
 }
 .dev-top { display: flex; align-items: center; gap: 14px; }
 .dev-top > svg { color: rgba(255,255,255,.3); }
-/* Герб ЛДУ БЖД — білий, без фону (обрізаємо верхню частину білого логотипа) */
 .dev-crest { width: 76px; height: 40px; object-fit: cover; object-position: 50% 0; flex-shrink: 0; opacity: .9; }
 .dev-card .body { flex: 1; display: flex; flex-direction: column; gap: 3px; }
 .dev-card .k { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--muted); }
@@ -389,9 +349,6 @@ mark { background: rgba(242, 193, 78, .25); color: inherit; border-radius: 3px; 
 .about-dep { font-size: 15px; font-weight: 600; color: var(--text-2); }
 .feat { margin: 0; padding-left: 20px; font-size: 15px; line-height: 1.75; color: var(--text-2); }
 
-/* =====================================================================
-   Моє
-   ===================================================================== */
 .me-head { display: flex; align-items: center; gap: 16px; margin-top: 6px; }
 .me-title { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .me-title .k { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--muted); }
@@ -418,7 +375,6 @@ mark { background: rgba(242, 193, 78, .25); color: inherit; border-radius: 3px; 
 .ranks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px 6px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 8px 14px; }
 .rank { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--text-2); text-align: center; }
 
-/* Значки звань: плоскі кружки, колір — за рівнем */
 .badge {
   width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
   display: inline-flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1;
@@ -445,7 +401,6 @@ mark { background: rgba(242, 193, 78, .25); color: inherit; border-radius: 3px; 
 .badge.w3 b { font-size: 15px; }
 .badge.big.w3 b { font-size: 28px; }
 
-/* Святковий екран нового звання */
 .celebrate { position: fixed; inset: 0; z-index: 200; background: rgba(4, 9, 22, .82); display: flex; align-items: center; justify-content: center; padding: 24px; animation: fade .2s ease; }
 @keyframes fade { from { opacity: 0; } }
 .confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
@@ -460,9 +415,6 @@ mark { background: rgba(242, 193, 78, .25); color: inherit; border-radius: 3px; 
 .cel-next { font-size: 13px; color: var(--muted); }
 .cel-card .btn { margin-top: 8px; }
 
-/* =====================================================================
-   Тренажер: вибір режиму
-   ===================================================================== */
 .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .mode {
   display: flex; flex-direction: column; gap: 10px; padding: 14px; min-height: 160px; border-radius: var(--r);
@@ -479,7 +431,6 @@ mark { background: rgba(242, 193, 78, .25); color: inherit; border-radius: 3px; 
 .m-match { --mc: #72CFA6; --mc-soft: rgba(62, 166, 122, .18); }
 .m-sprint { --mc: #E8C468; --mc-soft: rgba(207, 165, 62, .18); }
 .m-mistakes { --mc: #EE8C96; --mc-soft: rgba(204, 90, 103, .18); }
-/* «Тест» — головний режим: заливка акцентом */
 .mode.big { flex-direction: row; align-items: center; min-height: 0; padding: 16px; background: var(--accent); border-color: var(--accent); color: #fff; }
 .mode.big .mode-ic { width: 48px; height: 48px; border-radius: 12px; background: rgba(0,0,0,.16); color: #fff; }
 .mode.big .mode-body b { font-size: 20px; }
@@ -489,9 +440,6 @@ mark { background: rgba(242, 193, 78, .25); color: inherit; border-radius: 3px; 
 .mode.off .mode-ic { background: var(--surface-2); color: var(--muted); }
 .mode.off .mode-body b { color: var(--text-2); }
 
-/* =====================================================================
-   Тренажер: екрани режимів
-   ===================================================================== */
 body.dark .tabbar { display: none; }
 .trainer { padding: calc(14px + env(safe-area-inset-top)) var(--gutter) 0; display: flex; flex-direction: column; gap: 14px; }
 .progress { flex: 1; height: 6px; border-radius: 3px; background: rgba(255,255,255,.08); overflow: hidden; }
@@ -550,31 +498,27 @@ body.dark .tabbar { display: none; }
 .miss a b { color: var(--accent-2); font-size: 14px; font-weight: 600; white-space: nowrap; }
 .miss a span { color: var(--muted); text-align: right; }
 
-/* Картки: колода з картками позаду, свайп і виліт */
 .deck { position: relative; margin: 4px 4px 22px; transition: height .32s cubic-bezier(.3, .7, .3, 1); }
 .deck-back {
   position: absolute; left: 0; right: 0; top: 0; bottom: 0; border-radius: 18px; overflow: hidden;
   background: var(--surface-2); border: 1px solid var(--line-2);
 }
 .deck-back::after { content: ''; position: absolute; inset: 10px; border-radius: 12px; border: 1px solid rgba(242, 193, 78, .22); }
-/* сорочка картки — герб ДСНС у кольорі */
 .db-emb { position: absolute; left: 50%; top: 50%; width: 120px; height: 120px; margin: -60px 0 0 -60px; background: url(../icons/emblem.png) center / contain no-repeat; }
 .deck-back { transition: transform .45s cubic-bezier(.3, 1.3, .5, 1), opacity .45s ease; }
-/* --p (0…1) — наскільки далеко відтягнули верхню картку: стос позаду заздалегідь підіймається їй на зміну */
 .deck-back.d1 { transform: translateY(calc(8px * (1 - var(--p, 0)))) scale(calc(.96 + .04 * var(--p, 0))); }
 .deck-back.d2 { transform: translateY(calc(15px - 7px * var(--p, 0))) scale(calc(.92 + .04 * var(--p, 0))); opacity: calc(.6 + .4 * var(--p, 0)); }
 .deck.dragging .deck-back { transition: none; }
 .flash {
   position: relative; z-index: 1; display: block; perspective: 1200px; cursor: grab;
   border: none; background: none; padding: 0; width: 100%; text-align: left; color: var(--text);
-  touch-action: pan-y; transition: transform .5s cubic-bezier(.3, 1.35, .5, 1), opacity .3s ease; /* відпущена картка пружно вертається */
+  touch-action: pan-y; transition: transform .5s cubic-bezier(.3, 1.35, .5, 1), opacity .3s ease;
   will-change: transform;
 }
 .flash.dragging { transition: none; cursor: grabbing; }
 .flash.dragging .stamp { transition: none; }
 .flash-inner { position: relative; display: grid; min-height: 320px; transition: transform .62s cubic-bezier(.45, 0, .25, 1.25); transform-style: preserve-3d; will-change: transform; }
 .flash.flipped .flash-inner { transform: rotateY(180deg); }
-/* обидва боки в одній клітинці grid: якщо текст не влазить, картка стає вищою */
 .flash-face { position: relative; grid-area: 1 / 1; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 18px; padding: 54px 22px 24px; display: flex; flex-direction: column; justify-content: center; gap: 10px; overflow: hidden; }
 .flash-front { background: #1B2745; border: 1px solid var(--line-2); box-shadow: inset 0 4px 0 var(--t1); padding-bottom: 46px; }
 .flash-back { transform: rotateY(180deg); background: var(--surface); border: 1px solid var(--line-2); box-shadow: inset 0 4px 0 var(--t1); }
@@ -587,26 +531,20 @@ body.dark .tabbar { display: none; }
 .flash .big.xl { font-size: 20px; line-height: 1.3; }
 .flash .small { font-size: 15px; line-height: 1.45; color: var(--text-2); }
 .flash-back .small { margin-top: 4px; padding-left: 12px; border-left: 2px solid var(--line-2); }
-/* Речення-приклад: англійське на лицьовому боці, українське — на звороті */
 .flash .flash-ex { margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--line);
   font-size: 18px; line-height: 1.45; font-weight: 400; font-style: italic; color: var(--text-2); }
 .flash .flash-ex.long { font-size: 16px; }
 .flash .ipa { color: var(--muted); }
 .flash .tap { position: absolute; bottom: 18px; left: 22px; right: 22px; font-size: 12px; font-weight: 500; color: var(--muted); }
 
-/* «Печатки», що проступають під час свайпу */
 .stamp { transition: opacity .2s ease, transform .2s ease; position: absolute; z-index: 2; top: 16px; padding: 4px 10px; border: 2px solid; border-radius: 8px; font-size: 15px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; pointer-events: none; background: var(--bg); }
-/* печатка «вдавлюється»: з’являється трохи більшою й осідає під нахилом */
 .s-yes { left: 16px; color: var(--ok-line); opacity: var(--yes, 0); transform: rotate(-10deg) scale(calc(1.25 - .25 * var(--yes, 0))); }
 .s-no { right: 16px; color: var(--bad-line); opacity: var(--no, 0); transform: rotate(10deg) scale(calc(1.25 - .25 * var(--no, 0))); }
 .flash.fly-yes, .flash.fly-no { transition: none; pointer-events: none; }
-/* після свайпу картка вже рухається — летить далі з тією ж швидкістю й гальмує;
-   після кнопки (.from-rest) — спершу ледь відходить назад, потім розганяється */
 .flash.fly-yes { animation: flyYes .38s cubic-bezier(.2, .55, .35, 1) forwards; --yes: 1; }
 .flash.fly-no { animation: flyNo .38s cubic-bezier(.2, .55, .35, 1) forwards; --no: 1; }
 .flash.from-rest.fly-yes, .flash.from-rest.fly-no { animation-timing-function: cubic-bezier(.5, 0, .3, 1); }
 .flash.fly-yes .stamp, .flash.fly-no .stamp { transition: none; }
-/* старт — там, де палець відпустив картку (--dx, --rot) */
 @keyframes flyYes {
   0% { transform: translateX(var(--dx, 0px)) rotate(var(--rot, 0deg)); }
   60% { opacity: 1; }
@@ -617,10 +555,8 @@ body.dark .tabbar { display: none; }
   60% { opacity: 1; }
   100% { transform: translate(calc(var(--dx, 0px) * .3 - 125%), 24px) rotate(-22deg); opacity: 0; }
 }
-/* під час перевертання картка трохи піднімається над стосом і опускається назад */
 .flash.lift { animation: lift .62s cubic-bezier(.4, 0, .3, 1); }
 @keyframes lift { 45% { transform: translateY(-10px) scale(1.035); } }
-/* позначка після відповіді */
 .burst { position: absolute; z-index: 5; left: 50%; top: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; pointer-events: none; animation: burst .5s ease-out forwards; }
 .burst svg { width: 32px; height: 32px; stroke-width: 3; }
 .burst.yes { background: var(--ok); }
@@ -633,21 +569,17 @@ body.dark .tabbar { display: none; }
 .card-tally .no { color: var(--bad-line); }
 .card-tally .yes { color: var(--ok-line); }
 .card-tally .hint { color: var(--muted); font-weight: 500; }
-/* Нова картка з’являється з місця картки позаду, а стос підсувається */
 .flash.enter { animation: deckin .3s cubic-bezier(.2, .8, .3, 1) both; }
 @keyframes deckin { from { transform: translateY(8px) scale(.96); } }
 .deck.advance .deck-back.d1 { animation: promote1 .38s cubic-bezier(.3, .7, .3, 1) forwards; }
 .deck.advance .deck-back.d2 { animation: promote2 .38s cubic-bezier(.3, .7, .3, 1) forwards; }
-/* стартують з того місця, куди стос уже підтягнувся під час свайпу (--p) */
 @keyframes promote1 { from { transform: translateY(calc(8px * (1 - var(--p, 0)))) scale(calc(.96 + .04 * var(--p, 0))); } to { transform: none; } }
 @keyframes promote2 { from { transform: translateY(calc(15px - 7px * var(--p, 0))) scale(calc(.92 + .04 * var(--p, 0))); opacity: calc(.6 + .4 * var(--p, 0)); } to { transform: translateY(8px) scale(.96); opacity: 1; } }
-/* Після підсування: нова картка проявляється на місці сорочки d0, а сорочка тане */
 .deck-back.d0 { z-index: 0; animation: d0out .2s .2s ease forwards; }
 @keyframes d0out { to { opacity: 0; visibility: hidden; } }
 .flash.reveal { animation: reveal .3s cubic-bezier(.2, .8, .3, 1) both; }
 @keyframes reveal { from { opacity: 0; transform: scale(.985); } }
 
-/* Пари: рівні ряди «термін — переклад» */
 .match-head { display: flex; justify-content: space-between; align-items: center; }
 .rounds { display: inline-flex; align-items: center; gap: 5px; }
 .rounds i { width: 20px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.12); transition: background .3s; }
@@ -667,7 +599,6 @@ body.dark .tabbar { display: none; }
 }
 .tile.en { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--accent-2); }
 .tile.sel { background: rgba(95, 134, 214, .2); border-color: #8DB0EE; color: var(--text); }
-/* Правильна пара: зелений спалах, потім плитки тихо згасають */
 .tile.ok { background: var(--ok-soft); border-color: var(--ok-line); color: var(--text); opacity: .3; transition: background .12s, border-color .12s, opacity .35s ease .3s; }
 .tile.bad { background: var(--bad-soft); border-color: var(--bad-line); }
 .tile:disabled { cursor: default; }
@@ -676,16 +607,12 @@ body.dark .tabbar { display: none; }
 .match.leaving .tile { opacity: 0 !important; transition: opacity .25s ease; }
 .match-hint { text-align: center; }
 
-/* Спринт */
 .sp-ua { font-size: 20px; font-weight: 600; color: var(--text-2); line-height: 1.35; padding-top: 10px; border-top: 1px solid var(--line); }
 .sp-score { text-align: center; font-size: 15px; color: var(--text-2); }
 .sp-score b { color: var(--text); font-size: 18px; font-variant-numeric: tabular-nums; }
 .sp-card.ok { animation: flash-ok .35s ease; }
 .sp-card.bad { animation: flash-bad .35s ease; }
 
-/* =====================================================================
-   Нижнє меню
-   ===================================================================== */
 .tabbar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
   padding-bottom: env(safe-area-inset-bottom);
@@ -701,13 +628,10 @@ body.dark .tabbar { display: none; }
 .tabbar a.active { color: var(--accent-2); font-weight: 600; }
 .tabbar a.active svg { stroke-width: 2.2; }
 
-/* =====================================================================
-   Відчуття «справжнього застосунку»
-   ===================================================================== */
-a, button, input { touch-action: manipulation; }           /* без затримки й зуму від подвійного тапу */
+a, button, input { touch-action: manipulation; }
 .tabbar, .chip, .btn, .opt, .icon-btn, .row, .daily, .mode, .tile, .topic, .az-row, .result, .flash, .logo, .splash-name { -webkit-user-select: none; user-select: none; }
 img { -webkit-user-drag: none; -webkit-touch-callout: none; }
-.standalone body { overscroll-behavior-y: none; }         /* у встановленому додатку не «тягнеться» сторінка */
+.standalone body { overscroll-behavior-y: none; }
 .btn, .opt, .icon-btn, .rel a, .pill, .daily, .mode, .result, .dev-card, .tod-more, .chip, .az-row, .stats-link { transition: transform .1s ease, background .12s, border-color .12s; }
 .btn:active, .icon-btn:active, .pill:active, .tile:not(:disabled):active, .tod-more:active, .chip:active { transform: scale(.97); }
 .opt:not(:disabled):active, .mode:not(.off):active, .daily:active, .result:active, .dev-card:active, .az-row:active, .stats-link:active, .rel a:active { transform: scale(.985); }
@@ -718,32 +642,22 @@ img { -webkit-user-drag: none; -webkit-touch-callout: none; }
   .tabbar a:hover { color: var(--text-2); }
 }
 
-/* =====================================================================
-   Анімації — короткі й лише там, де показують зміну стану.
-   Вимикаються, якщо в телефоні увімкнено «Зменшити рух»
-   ===================================================================== */
 @keyframes rise { from { opacity: 0; transform: translateY(6px); } }
 @keyframes grow { from { width: 0; } }
 @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
 @keyframes flash-ok { from { border-color: var(--ok-line); } }
 @keyframes flash-bad { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); border-color: var(--bad-line); } 75% { transform: translateX(6px); } }
 
-/* Новий екран: проста поява без каскаду */
 #app.enter > * { animation: rise .22s ease-out both; }
 
-/* Смужки прогресу «наростають» */
 .nr-bar span, .stack span, .me-stats .ms-bar i { animation: grow .6s cubic-bezier(.2, .8, .2, 1) both; }
 
-/* Тренажер */
 .q-in .q-card, .q-in .options, .q-in .type-input { animation: rise .2s ease-out both; }
 .opt.bad, .tile.bad { animation: shake .3s ease; }
 .feedback { animation: rise .18s ease-out both; }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation-duration: .01s !important; animation-delay: 0s !important; } }
 
-/* =====================================================================
-   Пояснення прогресу: «Як це рахується?» і статус на картці терміна
-   ===================================================================== */
 details > summary { list-style: none; cursor: pointer; }
 details > summary::-webkit-details-marker { display: none; }
 .how { margin-top: 6px; padding-top: 12px; border-top: 1px solid var(--line); }
@@ -762,7 +676,6 @@ details > summary::-webkit-details-marker { display: none; }
 .learn .q-mark { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--line-2); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--muted); flex-shrink: 0; }
 .learn[open] .q-mark { background: var(--text); border-color: var(--text); color: var(--bg); }
 
-/* Галочки ✓ ✓ ○ — прогрес вивчення терміна */
 .checks { display: inline-flex; gap: 4px; flex-shrink: 0; }
 .checks i { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center; }
 .checks i svg { width: 12px; height: 12px; stroke-width: 3.5; }
@@ -786,9 +699,6 @@ details > summary::-webkit-details-marker { display: none; }
 .res-gain i svg { width: 12px; height: 12px; stroke-width: 3.5; }
 .res-gain.muted { color: var(--muted); font-weight: 500; }
 
-/* =====================================================================
-   Статистика (#/stats)
-   ===================================================================== */
 .stats-link {
   display: flex; align-items: center; gap: 14px; padding: 14px;
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--r);
@@ -806,7 +716,6 @@ details > summary::-webkit-details-marker { display: none; }
 .st-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 8px; }
 .st-head .label { white-space: nowrap; }
 
-/* Стовпчики активності */
 .abars { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 3px; margin-top: 6px; }
 .ab { border: none; background: none; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; }
 .ab-col { width: 100%; height: 104px; display: flex; align-items: flex-end; border-bottom: 1px solid var(--line-2); }
@@ -819,7 +728,6 @@ details > summary::-webkit-details-marker { display: none; }
 .st-read b { color: var(--text); }
 @keyframes growY { from { transform: scaleY(0); } }
 
-/* Календар практики: місяць сіткою пн…нд, стрілки гортають місяці */
 #hmBox { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
 .hm-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
 .hm-nav .icon-btn { width: 36px; height: 36px; border-radius: 8px; }
@@ -843,11 +751,9 @@ details > summary::-webkit-details-marker { display: none; }
 .hm-cell.l3 { background: rgba(238, 106, 31, .72); }
 .hm-cell.l4 { background: var(--accent); }
 .hm .hm-cell.l3, .hm .hm-cell.l4 { color: #fff; }
-/* Сьогодні — помаранчеве число; вибраний день — рамка всередині клітинки (не налазить на сусідів) */
 .hm .hm-cell.today { color: var(--accent-2); font-weight: 800; box-shadow: inset 0 0 0 1px rgba(255, 141, 77, .6); }
 .hm .hm-cell.today.l3, .hm .hm-cell.today.l4 { color: #fff; }
 .hm .hm-cell.sel { outline: none; box-shadow: inset 0 0 0 2px var(--text); }
-/* Крапка — виконане завдання дня (видно й без розрізнення кольорів) */
 .hm-cell.done::after { content: ''; position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%; background: #fff; }
 .hm .hm-cell.done::after { top: auto; bottom: 4px; margin-top: 0; }
 @media (max-width: 360px) {
@@ -862,28 +768,18 @@ details > summary::-webkit-details-marker { display: none; }
 .hm-key .hm-cell.l0 { margin-left: 4px; }
 .hm-key .hm-cell.l4 { margin-right: 4px; }
 
-/* Повторення і рекорди */
 .st-due { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .st-due > * { display: flex; flex-direction: column; gap: 2px; padding: 12px; border-radius: 10px; background: var(--surface-2); font-size: 12px; font-weight: 500; color: var(--muted); text-decoration: none; }
 .st-due a { box-shadow: inset 0 0 0 1px rgba(255, 141, 77, .45); color: var(--accent-2); }
 .st-due b { font-size: 21px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
 .st-rec > * { background: var(--surface); border: 1px solid var(--line); }
 
-/* Розділи */
 .st-cat { display: flex; flex-direction: column; gap: 2px; color: var(--text); text-decoration: none; }
 .st-cat-top { display: flex; justify-content: space-between; font-size: 14px; font-weight: 500; }
 .st-cat-top .mono { font-size: 12px; color: var(--muted); }
 .st-cat .stack { margin: 4px 0 6px; height: 6px; }
 .st-wrong { font-size: 12px; font-weight: 600; color: var(--bad-line); white-space: nowrap; }
 
-/* =====================================================================
-   Кольори й рух
-   Колір розділу — суцільним м’яким тлом (--ts) і рамкою (--tb), без градієнтів.
-   Кожен режим і кожен показник має свій колір. Анімації короткі,
-   вимикаються налаштуванням «Зменшити рух» (правило вище).
-   ===================================================================== */
-
-/* Шапки розділу й терміна — тло кольору розділу */
 .hero.tinted { background: var(--ts, transparent); border-radius: 0 0 22px 22px; margin-bottom: 6px; }
 .hero.tinted::before { display: none; }
 .hero.tinted .icon-btn { background: rgba(10, 17, 34, .45); border-color: var(--tb, var(--line)); }
@@ -893,17 +789,14 @@ details > summary::-webkit-details-marker { display: none; }
 .hero.tinted .chip.active { background: var(--tc); border-color: var(--tc); color: var(--bg); }
 .letter-h { background: var(--ts, var(--surface-2)); }
 
-/* Фільтри: активний — помаранчевий */
 .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-/* Пошук: результат — тло кольору розділу, назва розділу кольором */
 .result { background: var(--ts); border-color: var(--tb); border-left-color: var(--t1); }
 .result .tag { color: var(--tc); }
 .section > .result { animation: rise .25s ease-out both; }
 .section > .result:nth-child(3) { animation-delay: .03s; } .section > .result:nth-child(4) { animation-delay: .06s; }
 .section > .result:nth-child(5) { animation-delay: .09s; } .section > .result:nth-child(n+6) { animation-delay: .12s; }
 
-/* Термін дня — тло кольору розділу */
 .tod { background: var(--ts); border-color: var(--tb); }
 .tod .tod-more, .tod .pill { background: rgba(10, 17, 34, .4); border-color: var(--tb); }
 .tod-ua { border-color: var(--tb); }
@@ -914,12 +807,10 @@ details > summary::-webkit-details-marker { display: none; }
 .tu-cover svg { animation: blink 3.5s ease-in-out infinite; }
 @keyframes blink { 0%, 90%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
 
-/* Нещодавні — кожен термін кольором свого розділу */
 .recent a b { color: var(--tc, var(--accent-2)); }
 .recent a { position: relative; }
 .recent a::before { content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 0 2px 2px 0; background: var(--t1); }
 
-/* Довідник */
 .az-row { background: var(--accent-soft); border-color: rgba(238, 106, 31, .35); }
 .az-mark { background: var(--accent); color: #fff; }
 .topic { transition: background .15s; }
@@ -929,7 +820,6 @@ details > summary::-webkit-details-marker { display: none; }
 #app.enter .section > :nth-child(n+5) { animation-delay: .12s; }
 #app.enter .section > * { animation: rise .3s ease-out both; }
 
-/* Тренажер: кожен режим — своїм кольором */
 .mode { background: var(--mc-soft); border-color: transparent; }
 .mode-body b { color: var(--mc); }
 .mode-meta { color: var(--mc); }
@@ -945,7 +835,6 @@ details > summary::-webkit-details-marker { display: none; }
 #app.enter .modes .mode:nth-child(4) { animation-delay: .15s; }
 @keyframes pop { from { opacity: 0; transform: scale(.9); } }
 
-/* Питання: кольорова позначка зліва, клавіші варіантів підсвічуються */
 .q-card { border-left: 3px solid var(--accent); }
 .opt .key { transition: background .15s, color .15s, border-color .15s; }
 @media (hover: hover) { .opt:not(:disabled):hover .key { border-color: var(--accent); color: var(--accent-2); } }
@@ -957,15 +846,12 @@ details > summary::-webkit-details-marker { display: none; }
 .result-screen .msg, .res-gain, .res-fire { animation: rise .35s .15s ease-out both; }
 .miss { animation: rise .35s .25s ease-out both; }
 
-/* Картки: лицьовий бік — тло кольору розділу */
 .flash-front { background: #13203D; border-color: var(--tb); }
 
-/* Пари і спринт */
 .tile.sel { animation: okpop .25s ease; }
 .sp-card { border-left-color: var(--mc, var(--accent)); }
 .sp-score b { color: var(--accent-2); }
 
-/* Моє: три показники — три кольори */
 .me-stats > span:nth-child(1) { background: rgba(238, 106, 31, .13); border-color: rgba(238, 106, 31, .3); }
 .me-stats > span:nth-child(1) b { color: var(--accent-2); }
 .me-stats > span:nth-child(2) { background: rgba(207, 165, 62, .13); border-color: rgba(207, 165, 62, .32); }
@@ -987,40 +873,24 @@ details > summary::-webkit-details-marker { display: none; }
 .me-head .badge:not(.locked) { animation: pop .5s cubic-bezier(.2, 1.4, .4, 1) both; }
 .stats-link .sl-ic { background: var(--accent); color: #fff; }
 
-/* Статистика: показники різними кольорами */
 .st-tiles span:nth-child(1) b { color: var(--accent-2); }
 .st-tiles span:nth-child(2) b { color: #72CFA6; }
 .st-tiles span:nth-child(3) b { color: #E8C468; }
 .st-tiles span:nth-child(4) b { color: #B6A8EE; }
 .st-cat .stack .s-mastered { background: var(--st-mastered); }
 
-/* Зірочка «Зберегти» — підскакує */
 .icon-btn.on svg, .pill.on svg { animation: starpop .4s cubic-bezier(.3, 1.6, .5, 1); }
 @keyframes starpop { 0% { transform: scale(.6) rotate(-30deg); } 100% { transform: none; } }
 
-/* Нижнє меню: активна вкладка — кольорова «таблетка» за іконкою */
 .tabbar a svg { padding: 3px 14px; box-sizing: content-box; border-radius: 12px; transition: background .2s, transform .2s; }
 .tabbar a.active svg { background: var(--accent-soft); animation: tabpop .35s cubic-bezier(.3, 1.6, .5, 1); }
 .tabbar a:active svg { transform: scale(.9); }
 @keyframes tabpop { 0% { transform: scale(.8); } 100% { transform: none; } }
 
-/* іскри: до 3 днів немає, далі — одна, дві, три */
-
-/* з 30 днів — картка м’яко пульсує світлом свого кольору */
-
-/* без серії — вогник згаслий, але «сьогодні» кличе почати */
-
-/* «Моє»: вогник серії теж прискорюється з рівнем */
 .me-stats .lv2 .fl svg { animation-duration: 1.7s; }
 .me-stats .lv3 .fl svg { animation-duration: 1.2s; }
 .me-stats .lv4 .fl svg { animation-duration: .9s; }
 
-/* =====================================================================
-   Шліфування
-   ===================================================================== */
-
-/* Довідник: розділи з’являються по черзі, номери «вискакують» один за одним,
-   смужки прогресу заповнюються слідом, числа набігають (countUp у JS) */
 .topic { animation: rise .35s ease-out both; animation-delay: calc(var(--i, 0) * 40ms); }
 .tp-no { animation: nopop .5s cubic-bezier(.3, 1.6, .5, 1) both; animation-delay: calc(var(--i, 0) * 40ms + 120ms); }
 @keyframes nopop { from { opacity: 0; transform: scale(.4) rotate(-25deg); } }
@@ -1028,7 +898,6 @@ details > summary::-webkit-details-marker { display: none; }
 .tp-count em { font-style: normal; }
 .g-prog .stack span { animation-delay: .1s; }
 
-/* «Моє»: плитка «днів поспіль» — суцільним кольором рівня серії */
 .me-stats > span:nth-child(1).lv1 { --sc: #E8701F; }
 .me-stats > span:nth-child(1).lv2 { --sc: #E4521D; }
 .me-stats > span:nth-child(1).lv3 { --sc: #D2392F; }
@@ -1040,7 +909,6 @@ details > summary::-webkit-details-marker { display: none; }
 @keyframes breathe2 { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 50% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--sc) 40%, transparent), 0 6px 20px color-mix(in srgb, var(--sc) 40%, transparent); } }
 #app.enter .me-stats > span:nth-child(1).lv3, #app.enter .me-stats > span:nth-child(1).lv4 { animation: pop .4s cubic-bezier(.2, 1.3, .4, 1) both; }
 
-/* Статистика: яскравіші стовпчики й календар */
 .ab-col i { opacity: .7; }
 .ab.sel .ab-col i { opacity: 1; background: var(--accent-2); }
 .hm-cell.l1 { background: rgba(238, 106, 31, .32); }
@@ -1053,23 +921,8 @@ details > summary::-webkit-details-marker { display: none; }
 #app.enter .st-tiles span:nth-child(3) { animation-delay: .1s; }
 #app.enter .st-tiles span:nth-child(4) { animation-delay: .15s; }
 
-/* Спринт: англійський термін — моноширинним, як у решті додатка */
 .sp-card .q { font-family: var(--font-mono); }
 
-/* світла пляма, що повільно пливе в правому верхньому куті */
-
-/* вогник світиться */
-
-/* «Сьогодні» пульсує білим кільцем */
-
-/* смужка до звання світиться */
-
-/* виконано — та сама яскрава картка, тільки зелена */
-
-/* =====================================================================
-   Картки: герб ДСНС під стиль службової картки
-   ===================================================================== */
-/* сорочка: подвійна золота рамка, герб в обідку, підпис моноширинним */
 .deck-back { background: #13203D; border-color: rgba(242, 193, 78, .3); }
 .deck-back::after { inset: 8px; border-radius: 12px; border: 1px solid rgba(242, 193, 78, .25); }
 .deck-back::before { content: ''; position: absolute; left: 50%; top: 50%; width: 136px; height: 136px; margin: -78px 0 0 -68px; border-radius: 50%; border: 1px solid rgba(242, 193, 78, .35); box-shadow: inset 0 0 0 6px #13203D, inset 0 0 0 7px rgba(242, 193, 78, .18); }
@@ -1077,18 +930,15 @@ details > summary::-webkit-details-marker { display: none; }
 .db-cap { position: absolute; left: 0; right: 0; bottom: 26px; text-align: center; font-style: normal; font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: rgba(242, 193, 78, .7); }
 .flash-front::before, .flash-back::before { content: ''; position: absolute; inset: 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,.07); pointer-events: none; }
 
-/* Порожні екрани режимів */
 .empty-box { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 32px 20px; text-align: center; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); animation: rise .3s ease-out both; }
 .eb-ic { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--ok-soft); color: var(--ok-line); margin-bottom: 6px; animation: nopop .5s .15s cubic-bezier(.3, 1.6, .5, 1) both; }
 .eb-ic svg { width: 26px; height: 26px; }
 .empty-box b { font-size: 17px; }
 .empty-box span:last-child { font-size: 14px; line-height: 1.5; color: var(--muted); max-width: 280px; }
 
-/* Графік активності без даних */
 .abars.none .ab-col i { display: none; }
 .ab-empty { margin: -100px 24px 64px; text-align: center; font-size: 13px; color: var(--muted); pointer-events: none; }
 
-/* Спринт: правила на стартовому екрані */
 .sp-rules { list-style: none; margin: 0; padding: 4px 0; display: flex; flex-direction: column; gap: 10px; }
 .sp-rules li { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--text-2); animation: rise .3s ease-out both; }
 .sp-rules li:nth-child(2) { animation-delay: .06s; } .sp-rules li:nth-child(3) { animation-delay: .12s; } .sp-rules li:nth-child(4) { animation-delay: .18s; }
@@ -1099,9 +949,6 @@ details > summary::-webkit-details-marker { display: none; }
 .sp-rules kbd { margin-left: auto; padding: 2px 7px; border-radius: 5px; border: 1px solid var(--line-2); font: 600 12px var(--font-mono); color: var(--muted); }
 @media (hover: none) { .sp-rules kbd { display: none; } }
 
-/* =====================================================================
-   Більші шрифти — там, де дозволяє місце
-   ===================================================================== */
 .hero .lead { font-size: 15px; }
 .section-head h2 { font-size: 17px; }
 .meta { font-size: 14px; }
@@ -1170,10 +1017,6 @@ details > summary::-webkit-details-marker { display: none; }
   .q-card .q { font-size: 25px; }
 }
 
-/* =====================================================================
-   Картки тренажера: усе по центру, розділювач посередині,
-   герб ДСНС — великим сріблястим водяним знаком на тлі
-   ===================================================================== */
 .flash-face { align-items: center; text-align: center; padding-left: 26px; padding-right: 26px; }
 .flash-cat { left: 0; right: 0; top: 20px; text-align: center; font-size: 12px; }
 .flash .tap { left: 0; right: 0; text-align: center; font-size: 13px; }
@@ -1183,34 +1026,22 @@ details > summary::-webkit-details-marker { display: none; }
 .flash .big.xl { font-size: 22px; }
 .flash .small { font-size: 16px; }
 .flash-back .small { padding-left: 0; border-left: none; }
-/* розділювач — коротка лінія по центру картки */
 .flash .flash-ex { position: relative; border-top: none; margin-top: 10px; padding-top: 20px; font-size: 19px; }
 .flash .flash-ex.long { font-size: 17px; }
 .flash .flash-ex::before { content: ''; position: absolute; left: 50%; top: 0; width: 48px; height: 2px; margin-left: -24px; border-radius: 1px; background: var(--t1, var(--accent)); opacity: .8; }
-/* герб ДСНС — чіткий, кольоровий, угорі по центру картки, над назвою розділу (як на офіційному документі).
-   Він є частиною фону самого боку картки, а не окремим шаром — тому нічого не мерехтить
-   і Safari на iPhone не просвічує зворотний бік */
 .flash-front { background: url(../icons/emblem.png) center 16px / 38px no-repeat, #13203D; transform: rotateY(0deg); }
 .flash-back { background: url(../icons/emblem.png) center 16px / 38px no-repeat, var(--surface); }
 .flash-face { padding-top: 96px; }
 .flash-cat { top: 62px; }
 .flash-face *, .flash-face::before { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
-/* Страховка для телефонів, де backface-visibility працює ненадійно (деякі версії Safari):
-   невидимий бік вимикається рівно посередині перевертання, коли картка стоїть ребром */
-.flash-front { visibility: visible; transition: visibility 0s .22s; } /* .22s — середина кривої перевертання (.62s) */
+.flash-front { visibility: visible; transition: visibility 0s .22s; }
 .flash-back { visibility: hidden; transition: visibility 0s .22s; }
 .flash.flipped .flash-front { visibility: hidden; }
 .flash.flipped .flash-back { visibility: visible; }
 
-/* Поки верхня картка перевертається, герб на сорочках позаду ховається — щоб не «вилітав» з-за неї */
 .db-emb, .db-cap, .deck-back::before { transition: opacity .15s ease; }
 .deck.flipping .db-emb, .deck.flipping .db-cap, .deck.flipping .deck-back::before { opacity: 0; }
 
-/* =====================================================================
-   Єдиний шрифт: англійські терміни — тим самим Onest, що й український текст.
-   Англійське слово відрізняється кольором і жирністю, а не іншим шрифтом.
-   (Unbounded лишається лише для великих заголовків і логотипа.)
-   ===================================================================== */
 :root { --font-mono: 'Onest', system-ui, -apple-system, 'Segoe UI', sans-serif; }
 .tod-en { font-weight: 700; letter-spacing: -.4px; }
 .term-head .abbr { font-weight: 700; letter-spacing: -.6px; }
@@ -1218,56 +1049,30 @@ details > summary::-webkit-details-marker { display: none; }
 .row .en, .result .en, .recent b, .miss a b, .rel a, .tile.en, .tp-peek { font-weight: 700; }
 .type-input, .typed { font-weight: 600; }
 .letters .chip, .letter-h, .tp-no, .az-mark { font-weight: 700; }
-/* числа в лічильниках однакової ширини, щоб не «стрибали» */
 .counter, .dl-no, .tp-no, .tp-count, .ab-d, .mt-miss, .st-cat-top .mono, .mode-meta { font-variant-numeric: tabular-nums; }
 
-/* =====================================================================
-   Однаковий розмір: англійський термін і український переклад поруч —
-   одного розміру; англійське слово відрізняється лише кольором
-   ===================================================================== */
-/* списки довідника, збережені, найскладніші */
 .row .en, .row .sub { font-size: 16px; line-height: 1.4; }
-/* результати пошуку */
 .result .en, .result .ua { font-size: 17px; line-height: 1.4; }
-/* нещодавні та «варто повторити» */
 .recent b, .recent span, .miss a b, .miss a span { font-size: 15px; }
-/* термін дня: термін і переклад */
 .tod-en, .tu-text { font-size: 24px; line-height: 1.25; letter-spacing: -.2px; }
 .tod-en { font-weight: 700; }
 .tu-text { font-weight: 700; }
-/* картка терміна: термін у шапці й переклад */
 .term-head .abbr, .card .ua-big, .card .senses li:first-child { font-size: 28px; line-height: 1.2; letter-spacing: -.3px; }
 .term-head .abbr.long { font-size: 24px; }
 .term-head .abbr.xlong { font-size: 21px; }
 .card .senses li { font-size: 19px; }
-/* картки тренажера: обидва боки однаково (розмір зменшується лише для довгого тексту) */
 .flash .big { font-size: 32px; }
 .flash .big.long, .flash .big.mid { font-size: 26px; }
 .flash .big.xl { font-size: 22px; }
 .flash-front .big, .flash-back .big { font-weight: 700; letter-spacing: -.3px; }
-/* пари: термін і переклад */
 .tile, .tile.en { font-size: 15px; font-weight: 600; }
-/* спринт: термін і переклад */
 .sp-card .q, .sp-ua { font-size: 24px; line-height: 1.3; }
 .sp-ua { font-weight: 600; }
-/* відгук після відповіді: «термін — переклад» */
 .feedback .mono { font-size: inherit; }
-/* Обидва боки картки — однакові відступи, тож текст стоїть на тій самій висоті */
 .flash-front, .flash-back { padding-bottom: 50px; }
 .flash-back { background: url(../icons/emblem.png) center 16px / 38px no-repeat, #13203D; border-color: var(--tb); }
 .flash-back .flash-cat { color: var(--tc); }
 
-/* кругова шкала */
-
-/* тиждень — лінією часу */
-
-/* виконано — зелене табло, шкала повна */
-
-
-
-/* =====================================================================
-   Пошук: «Завдання дня» — яскрава плитка з живим градієнтом
-   ===================================================================== */
 .daily {
   display: flex; flex-direction: column; gap: 16px;
   padding: 18px; border-radius: 26px; text-decoration: none; color: #fff;
@@ -1310,42 +1115,28 @@ details > summary::-webkit-details-marker { display: none; }
 .nr-bar span { display: block; height: 100%; border-radius: 3px; background: #fff; }
 .nr-txt { font-size: 12px; font-weight: 700; opacity: .95; position: relative; z-index: 1; }
 
-/* Завдання дня: поява */
 .fire b { animation: pop .5s .15s both; }
 .wd { animation: rise .35s both; }
 .wd:nth-child(2) { animation-delay: .04s; } .wd:nth-child(3) { animation-delay: .08s; } .wd:nth-child(4) { animation-delay: .12s; }
 .wd:nth-child(5) { animation-delay: .16s; } .wd:nth-child(6) { animation-delay: .2s; } .wd:nth-child(7) { animation-delay: .24s; }
 
-/* =====================================================================
-   ТИПОГРАФІКА — єдина шкала для всього додатка (цей блок останній і головний)
-   Шрифти: Unbounded — лише великі заголовки екранів, логотип і великий рахунок;
-           Onest — увесь інший текст, і англійський, і український.
-   Розміри: 12 · 13 · 14 · 16 · 18 · 22 · 28 · 32
-   Жирність: 400 текст · 500 підписи · 600 акценти · 700 назви · 800 великі числа й заголовки карток
-   ===================================================================== */
 :root {
   --fs-xs: 12px; --fs-sm: 13px; --fs-md: 14px; --fs-base: 16px; --fs-lg: 18px; --fs-xl: 22px; --fs-2xl: 28px; --fs-3xl: 32px;
 }
 body { font-size: var(--fs-base); line-height: 1.5; font-feature-settings: 'kern' 1; text-rendering: optimizeLegibility; }
 
-/* У Onest немає справжнього курсиву — браузер лише нахиляє літери. Тому приклади речень
-   пишемо прямим шрифтом, а виділяємо лапками й кольором */
 .card .ex-en, .tod-ex, .tp-en, .feedback .fb-ex, .flash .flash-ex { font-style: normal; }
-/* <i> у днях тижня і смужках — лише контейнер, не курсив */
 .wd i, .wd i b, .checks i, .legend i, .hm-cell, .ms-bar, .em, .res-gain i { font-style: normal; }
 
-/* Заголовки екранів — Unbounded */
 .hero h1 { font-family: var(--font-display); font-size: var(--fs-2xl); font-weight: 700; line-height: 1.15; letter-spacing: -.4px; }
 .brand-name { font-family: var(--font-display); letter-spacing: -.2px; }
 .section-head h2 { font-family: var(--font); font-size: var(--fs-lg); font-weight: 700; letter-spacing: -.1px; }
 
-/* Підписи великими літерами — однаково всюди */
 .label, .mode-title, .dev-card .k, .me-title .k, .daily-txt .k, .flash-cat, .tod-head .label, .q-card .label {
   font-family: var(--font); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .8px; text-transform: uppercase; line-height: 1.3;
 }
 .daily-txt .k { opacity: .9; }
 
-/* Другорядний текст і пояснення */
 .meta, .crumb, .brand-sub, .hero .lead, .tp-en, .tp-count small, .ms-hint, .st-tiles span, .st-read, .legend, .src-note, .how-note, .card .how-note, .cel-next, .hm-title small, .az-row .body span, .stats-link .body span, .mode-body span, .author span, .dev-card .s {
   font-family: var(--font); font-weight: 500; letter-spacing: 0;
 }
@@ -1353,17 +1144,14 @@ body { font-size: var(--fs-base); line-height: 1.5; font-feature-settings: 'kern
 .meta, .crumb, .st-read, .legend { font-size: var(--fs-md); }
 .brand-sub, .tp-en, .src-note, .cel-next, .hm-title small { font-size: var(--fs-sm); }
 
-/* Основний текст */
 .card p, .feat, .cel-card p, .how-list li, .how-rule, .empty { font-weight: 400; line-height: 1.55; }
 .card p, .feat { font-size: var(--fs-base); }
 
-/* Назви в списках і плитках */
 .row .en, .row .title, .tp-title, .az-row .body b, .stats-link .body b, .author b, .mode-body b, .result .en, .recent b, .miss a b, .learn .lt {
   font-family: var(--font); font-weight: 700; letter-spacing: -.1px;
 }
 .row .sub, .result .ua, .recent span, .miss a span { font-weight: 400; }
 
-/* Заголовки карток і великі числа */
 .daily-txt .t, .me-title b, .cel-card h2, .q-card .q, .mode.big .mode-body b, .tod-en, .term-head .abbr, .flash .big, .tu-text, .card .ua-big, .card .senses li:first-child {
   font-family: var(--font); font-weight: 800; letter-spacing: -.3px;
 }
@@ -1374,7 +1162,6 @@ body { font-size: var(--fs-base); line-height: 1.5; font-feature-settings: 'kern
 }
 .result-screen .score { font-family: var(--font-display); font-weight: 700; letter-spacing: -2px; font-variant-numeric: tabular-nums; }
 
-/* Кнопки, фільтри, меню */
 .btn { font-family: var(--font); font-size: var(--fs-base); font-weight: 700; letter-spacing: 0; }
 .chip, .pill, .tod-more, .link-sm, .section-head a, .how summary { font-family: var(--font); font-weight: 600; }
 .chip { font-size: var(--fs-md); }
@@ -1382,7 +1169,6 @@ body { font-size: var(--fs-base); line-height: 1.5; font-feature-settings: 'kern
 .opt { font-weight: 500; line-height: 1.35; }
 .opt .key, .tp-no, .ab-d, .mt-miss, .mode-meta, .dl-no { font-family: var(--font); font-weight: 700; font-variant-numeric: tabular-nums; }
 
-/* «Завдання дня»: дні тижня — рівні цифри однієї ваги */
 .wd { font-size: var(--fs-xs); font-weight: 600; }
 .wd.today { font-size: var(--fs-xs); font-weight: 800; }
 .wd i b { font-family: var(--font); font-size: var(--fs-sm); font-weight: 800; font-variant-numeric: tabular-nums; }
@@ -1390,19 +1176,14 @@ body { font-size: var(--fs-base); line-height: 1.5; font-feature-settings: 'kern
 .nr-txt { font-size: var(--fs-sm); font-weight: 600; }
 .fire b { font-size: var(--fs-xl); }
 
-/* Приклади речень: прямий шрифт, лапки, приглушений колір */
 .card .ex-en { color: var(--text); font-weight: 500; }
 .tod-ex { font-size: var(--fs-base); font-weight: 400; color: var(--text-2); }
 .flash .flash-ex { font-weight: 400; color: var(--text-2); }
 .feedback .fb-ex { color: var(--text-2); }
 .brand-sub { font-size: var(--fs-xs); }
-/* Рядки розбиваються рівномірно — без одного слова-«сироти» в останньому рядку */
 .hero h1, .section-head h2, .daily-txt .t, .nr-txt, .tp-title, .q-card .q, .flash .big, .term-head .abbr, .card .ua-big, .cel-card h2, .empty b, .empty-box b { text-wrap: balance; }
 .card p, .hero .lead, .tod-ex, .flash .flash-ex, .mode-body span, .how-list li, .empty, .empty-box span:last-child { text-wrap: pretty; }
 
-/* =====================================================================
-   Довідник: номер розділу в кружечку, навколо — кільце прогресу вивчення
-   ===================================================================== */
 .tp-no { position: relative; width: 46px; height: 46px; border: none; border-radius: 50%; background: none; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
 .tp-no > svg { position: absolute; inset: 0; width: 46px; height: 46px; transform: rotate(-90deg); }
 .tp-no > svg circle { fill: none; stroke-width: 3; }
@@ -1415,9 +1196,6 @@ body { font-size: var(--fs-base); line-height: 1.5; font-feature-settings: 'kern
 @media (hover: hover) { .topic:hover .tp-no b { background: var(--accent); color: #fff; } .topic:hover .tp-no { border: none; } }
 .topic:active .tp-no { background: none; }
 
-/* =====================================================================
-   «Моє»: плитки в стилі «Завдання дня» — живі градієнти
-   ===================================================================== */
 .me-stats > span, .me-stats > span:nth-child(1):not(.lv0), .me-stats > span:nth-child(1).lv3, .me-stats > span:nth-child(1).lv4 {
   position: relative; overflow: hidden; isolation: isolate; border: none; color: #fff;
   background-size: 300% 300%; animation: shimmer 10s ease infinite;
@@ -1435,12 +1213,8 @@ body { font-size: var(--fs-base); line-height: 1.5; font-feature-settings: 'kern
 .me-stats .ms-bar i { background: #fff; }
 #app.enter .me-stats > span { animation: pop .4s cubic-bezier(.2, 1.3, .4, 1) both, shimmer 10s ease infinite; }
 
-/* =====================================================================
-   Звання — погони
-   ===================================================================== */
 .pogon { display: inline-flex; width: 40px; height: 66px; flex-shrink: 0; filter: drop-shadow(0 4px 8px rgba(0,0,0,.4)); }
 .pogon svg { width: 100%; height: 100%; fill: none; stroke: none; overflow: visible; }
-/* Кольори за зразками ДСНС: темно-синє поле, золотисті зірки й емблеми, сіро-блакитний кант генералів */
 .pg-f { fill: #0E0F5A; stroke: rgba(255,255,255,.16); stroke-width: .8; }
 .pg-gen { stroke: #A7B3D8; stroke-width: 1.6; }
 .pg-g { fill: #D6B25A; }
@@ -1451,7 +1225,6 @@ body { font-size: var(--fs-base); line-height: 1.5; font-feature-settings: 'kern
 .pg-bl { fill: #2E6CC4; }
 .pg-tz { fill: none; stroke: #F1D48A; stroke-width: .9; stroke-linecap: round; stroke-linejoin: round; }
 .pg-k { font: 400 19px Georgia, 'Times New Roman', serif; }
-/* ще не отримане звання — той самий погон, лише сірим контуром */
 .pogon.locked { filter: none; }
 .pogon.locked .pg-f { fill: rgba(255,255,255,.035); stroke: rgba(255,255,255,.16); }
 .pogon.locked .pg-gen { stroke: rgba(255,255,255,.22); }
@@ -1470,13 +1243,11 @@ body { font-size: var(--fs-base); line-height: 1.5; font-feature-settings: 'kern
 .rank .rk-t { font-size: 12.5px; font-weight: 700; line-height: 1.2; color: var(--text-2); }
 .rank .rk-d { font-size: 11px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
 .rank:not(.got) .rk-t { color: var(--muted); }
-/* поточне звання — підсвічене, погон «дихає» */
 .rank.cur { background: var(--accent-soft); box-shadow: inset 0 0 0 1px rgba(255, 141, 77, .45); }
 .rank.cur .rk-t { color: var(--text); }
 .rank.cur .rk-d { color: #fff; background: var(--accent); padding: 2px 8px; border-radius: 6px; font-weight: 700; }
 .rank.cur .pogon { animation: pgfloat 3s ease-in-out infinite; }
 @keyframes pgfloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
-/* наступне — пунктирна рамка і скільки лишилося */
 .rank.nx { box-shadow: inset 0 0 0 1px var(--line-2); }
 .rank.nx .rk-d { color: var(--accent-2); }
 #app.enter .ranks .rank { animation: pop .4s cubic-bezier(.2, 1.3, .4, 1) both; animation-delay: calc(var(--i, 0) * 40ms); }
@@ -1484,24 +1255,17 @@ body { font-size: var(--fs-base); line-height: 1.5; font-feature-settings: 'kern
 .me-stats > span:nth-child(3) { background-image: linear-gradient(120deg, #1DB877, #0E9467, #0B7480, #17A878, #1DB877); }
 .me-stats > span:nth-child(1) b, .me-stats > span:nth-child(3) b, .me-stats > span:nth-child(1):not(.lv0) b { color: #fff; }
 
-/* =====================================================================
-   Телефон: зручність однією рукою
-   Кнопки — не менше 44 px (рекомендація Apple), безпечні зони екрана з усіх боків,
-   кнопки тренажера ближче до великого пальця, липкі панелі там, де довгі списки
-   ===================================================================== */
 body { overflow-x: clip; }
 #app {
   min-height: 100vh; min-height: 100dvh;
   padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right);
-  transition: transform .22s cubic-bezier(.2, .8, .3, 1), opacity .22s ease; /* жест «назад» */
+  transition: transform .22s cubic-bezier(.2, .8, .3, 1), opacity .22s ease;
 }
 #app.swiping { transition: none; }
 #app.swipe-out { transform: translateX(100%) !important; opacity: 0 !important; }
 
-/* Довге натискання на посилання не відкриває системне меню з попереднім переглядом */
 a, button { -webkit-touch-callout: none; }
 
-/* Підкладка під рядком стану (годинник, батарея) — з’являється, коли сторінку прокрутили */
 body::after {
   content: ''; position: fixed; left: 0; right: 0; top: 0; z-index: 45; pointer-events: none;
   height: env(safe-area-inset-top);
@@ -1510,11 +1274,9 @@ body::after {
 }
 html.scrolled body::after { opacity: 1; }
 
-/* Нижнє меню: безпечні зони збоку (телефон боком), ховається над клавіатурою */
 .tabbar { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); transition: transform .2s ease; }
 @media (hover: none) { body.kb .tabbar { transform: translateY(110%); } }
 
-/* Більші зони дотику */
 .icon-btn { width: 44px; height: 44px; }
 .hm-nav .icon-btn { width: 44px; height: 44px; border-radius: var(--r-sm); }
 .pill { height: 42px; }
@@ -1525,7 +1287,6 @@ html.scrolled body::after { opacity: 1; }
 .chip { min-height: 40px; }
 .letters .chip { min-width: 42px; }
 
-/* Довідник: фільтр і літери прилипають угорі, поки гортаєте довгий список */
 .gbar {
   position: sticky; top: env(safe-area-inset-top); z-index: 5;
   display: flex; flex-direction: column; gap: 10px;
@@ -1537,32 +1298,21 @@ html.scrolled .gbar { box-shadow: 0 1px 0 var(--line), 0 10px 18px -10px rgba(0,
 .gbar + .section { padding-top: 4px; }
 .letter-h { top: calc(var(--gbar, 0px) + env(safe-area-inset-top)); }
 
-/* Тренажер: «Далі» завжди під пальцем — не треба гортати до кнопки після відповіді */
 .trainer > [data-action="next"] {
   position: sticky; z-index: 3; bottom: calc(12px + env(safe-area-inset-bottom));
   box-shadow: 0 10px 28px rgba(0, 0, 0, .55);
 }
-/* Картки, спринт і пари займають увесь екран — кнопки опускаються ближче до великого пальця */
 .flash-inner { min-height: clamp(320px, calc(100dvh - 280px - env(safe-area-inset-top) - env(safe-area-inset-bottom)), 480px); }
 .sp-card { min-height: clamp(200px, calc(100dvh - 400px - env(safe-area-inset-top) - env(safe-area-inset-bottom)), 380px); justify-content: center; }
 .match { grid-auto-rows: minmax(clamp(66px, calc((100dvh - 330px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) / 5), 92px), auto); }
 .row-btns .btn { min-height: 54px; }
 
-/* Телефон боком: менше порожнечі згори, картки нижчі */
 @media (orientation: landscape) and (max-height: 500px) {
   .flash-inner { min-height: 240px; }
   .sp-card { min-height: 0; }
   .match { grid-auto-rows: minmax(56px, auto); }
 }
 
-/* =====================================================================
-   ЦИФРИ
-   У Onest цифри за замовчуванням різної ширини, а «табличні» (однакової ширини)
-   лишають дірку після одиниці: 1298 виглядає як «1 298». Тому:
-   • великі показники — Unbounded (шрифт заголовків), щільно, з пропорційними цифрами;
-   • числа в списках і підписах — пропорційні, без дірок;
-   • лічильник і таймер мають ширину з запасом, тож числа не «стрибають» і без табличних цифр.
-   ===================================================================== */
 :root { --font-num: 'Unbounded', 'Onest', system-ui, sans-serif; }
 .me-stats b, .st-tiles b, .st-due b, .fire b, .result-screen .score, .sp-score b {
   font-family: var(--font-num); font-weight: 700; font-variant-numeric: proportional-nums lining-nums; letter-spacing: -.04em;
@@ -1570,12 +1320,9 @@ html.scrolled .gbar { box-shadow: 0 1px 0 var(--line), 0 10px 18px -10px rgba(0,
 .tp-count, .rk-d, .st-cat-top .mono, .hm-cell, .ab-d, .wd i b, .mode-meta, .tp-no b, .opt .key, .legend, .meta, .crumb, .hm-title, .badge b, .cel-days {
   font-variant-numeric: proportional-nums lining-nums;
 }
-/* старіші правила вище з такою ж або більшою вагою теж ставили табличні цифри — перебиваємо */
 .me-stats em, .rank .rk-d, .hm .hm-cell, .counter, .card-tally, .mt-miss, .rounds b, .st-cat-top .mono { font-variant-numeric: proportional-nums lining-nums; }
-/* лічильник і таймер: ширина з запасом, тож зміна цифр не зсуває смужку прогресу */
 .counter { min-width: 48px; }
 
-/* Великі показники: однаковий розмір і висота рядка — числа стоять на одній лінії в сусідніх плитках */
 .me-stats b { font-size: 26px; line-height: 1; gap: 4px; margin-bottom: 4px; }
 .me-stats .fl svg { width: 18px; height: 18px; margin-top: -2px; }
 .st-tiles b { font-size: 24px; line-height: 1.1; }
@@ -1584,38 +1331,27 @@ html.scrolled .gbar { box-shadow: 0 1px 0 var(--line), 0 10px 18px -10px rgba(0,
 .sp-score b { font-size: 17px; }
 @media (max-width: 360px) { .me-stats b { font-size: 22px; } .st-tiles b { font-size: 21px; } }
 
-/* Вогник серії: число по центру полум’я; довгі серії — дрібніше, щоб не вилазили за вогник */
 .fire b { font-size: 21px; margin-top: 18px; }
 .fire b.len3 { font-size: 18px; }
 .fire b.len4 { font-size: 15px; }
 
-/* Дні тижня: кружечки більші, тризначні числа не впираються в краї */
 .wd i { width: 40px; height: 40px; }
 .wd i b { font-size: 14px; letter-spacing: -.02em; line-height: 1; }
 .wd i b.len3 { font-size: 12.5px; letter-spacing: -.04em; }
 .wd i b.len4 { font-size: 10.5px; letter-spacing: -.05em; }
 @media (max-width: 360px) { .wd i { width: 34px; height: 34px; } .wd i b.len3 { font-size: 11px; } }
 
-/* Цифри в кружечках днів — точно по центру: рядок обрізається до висоти великої літери
-   (Safari 18.2+ і Chrome 133+; старіші браузери просто показують як раніше) */
 .wd i b { text-box: trim-both cap alphabetic; }
 
-/* Номер розділу й кількість термінів — рівні колонки праворуч */
 .tp-count { min-width: 48px; text-align: right; line-height: 1.15; }
 .tp-count small { margin-top: 2px; }
 
-/* Рядок про наступне звання — звичайне перенесення, без «вирівнювання» в два куці рядки */
 .nr-txt { text-wrap: pretty; }
 
-/* «Варто повторити»: термін зверху, переклад під ним — довгий переклад не ламається рваним правим краєм */
 .miss a { flex-direction: column; align-items: stretch; gap: 2px; padding: 12px 14px; }
 .miss a b { white-space: normal; }
 .miss a span { text-align: left; line-height: 1.4; }
 
-/* =====================================================================
-   Переходи між екранами (View Transitions; iOS 18+, Chrome на Android)
-   Крива — як у системних переходах iOS: швидкий старт, довге м’яке гальмування
-   ===================================================================== */
 .tabbar { view-transition-name: tabbar; }
 ::view-transition-group(tabbar) { animation-duration: .25s; }
 ::view-transition-old(root), ::view-transition-new(root) {
@@ -1633,21 +1369,14 @@ html[data-nav="tab"]::view-transition-new(root) { animation: vt-fade-in .22s eas
 @keyframes vt-pop-out { to { transform: translateX(100%); } }
 @keyframes vt-fade-out { to { opacity: 0; } }
 @keyframes vt-fade-in { from { opacity: 0; transform: translateY(6px); } }
-/* під час переходу загальна «поява» екрана не потрібна — рух уже дає сам перехід */
 html.vt #app.enter > * { animation: none; }
 html.vt #app.enter .section > * { animation: none; }
 
-/* =====================================================================
-   ЗВАННЯ — мотивація: картка поточного звання, панель звання, відблиск погона,
-   святковий екран із перевертанням погона, прогрес після завдання дня
-   ===================================================================== */
 :root { --gold: #E8C468; --gold-2: #F4DE98; --rank-bg: linear-gradient(135deg, #18226A 0%, #10173F 55%, #121A33 100%); }
 
-/* металевий відблиск, що час від часу пробігає погоном */
 .pg-glint { animation: glint 5s ease-in-out infinite; }
 @keyframes glint { 0%, 58% { transform: skewX(-18deg) translateX(0); } 82%, 100% { transform: skewX(-18deg) translateX(72px); } }
 
-/* Картка поточного звання в «Моє» */
 .rank-hero {
   position: relative; overflow: hidden; display: flex; align-items: center; gap: 14px; width: 100%; margin-top: 6px;
   padding: 14px 14px 14px 12px; border-radius: 20px; border: 1px solid rgba(242, 193, 78, .28);
@@ -1670,13 +1399,11 @@ html.vt #app.enter .section > * { animation: none; }
 .rh-nx .pogon { width: 26px; height: 43px; }
 .rh-nx small { font-size: 10px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); }
 
-/* Сітка звань: кожне — кнопка, отримані з галочкою */
 .rank { border: none; background: none; font: inherit; color: inherit; cursor: pointer; -webkit-user-select: none; user-select: none; transition: transform .12s ease, background .2s; }
 .rank:active { transform: scale(.94); }
 .rk-ok { position: absolute; top: 6px; right: calc(50% - 30px); width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--ok); color: #fff; box-shadow: 0 0 0 2px var(--surface); z-index: 1; }
 .rk-ok svg { width: 10px; height: 10px; stroke-width: 3.6; }
 
-/* Нижня панель */
 .sheet-wrap { position: fixed; inset: 0; z-index: 150; display: flex; align-items: flex-end; justify-content: center; background: rgba(4, 9, 22, .62); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); animation: fade .25s ease; }
 .sheet-wrap.out { animation: sheetfade .26s ease forwards; }
 @keyframes sheetfade { to { opacity: 0; } }
@@ -1697,7 +1424,6 @@ html.vt #app.enter .section > * { animation: none; }
 @keyframes swapin { from { opacity: 0; transform: translateY(8px); } }
 .sheet-body > .btn { margin-top: 10px; }
 
-/* Панель звання */
 .rs-top { display: flex; align-items: center; justify-content: space-between; width: 100%; }
 .rs-nav:disabled { opacity: .25; cursor: default; }
 .rs-pg { position: relative; display: flex; justify-content: center; padding: 8px 0 4px; }
@@ -1727,7 +1453,6 @@ html.vt #app.enter .section > * { animation: none; }
 .rs-dots i.got { background: rgba(242, 193, 78, .6); }
 .rs-dots i.on { width: 18px; background: var(--accent-2); }
 
-/* «Завдання дня»: погон наступного звання поруч зі смужкою; у тижні — міні-погон у день нового звання */
 .next-rank { flex-direction: row; align-items: center; gap: 12px; }
 .nr-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
 .nr-txt b { font-weight: 800; }
@@ -1736,7 +1461,6 @@ html.vt #app.enter .section > * { animation: none; }
 .wd.rk i .pogon { width: 15px; height: 25px; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .35)); }
 .wd.rk i .pogon svg { width: 100%; height: 100%; fill: none; stroke: none; }
 
-/* Після завдання дня: смужка до наступного звання підростає */
 .res-rank {
   display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px; border-radius: var(--r);
   border: 1px solid rgba(242, 193, 78, .3); background: var(--rank-bg); color: var(--text); font: inherit; text-align: left; cursor: pointer;
@@ -1754,7 +1478,6 @@ html.vt #app.enter .section > * { animation: none; }
 .rr-txt { font-size: 13px; color: var(--text-2); }
 .rr-txt em { font-style: normal; font-weight: 800; color: var(--gold-2); }
 
-/* Святковий екран: старий погон перевертається — з’являється новий на тлі променів */
 .cel-card { border-color: rgba(242, 193, 78, .32); background: radial-gradient(120% 70% at 50% 0%, rgba(46, 108, 196, .4), transparent 62%), var(--rank-bg); }
 .cel-stage { position: relative; width: 150px; height: 150px; margin: -6px 0 2px; display: flex; align-items: center; justify-content: center; perspective: 600px; }
 .cel-rays {
@@ -1774,12 +1497,8 @@ html.vt #app.enter .section > * { animation: none; }
 .cel-k { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); animation: rise .4s 1.1s ease-out both; }
 .cel-card h2 { margin: 0; font-size: 26px; letter-spacing: -.3px; animation: rise .4s 1.2s ease-out both; }
 .cel-card .cel-days, .cel-card p, .cel-card .cel-next, .cel-card .btn { animation: rise .4s 1.3s ease-out both; }
-/* наступне звання — уже в кольорі, але приглушене: ціль видно, і її хочеться «засвітити» */
 .rh-nx .pogon, .rr-pg .pogon { opacity: .55; filter: saturate(.7) drop-shadow(0 3px 6px rgba(0,0,0,.35)); }
 
-/* =====================================================================
-   Розумний пошук: підказки, історія, точний збіг, лічильники розділів
-   ===================================================================== */
 #qchips { align-items: center; }
 .qc-label { flex-shrink: 0; align-self: center; margin-right: 2px; font-size: 12px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); }
 .chip.qc { font-weight: 600; color: var(--text); background: var(--surface); border-color: var(--line); }
@@ -1796,7 +1515,6 @@ html.vt #app.enter .section > * { animation: none; }
 .sr-ex { font-size: 13px; line-height: 1.4; color: var(--muted); }
 .sr-ex mark { background: rgba(242, 193, 78, .2); }
 
-/* Точний збіг — розгорнута картка */
 .best {
   position: relative; display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: 18px;
   background: var(--ts, var(--surface)); border: 1px solid var(--tb, var(--line-2)); box-shadow: inset 4px 0 0 var(--t1, var(--accent));

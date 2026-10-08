@@ -1,12 +1,3 @@
-/* =====================================================================
-   SafeLex — service worker (робота без інтернету)
-   Стратегія «спочатку мережа»: коли є інтернет — завжди свіжа версія
-   (нові терміни підтягуються самі), коли немає — береться з пам’яті.
-
-   Коли міняти VERSION: лише якщо ви додали НОВІ файли в список ASSETS
-   (щоб вони одразу працювали офлайн). Для правок у terms.js, app.js,
-   style.css тощо нічого міняти не треба — телефон підтягне їх сам.
-   ===================================================================== */
 const VERSION = 9;
 const CACHE = 'safelex-v' + VERSION;
 const ASSETS = [
@@ -31,8 +22,6 @@ const ASSETS = [
   './icons/apple-touch-icon.png'
 ];
 
-// Кожен файл кешується окремо: якщо якогось немає (перейменували чи видалили),
-// решта все одно збережеться, і офлайн-режим не зламається.
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE)
@@ -58,8 +47,6 @@ self.addEventListener('fetch', event => {
   const isFont = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
   if (!isOwn && !isFont) return;
 
-  // 'no-cache' — завжди звіряємося з сервером, а не з кешем браузера,
-  // інакше оновлення на GitHub Pages доходили б із затримкою до 10 хв.
   event.respondWith(
     fetch(req, isOwn ? { cache: 'no-cache' } : undefined)
       .then(res => {
