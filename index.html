@@ -6,8 +6,11 @@
   <title>SafeLex — англо-український словник рятувальника</title>
   <meta name="description" content="Автономний англо-український словник пожежно-рятувальної термінології з довідником і тренажером.">
   <meta name="theme-color" content="#0A1122">
+  <meta name="author" content="Зелінський Гліб Сергійович, Пальчевська Олександра Святославівна">
+  <meta name="copyright" content="© 2026 Зелінський Г. С., Пальчевська О. С. Усі права захищено.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
 
-  <!-- PWA: маніфест та іконки -->
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -19,10 +22,10 @@
   <link rel="stylesheet" href="css/fonts.css">
 
   <link rel="stylesheet" href="css/style.css">
+  <script src="js/boot.js"></script>
 </head>
 <body>
 
-  <!-- ЕКРАН ЗАВАНТАЖЕННЯ -->
   <div id="splash" aria-hidden="true">
     <img class="splash-emblem" src="icons/emblem.png" alt="">
     <div class="splash-center">
@@ -40,10 +43,8 @@
     </div>
   </div>
 
-  <!-- Сюди JavaScript малює поточний екран -->
   <main id="app"></main>
 
-  <!-- НИЖНЄ МЕНЮ -->
   <nav class="tabbar" aria-label="Головне меню">
     <a href="#/" data-tab="home">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Пошук

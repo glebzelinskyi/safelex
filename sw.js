@@ -1,14 +1,7 @@
-/* =====================================================================
-   SafeLex — service worker (робота без інтернету)
-   Стратегія «спочатку мережа»: коли є інтернет — завжди свіжа версія
-   (нові терміни підтягуються самі), коли немає — береться з пам’яті.
-
-   Коли міняти VERSION: лише якщо ви додали НОВІ файли в список ASSETS
-   (щоб вони одразу працювали офлайн). Для правок у terms.js, app.js,
-   style.css тощо нічого міняти не треба — телефон підтягне їх сам.
-   ===================================================================== */
-const VERSION = 9;
+const VERSION = 10;
 const CACHE = 'safelex-v' + VERSION;
+const NET_TIMEOUT_MS = 3000, SLOW_WINDOW_MS = 30000;
+let slowUntil = 0;
 const ASSETS = [
   './',
   './index.html',
@@ -18,6 +11,7 @@ const ASSETS = [
   './fonts/onest-latin-wght-normal.woff2',
   './fonts/unbounded-cyrillic-wght-normal.woff2',
   './fonts/unbounded-latin-wght-normal.woff2',
+  './js/boot.js',
   './js/app.js',
   './data/terms.js',
   './manifest.webmanifest',
@@ -31,8 +25,6 @@ const ASSETS = [
   './icons/apple-touch-icon.png'
 ];
 
-// Кожен файл кешується окремо: якщо якогось немає (перейменували чи видалили),
-// решта все одно збережеться, і офлайн-режим не зламається.
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE)
@@ -58,18 +50,24 @@ self.addEventListener('fetch', event => {
   const isFont = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
   if (!isOwn && !isFont) return;
 
-  // 'no-cache' — завжди звіряємося з сервером, а не з кешем браузера,
-  // інакше оновлення на GitHub Pages доходили б із затримкою до 10 хв.
-  event.respondWith(
-    fetch(req, isOwn ? { cache: 'no-cache' } : undefined)
-      .then(res => {
-        if (res && (res.ok || res.type === 'opaque')) {
-          const copy = res.clone();
-          caches.open(CACHE).then(c => c.put(req, copy));
-        }
-        return res;
-      })
-      .catch(() => caches.match(req, { ignoreSearch: true })
-        .then(hit => hit || (req.mode === 'navigate' ? caches.match('./index.html') : undefined)))
-  );
+  const fromCache = () => caches.match(req, { ignoreSearch: true })
+    .then(hit => hit || (req.mode === 'navigate' ? caches.match('./index.html') : undefined));
+  let saved;
+  const fromNetwork = fetch(req, isOwn ? { cache: 'no-cache' } : undefined).then(res => {
+    if (res && (res.ok || res.type === 'opaque')) {
+      const copy = res.clone();
+      saved = caches.open(CACHE).then(c => c.put(req, copy));
+    }
+    return res;
+  });
+  event.waitUntil(fromNetwork.then(() => saved).catch(() => {}));
+  const wait = Date.now() < slowUntil ? 0 : NET_TIMEOUT_MS;
+  const slowNetwork = new Promise(resolve => setTimeout(resolve, wait))
+    .then(() => caches.match(req, { ignoreSearch: true })).then(hit => {
+      if (!hit) return fromNetwork;
+      if (wait) slowUntil = Date.now() + SLOW_WINDOW_MS;
+      return hit;
+    });
+
+  event.respondWith(Promise.race([fromNetwork, slowNetwork]).catch(fromCache));
 });

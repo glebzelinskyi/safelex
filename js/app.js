@@ -1,21 +1,6 @@
-/* =====================================================================
-   SafeLex — логіка додатка
-   Вкладки: Пошук (#/) · Довідник (#/guide) · Тренажер (#/train) · Моє (#/me)
-   Інші екрани: картка терміна (#/term/id), розділ довідника (#/guide/розділ),
-   режим тренажера (#/train/режим?cat=розділ), про додаток (#/about).
-   Терміни беруться з data/terms.js (див. «Підготовка бази» нижче).
-   ===================================================================== */
-
-/* ---------- Підготовка бази ----------
-   data/terms.js може бути у двох форматах:
-   • новий — масив TOPICS: теми з термінами всередині (поля en, ua, ex, syn, core, src);
-   • старий — масиви CATEGORIES і TERMS (поля cat, exEn, exUa, tr, full, note, related) і MARCH_STEPS.
-   Обидва зводяться до одного вигляду, з яким працює решта додатка. */
 window.SAFELEX_DB = (function () {
   'use strict';
 
-  // Усі варіанти написання терміна, як у словнику:
-  // «foam(ing) agent» → foaming agent, foam agent; «flame [flaming] combustion» → flame combustion, flaming combustion
   function formsOf(en) {
     const out = new Set(), todo = [String(en)];
     while (todo.length && out.size < 24) {
@@ -24,10 +9,10 @@ window.SAFELEX_DB = (function () {
       if (p && (!b || p.index < b.index)) {
         const before = s.slice(0, p.index), after = s.slice(p.index + p[0].length);
         todo.push(before + after);
-        if (!/^pl\s/.test(p[1])) todo.push(before + p[1] + after); // «(pl criteria)» — лише примітка
+        if (!/^pl\s/.test(p[1])) todo.push(before + p[1] + after);
       } else if (b) {
         const before = s.slice(0, b.index).replace(/\s+$/, ''), after = s.slice(b.index + b[0].length);
-        const head = before.replace(/\S+$/, '');                   // варіант у [ ] замінює попереднє слово
+        const head = before.replace(/\S+$/, '');
         todo.push(before + after);
         b[1].split(/\s*,\s*/).forEach(alt => todo.push(head + alt + after));
       } else out.add(s.replace(/\s+/g, ' ').trim());
@@ -46,12 +31,12 @@ window.SAFELEX_DB = (function () {
   }
 
   terms.forEach(t => {
-    if (!t || !t.en || !t.ua) return; // такий термін відкине перевірка бази в app.js
+    if (!t || !t.en || !t.ua) return;
     t.cat = t.cat || t.topic;
     if (Array.isArray(t.ex)) { t.exEn = t.ex[0] || ''; t.exUa = t.ex[1] || ''; }
-    t.ua = String(t.ua).replace(/(^|[;,]\s*)pl\s+/g, '$1мн. ');  // словникове «pl» → «мн.»
-    t.senses = t.ua.split(/\s*;\s*/).filter(Boolean);              // значення, розділені «;»
-    t.uaShort = (t.senses[0] || t.ua).replace(/\.$/, '');          // перше значення — для тестів і пар
+    t.ua = String(t.ua).replace(/(^|[;,]\s*)pl\s+/g, '$1мн. ');
+    t.senses = t.ua.split(/\s*;\s*/).filter(Boolean);
+    t.uaShort = (t.senses[0] || t.ua).replace(/\.$/, '');
     t.forms = formsOf(t.en);
     t.find = [t.en, ...t.forms, ...(t.syn || [])].map(x => String(x).toLowerCase());
   });
@@ -61,12 +46,16 @@ window.SAFELEX_DB = (function () {
 (function () {
   'use strict';
 
+  if (window.top !== window.self) {
+    document.body.innerHTML = `<a href="${location.href.replace(/"/g, '%22')}" target="_top" style="display:block;padding:40px 16px;text-align:center;color:#fff">Відкрити SafeLex на офіційному сайті</a>`;
+    return;
+  }
+
   const { cats: CATEGORIES, terms: TERMS, march: MARCH_STEPS, sources: SOURCES } = window.SAFELEX_DB;
   const app = document.getElementById('app');
-  const catById = Object.fromEntries(CATEGORIES.map(c => [c.id, c]));
+  const lookup = entries => Object.assign(Object.create(null), Object.fromEntries(entries));
+  const catById = lookup(CATEGORIES.map(c => [c.id, c]));
 
-  // Перевірка бази: термін з помилкою (немає id/en/ua, id повторюється, невідомий розділ)
-  // пропускається, щоб не зламати додаток. Який саме — видно в консолі (F12 → Console).
   (function checkTerms() {
     const ids = new Set();
     const valid = TERMS.filter(t => {
@@ -78,27 +67,22 @@ window.SAFELEX_DB = (function () {
     TERMS.length = 0;
     valid.forEach(t => TERMS.push(t));
   })();
-  const termById = Object.fromEntries(TERMS.map(t => [t.id, t]));
-  const byCat = {};
+  const termById = lookup(TERMS.map(t => [t.id, t]));
+  const byCat = Object.create(null);
   TERMS.forEach(t => (byCat[t.cat] ||= []).push(t));
-  // Ключові (найуживаніші) терміни: тренажер дає їх першими, з них же «Термін дня»
   const CORE = TERMS.filter(t => t.core);
   const srcTitle = t => SOURCES[t.src]?.title || '';
 
-  /* ---------- Збереження на пристрої ---------- */
   const store = {
     get(key, def) { try { const v = JSON.parse(localStorage.getItem(key)); return v ?? def; } catch (e) { return def; } },
-    set(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { /* ігноруємо */ } }
+    set(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
   };
   const favs = new Set(store.get('safelex:favs', []).filter(id => termById[id]));
   const saveFavs = () => store.set('safelex:favs', [...favs]);
 
-  /* ---------- Допоміжні функції ---------- */
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const shuffle = arr => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const pad = n => String(n).padStart(2, '0');
-  // Вібрація: Android — navigator.vibrate; iPhone його не підтримує, але з iOS 18 дає системний
-  // тактильний відгук, коли перемикається <input switch> — натискаємо прихований перемикач
   let hapticLabel = null;
   function iosHaptic() {
     if (!hapticLabel) {
@@ -110,7 +94,7 @@ window.SAFELEX_DB = (function () {
     }
     hapticLabel.click();
   }
-  const vibrate = p => { try { navigator.vibrate ? navigator.vibrate(p) : iosHaptic(); } catch (e) { /* не всі телефони підтримують */ } };
+  const vibrate = p => { try { navigator.vibrate ? navigator.vibrate(p) : iosHaptic(); } catch {} };
   const short = c => c.short || c.title.split(' · ')[0];
   const fmtTime = s => `${Math.floor(s / 60)}:${pad(s % 60)}`;
   function plural(n, one, few, many) {
@@ -122,7 +106,6 @@ window.SAFELEX_DB = (function () {
   const nDays = n => `${n} ${plural(n, 'день', 'дні', 'днів')}`;
   const nTerms = n => `${n} ${plural(n, 'термін', 'терміни', 'термінів')}`;
 
-  // k випадкових елементів без перемішування всього масиву — швидко навіть для тисяч термінів
   function sample(arr, k, skip) {
     const out = [], used = new Set();
     for (let tries = 0; out.length < k && tries < Math.max(k * 30, arr.length * 2); tries++) {
@@ -154,11 +137,7 @@ window.SAFELEX_DB = (function () {
     eye: '<svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>'
   };
 
-  // «Назад» веде лише по екранах додатка: якщо його відкрили одразу на картці терміна
-  // (за посиланням чи з ярлика), history.back() вивів би з додатка — тоді йдемо на головну
-  // Глибина зберігається в самому записі історії, тож вона правильна і після кнопки «Назад» на Android
   let navDepth = history.state?.d || 0;
-  // Позиція прокрутки кожного екрана: «Назад» повертає туди, де ви були в списку, а не на його початок
   const scrollAt = {};
   let restoreY = null;
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
@@ -175,27 +154,21 @@ window.SAFELEX_DB = (function () {
     if (navDepth > 0) history.back(); else location.hash = '#/';
   }
 
-  /* =================== НАВЧАННЯ =================== */
-  // Одне просте правило: термін ВИВЧЕНО, коли ви правильно відповіли на нього в 3 різні дні.
-  // За день зараховується одна галочка ✓ (скільки б разів ви не відповіли), помилка забирає одну ✓.
-  // Тренажер сам підкидає терміни, які час повторити: наступного дня, потім через 3 дні, потім через 10.
   const DAY = 864e5;
-  const MASTERED = 3;                     // стільки галочок (днів) потрібно, щоб термін став «Вивчено»
-  const REVIEW_DAYS = [0, 1, 3, 10];      // через скільки днів повторити термін, що має 0, 1, 2, 3 галочки
-  const QUIZ_LEN = 10;                    // питань у тесті
-  const DAILY_LEN = 10;                   // питань у завданні дня
-  const CARDS_LEN = 20;                   // карток в одній колоді
-  const MATCH_ROUNDS = 3, MATCH_PAIRS = 5; // режим «Пари»
-  const SPRINT_SEC = 60;                  // режим «Спринт»
+  const MASTERED = 3;
+  const REVIEW_DAYS = [0, 1, 3, 10];
+  const QUIZ_LEN = 10;
+  const DAILY_LEN = 10;
+  const CARDS_LEN = 20;
+  const MATCH_ROUNDS = 3, MATCH_PAIRS = 5;
+  const SPRINT_SEC = 60;
 
   let srs = store.get('safelex:srs', {});
-  // Перехід зі старої версії (там був «рівень» 0–5 замість галочок)
   for (const id in srs) {
     const b = srs[id].box || 0;
-    if (srs[id].checks === undefined) srs[id].checks = b >= 4 ? MASTERED : b >= 2 ? 1 : 0; // вивчене лишається вивченим
+    if (srs[id].checks === undefined) srs[id].checks = b >= 4 ? MASTERED : b >= 2 ? 1 : 0;
   }
 
-  // Зарахувати відповідь. Повертає, що змінилось: +1 / 0 (сьогодні вже зараховано) / −1 і чи термін щойно став вивченим
   function grade(id, right) {
     const s = srs[id] || { checks: 0, day: '', due: 0, wrong: 0 };
     const today = dayKey(), before = s.checks;
@@ -212,7 +185,6 @@ window.SAFELEX_DB = (function () {
     logAnswer(right);
     return { gain: s.checks - before, checks: s.checks, mastered: before < MASTERED && s.checks >= MASTERED };
   }
-  // Журнал для статистики: скільки відповідей і скільки правильних у кожен день
   const actLog = store.get('safelex:log', {});
   function logAnswer(right) {
     const d = actLog[dayKey()] ||= { a: 0, r: 0 };
@@ -226,12 +198,10 @@ window.SAFELEX_DB = (function () {
   const statusOf = id => !srs[id] ? 'new' : srs[id].checks >= MASTERED ? 'mastered' : 'learning';
   const poolFor = cat => cat === 'all' ? TERMS : cat === 'core' ? CORE : cat === 'fav' ? TERMS.filter(t => favs.has(t.id)) : (byCat[cat] || []);
   const mistakesIn = cat => poolFor(cat).filter(t => srs[t.id]?.wrong > 0 && srs[t.id].checks < MASTERED);
-  // Кожен розділ має свій колір (tone-0…5); нові розділи отримують колір автоматично
   const toneOf = cat => 'tone-' + Math.max(0, CATEGORIES.findIndex(c => c.id === cat)) % 6;
   const catTitle = cat => cat === 'all' ? 'Усі розділи' : cat === 'core' ? 'Ключові' : cat === 'fav' ? 'Збережені' : short(catById[cat]);
   function progressOf(list) { const r = { new: 0, learning: 0, mastered: 0 }; list.forEach(t => r[statusOf(t.id)]++); return r; }
 
-  // Порядок термінів: спершу ті, які настав час повторити (найслабші першими), далі нові (ключові першими), далі решта
   function pickTerms(pool, n) {
     const byBox = (a, b) => boxOf(a.id) - boxOf(b.id);
     const due = shuffle(pool.filter(t => isDue(t.id))).sort(byBox);
@@ -240,11 +210,8 @@ window.SAFELEX_DB = (function () {
     return [...due, ...fresh, ...later].slice(0, n);
   }
 
-  // Суть перекладу без уточнень у дужках: «район виїзду (пожежної частини)» → «район виїзду»
   const sense = s => String(s).toLowerCase().replace(/\([^)]*\)|\[[^\]]*\]/g, ' ').replace(/[^a-zа-яіїєґ0-9]+/gi, ' ').trim();
 
-  // Неправильні варіанти: спершу з того самого розділу, щоб не вгадувалося «на око».
-  // Переклади-синоніми («район виїзду» і «район виїзду пожежної частини») не беремо — інакше дві правильні відповіді.
   function distractors(t, key, n = 3) {
     const seen = [sense(t[key])], loose = key !== 'en';
     const skip = o => {
@@ -258,24 +225,20 @@ window.SAFELEX_DB = (function () {
     return out;
   }
 
-  // Речення-приклад з пропуском замість терміна (шукаємо будь-який варіант написання, найдовший першим)
   function blankOut(t) {
     const ex = t.exEn || '', low = ex.toLowerCase();
     for (const f of (t.forms || [t.en]).slice().sort((a, b) => b.length - a.length)) {
       const fl = f.toLowerCase();
       let i = low.indexOf(fl);
-      while (i > 0 && /[a-z]/i.test(ex[i - 1])) i = low.indexOf(fl, i + 1); // лише з початку слова
+      while (i > 0 && /[a-z]/i.test(ex[i - 1])) i = low.indexOf(fl, i + 1);
       if (i < 0) continue;
       let j = i + f.length;
-      while (/[a-z]/i.test(ex[j] || '')) j++; // «booby trap» у реченні може бути «booby traps»
+      while (/[a-z]/i.test(ex[j] || '')) j++;
       return ex.slice(0, i) + '_____' + ex.slice(j);
     }
     return '';
   }
 
-  // Звичайний тест ускладнюється разом зі знанням терміна: нове → обрати переклад,
-  // знайоме → обрати англійський термін, добре знайоме → написати самому.
-  // Завдання дня (mixed) — усі типи питань урозкид.
   function makeQuestion(t, kind, mixed) {
     if (!kind) {
       const box = boxOf(t.id);
@@ -291,11 +254,10 @@ window.SAFELEX_DB = (function () {
     else if (kind === 'ua2en') Object.assign(q, { label: 'Як це англійською?', ask: t.ua, hint: '', key: 'en' });
     else Object.assign(q, { label: 'Оберіть переклад', ask: t.en, hint: t.full, key: 'uaShort' });
     q.options = shuffle([t, ...distractors(t, q.key)]);
-    if (q.options.length < 2 && kind !== 'en2ua') return makeQuestion(t, 'en2ua'); // замало варіантів — просте питання
+    if (q.options.length < 2 && kind !== 'en2ua') return makeQuestion(t, 'en2ua');
     return q;
   }
 
-  // Написана відповідь: регістр і розділові знаки не важливі, одну одруківку в довгому слові прощаємо
   const norm = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
   function typos(a, b) {
     let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
@@ -306,7 +268,6 @@ window.SAFELEX_DB = (function () {
     }
     return prev[b.length];
   }
-  // Зараховується будь-який варіант написання: foam agent / foaming agent, behavior / behaviour
   function typedRight(input, t) {
     const a = norm(input);
     if (!a) return false;
@@ -314,10 +275,6 @@ window.SAFELEX_DB = (function () {
     return [...(t.forms || [t.en]), ...(t.syn || [])].some(f => { const b = norm(f); return a === b || (b.length > 4 && typos(a, b) <= 1); });
   }
 
-  /* =================== СЕРІЯ ДНІВ І ЗВАННЯ =================== */
-  // За серію днів із виконаним завданням дня присвоюються спеціальні звання служби цивільного захисту
-  // (ст. 104 Кодексу цивільного захисту України в редакції Закону № 2653-IX від 06.10.2022).
-  // Курсант — з першого дня, далі — за серію днів поспіль
   const RANKS = [
     { days: 0, title: 'Курсант', text: 'Початкове звання. Виконуйте завдання дня щодня — і воно зміниться.' },
     { days: 3, title: 'Рядовий', text: 'Три дні поспіль. Найважче — почати, і це вже позаду.' },
@@ -342,13 +299,11 @@ window.SAFELEX_DB = (function () {
   }
   const doneDays = new Set(store.get('safelex:days', []));
   const doneToday = () => doneDays.has(dayKey());
-  // Серія: скільки днів поспіль виконано завдання (якщо сьогодні ще не пройдено — серія ще жива з учора)
   function streak() { let n = 0; for (let i = doneToday() ? 0 : 1; doneDays.has(dayKey(i)); i++) n++; return n; }
   const bestStreak = () => Math.max(store.get('safelex:best', 0), streak());
   const rankOf = days => RANKS.filter(r => days >= r.days).pop() || null;
   const nextRank = days => RANKS.find(r => r.days > days) || null;
 
-  // Повертає звання, якщо щойно досягнуто нового
   function finishDaily(score, total) {
     doneDays.add(dayKey());
     store.set('safelex:days', [...doneDays].sort().slice(-400));
@@ -357,13 +312,11 @@ window.SAFELEX_DB = (function () {
     store.set('safelex:best', Math.max(prevBest, s));
     const seen = new Set(store.get('safelex:ranksSeen', []));
     const r = RANKS.find(r => r.days === s);
-    // свято — лише за справді нове звання: вище за те, що вже є (після перерваної серії звання не «отримують» удруге)
     if (!r || seen.has(r.days) || r.days <= prevBest) return null;
     seen.add(r.days); store.set('safelex:ranksSeen', [...seen]);
     return r;
   }
 
-  // Суміш для завдання дня: до 5 термінів на повторення, до 3 нових, решта — випадкові з усієї бази
   function dailyTerms() {
     const picked = new Set(shuffle(TERMS.filter(t => isDue(t.id))).slice(0, 5));
     sample(CORE.length ? CORE : TERMS, 3, t => !!srs[t.id] || picked.has(t)).forEach(t => picked.add(t));
@@ -371,31 +324,23 @@ window.SAFELEX_DB = (function () {
     return shuffle([...picked]);
   }
 
-  // Значок звання — погон за зразками ДСНС (постанова КМУ від 14.02.2018 № 81 у редакції від 14.01.2026):
-  // темно-синій погон-муфта; курсант — літера «К»; рядовий — чистий погон; сержанти — трикутні зірки,
-  // майстер-сержанти — ще й золота планка; офіцери — восьмикутні зірки; старші офіцери — гілочки дуба;
-  // генерали — погон зі скошеним верхом, кантом і ґудзиком, емблема з тризубом у вінку.
   const f1 = n => n.toFixed(2);
-  // Восьмикутна випукла зірка: великі промені — хрестом, малі — навскіс; грані світлі й темні, як у металу
   function star8(cx, cy, R) {
     const pts = Array.from({ length: 16 }, (_, i) => {
-      const a = Math.PI / 8 * i - Math.PI / 2, k = i % 4 === 0 ? R : i % 2 === 0 ? R * .92 : R * .5; // малі промені виступають за ромб
+      const a = Math.PI / 8 * i - Math.PI / 2, k = i % 4 === 0 ? R : i % 2 === 0 ? R * .92 : R * .5;
       return `${f1(cx + k * Math.cos(a))},${f1(cy + k * Math.sin(a))}`;
     }).join(' ');
     const t = `${f1(cx)},${f1(cy - R)}`, b = `${f1(cx)},${f1(cy + R)}`, l = `${f1(cx - R)},${f1(cy)}`, r = `${f1(cx + R)},${f1(cy)}`, c = `${f1(cx)},${f1(cy)}`;
     return `<polygon class="pg-g" points="${pts}"/><polygon class="pg-g" points="${t} ${r} ${b} ${l}"/>` +
       `<polygon class="pg-l" points="${c} ${t} ${l}"/><polygon class="pg-d" points="${c} ${b} ${r}"/>`;
   }
-  // Трикутна (трипроменева) випукла зірка сержантів
   function star3(cx, cy, R) {
     const pt = (deg, k) => `${f1(cx + k * Math.cos(deg * Math.PI / 180))},${f1(cy + k * Math.sin(deg * Math.PI / 180))}`;
     const c = `${f1(cx)},${f1(cy)}`, v = R * .3;
     return `<polygon class="pg-g" points="${pt(-90, R)} ${pt(-30, v)} ${pt(30, R)} ${pt(90, v)} ${pt(150, R)} ${pt(210, v)}"/>` +
       [-90, 30, 150].map(d => `<polygon class="pg-l" points="${c} ${pt(d, R)} ${pt(d - 60, v)}"/>`).join('');
   }
-  // Планка майстер-сержантів — кручений золотий шнур на всю ширину погона
   const bar = '<rect class="pg-g" x="5" y="54.5" width="30" height="4.2" rx=".6"/><line class="pg-tw" x1="5.4" y1="56.6" x2="34.6" y2="56.6"/>';
-  // Гілочки дуба старших офіцерів: два крила з листків, що розходяться вгору від центру
   const leaf = (x, y, len, deg) => {
     const a = deg * Math.PI / 180, tx = x + len * Math.cos(a), ty = y + len * Math.sin(a);
     const mx = (x + tx) / 2, my = (y + ty) / 2, w = len * .3, px = -Math.sin(a) * w, py = Math.cos(a) * w;
@@ -405,23 +350,21 @@ window.SAFELEX_DB = (function () {
   const leaves = [1, -1].map(k => `<g transform="translate(20 59) scale(${k} 1)">
       <path class="pg-g" d="${wing.map(w => leaf(...w)).join(' ')}"/>
       <path class="pg-l" d="${leaf(...wing[1])} ${leaf(...wing[3])}"/></g>`).join('') + '<circle class="pg-g" cx="20" cy="59.4" r="1.3"/>';
-  // Емблема генералів: синій круг із тризубом у дубовому вінку
   const genEmblem = `<circle class="pg-g" cx="20" cy="54" r="7.2"/><circle class="pg-wr" cx="20" cy="54" r="6.3"/>
       <circle class="pg-bl" cx="20" cy="54" r="4.9"/>
       <path class="pg-tz" d="M20,50.3 V57.9 M17,51.2 V55.6 Q17,57.6 18.9,57.6 H21.1 Q23,57.6 23,55.6 V51.2 M18.4,54.6 H21.6"/>`;
   const stars = (n, y0, kind = star8, R = 5.2, gap = 11) => Array.from({ length: n }, (_, i) => kind(20, y0 - i * gap, R)).join('');
   const PG = [
-    '<text class="pg-g pg-k" x="20" y="59" text-anchor="middle">К</text>',      // Курсант
-    '',                                                                        // Рядовий — чистий погон
-    stars(1, 47, star3, 5.8),                                                  // Сержант
-    bar + stars(1, 47, star3, 5.8),                                            // Майстер-сержант
-    bar + stars(2, 46, star3, 5.8, 11),                                         // Головний майстер-сержант
-    stars(1, 52), stars(2, 52), stars(3, 52), stars(4, 52),                    // Мол. лейтенант … капітан
-    leaves + stars(1, 47), leaves + stars(2, 47), leaves + stars(3, 47),       // Майор … полковник
-    genEmblem + stars(1, 41), genEmblem + stars(2, 41), genEmblem + stars(3, 41), // Генерал-майор … генерал-полковник
-    genEmblem + star8(20, 36, 7.6)                                             // Генерал
+    '<text class="pg-g pg-k" x="20" y="59" text-anchor="middle">К</text>',
+    '',
+    stars(1, 47, star3, 5.8),
+    bar + stars(1, 47, star3, 5.8),
+    bar + stars(2, 46, star3, 5.8, 11),
+    stars(1, 52), stars(2, 52), stars(3, 52), stars(4, 52),
+    leaves + stars(1, 47), leaves + stars(2, 47), leaves + stars(3, 47),
+    genEmblem + stars(1, 41), genEmblem + stars(2, 41), genEmblem + stars(3, 41),
+    genEmblem + star8(20, 36, 7.6)
   ];
-  // shine — металевий відблиск, що час від часу пробігає погоном (поточне й щойно отримане звання)
   let pgUid = 0;
   const badge = (r, got, big, shine) => {
     const i = RANKS.indexOf(r), gen = r.title.startsWith('Генерал');
@@ -436,7 +379,6 @@ window.SAFELEX_DB = (function () {
     return `<span class="pogon ${got ? 'got' : 'locked'} ${big ? 'big' : ''}" title="${esc(r.title)}">
       <svg viewBox="0 0 40 66" aria-hidden="true">${field}${PG[i] || ''}${glint}</svg></span>`;
   };
-  // Що зображено на погоні (за зразками ДСНС) і до якого складу належить звання
   const RANK_INS = [
     'Темно-синій погон із золотою літерою «К».', 'Чистий темно-синій погон, без знаків розрізнення.',
     'Одна трикутна зірка.', 'Трикутна зірка й золота планка внизу погона.', 'Дві трикутні зірки й золота планка.',
@@ -449,7 +391,6 @@ window.SAFELEX_DB = (function () {
   ];
   const rankGroup = i => i === 0 ? 'Курсант навчального закладу' : i === 1 ? 'Рядовий склад' : i <= 4 ? 'Молодший начальницький склад'
     : i <= 8 ? 'Середній начальницький склад' : i <= 11 ? 'Старший начальницький склад' : 'Вищий начальницький склад';
-  // Коли буде звання, якщо не пропускати жодного дня
   function rankDate(need) {
     const left = need - streak();
     if (left <= 0) return null;
@@ -459,7 +400,6 @@ window.SAFELEX_DB = (function () {
     return d.toLocaleDateString('uk-UA', opts);
   }
 
-  // Святковий екран на нове звання: старий погон перевертається — і на його місці новий, з відблиском і променями
   function celebrate(r) {
     const colors = ['#FFC53D', '#D4570F', '#F28A45', '#7FD49B', '#9DB4D8', '#fff'];
     const bits = Array.from({ length: 48 }, (_, i) =>
@@ -482,7 +422,6 @@ window.SAFELEX_DB = (function () {
         ${next ? `<span class="cel-next">Наступне — «${esc(next.title)}» за серію ${nDays(next.days)}</span>` : ''}
         <button class="btn" data-action="cel-close">Служу Україні!</button>
       </div>`;
-    // Закривається кнопкою, торканням поза карткою або клавішею Esc
     el.addEventListener('click', e => { if (e.target === el) el.remove(); });
     const onKey = e => { if (e.key === 'Escape') el.remove(); if (!el.isConnected) document.removeEventListener('keydown', onKey); };
     document.addEventListener('keydown', onKey);
@@ -491,7 +430,6 @@ window.SAFELEX_DB = (function () {
     vibrate([30, 60, 30, 60, 120]);
   }
 
-  /* ---------- Нижня панель (як у застосунках iOS): тягніть донизу або торкніться поза нею, щоб закрити ---------- */
   function openSheet(html, cls = '') {
     document.querySelector('.sheet-wrap')?.remove();
     const wrap = document.createElement('div');
@@ -508,10 +446,8 @@ window.SAFELEX_DB = (function () {
     const onKey = e => { if (e.key === 'Escape') close(); };
     document.addEventListener('keydown', onKey);
     wrap.addEventListener('click', e => { if (e.target === wrap || e.target.closest('[data-action="sheet-close"]')) close(); });
-    // сторінка позаду не прокручується, поки панель відкрита
     wrap.addEventListener('touchmove', e => { if (e.target === wrap) e.preventDefault(); }, { passive: false });
     document.documentElement.classList.add('sheet-open');
-    // жест: потягнути панель донизу
     let y0 = null, dy = 0;
     sh.addEventListener('touchstart', e => { if (sh.scrollTop <= 0) { y0 = e.touches[0].clientY; dy = 0; } }, { passive: true });
     sh.addEventListener('touchmove', e => {
@@ -529,7 +465,6 @@ window.SAFELEX_DB = (function () {
     return { wrap, sheet: sh, close };
   }
 
-  // Картка звання: погон крупно, що на ньому зображено, скільки лишилося і коли буде, якщо не пропускати
   function rankSheetHtml(i) {
     const r = RANKS[i], best = bestStreak(), days = streak(), cur = rankOf(best);
     const got = best >= r.days, isCur = r === cur, isNext = r === nextRank(best);
@@ -561,14 +496,13 @@ window.SAFELEX_DB = (function () {
   function openRank(i) {
     i = Math.max(0, Math.min(RANKS.length - 1, i));
     const open = document.querySelector('.sheet.rank-sheet .sheet-body');
-    if (open) { // гортання стрілками — вміст міняється плавно, панель лишається
+    if (open) {
       open.innerHTML = rankSheetHtml(i); open.classList.remove('swap'); void open.offsetWidth; open.classList.add('swap');
       vibrate(8); return;
     }
     openSheet(rankSheetHtml(i), 'rank-sheet');
   }
 
-  /* ---------- Установка як додаток (кнопка «Встановити») ---------- */
   let installEvent = null;
   const ua = navigator.userAgent;
   const isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -578,20 +512,17 @@ window.SAFELEX_DB = (function () {
 
   window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault(); installEvent = e;
-    if (!location.hash || location.hash === '#/') drawHome();
   });
   window.addEventListener('appinstalled', () => {
     installEvent = null; store.set('safelex:hideInstall', true);
     document.querySelector('.install-card')?.remove();
   });
 
-  // Картка «Встановіть на телефон» — показується, лише коли відкрито в браузері
   function installCard() {
     if (isStandalone() || store.get('safelex:hideInstall', false)) return '';
     let text = '', btn = '';
-    if (installEvent) { text = 'Додайте SafeLex на екран телефона — працюватиме як звичайний застосунок, навіть без інтернету.'; btn = `<button class="btn" data-action="install">Встановити</button>`; }
+    if (installEvent || isAndroid) { text = 'Додайте SafeLex на екран телефона — працюватиме як звичайний застосунок, навіть без інтернету.'; btn = `<button class="btn" data-action="install">Встановити</button>`; }
     else if (isIOS) text = 'Щоб встановити на iPhone: натисніть «Поділитися» внизу Safari, потім «На екран „Додому“».';
-    else if (isAndroid) text = 'Щоб встановити: меню ⋮ у Chrome → «Встановити додаток» або «Додати на головний екран».';
     else return '';
     return `
       <div class="install-card">
@@ -601,19 +532,10 @@ window.SAFELEX_DB = (function () {
       </div>`;
   }
 
-  /* =================== ПОШУК (головна) =================== */
-  const MAX_RESULTS = 50; // більше на екран не виводимо — щоб пошук не гальмував на великій базі
+  const MAX_RESULTS = 50;
   let lastQuery = '';
   let searchCat = 'all';
 
-  /* ---------- Розумний пошук (і на головній, і у фільтрі довідника) ----------
-     • слова в будь-якому порядку: «hose fire» знайде «fire hose»;
-     • форми слів: «рукава», «рукавом» → «рукав»; «hoses», «ladders» → «hose», «ladder»;
-     • одруківки: «evacuaton», «рукв» — прощаємо 1–2 помилки залежно від довжини слова;
-     • не та розкладка: «рщыу» → «hose», «hernfd» → «рукав»;
-     • апостроф будь-який (’ ʼ '), наголоси ігноруються;
-     • абревіатури за розшифровкою, синоніми, і нарешті — речення-приклади.
-     Найкращі збіги першими: точний термін → початок терміна → ціле слово → форма слова → одруківка → приклад. */
   const normS = s => String(s ?? '').toLowerCase().replace(/\u0301/g, '').replace(/[’ʼ`´‘]/g, "'").replace(/ё/g, 'е');
   const WORD_RE = /[a-z0-9а-яіїєґ']+/g;
   const wordsOf = s => (normS(s).match(WORD_RE) || []).map(w => w.replace(/^'+|'+$/g, '')).filter(Boolean);
@@ -623,7 +545,6 @@ window.SAFELEX_DB = (function () {
     const s = isCyr(w) ? w.replace(UA_END, '') : w.length > 4 ? w.replace(/(ies|ing|es|ed|s)$/, '') : w;
     return s.length >= 3 ? s : w;
   }
-  // Розкладки: латинська клавіша → українська літера і навпаки (плюс «російські» ы, э, ъ, ё)
   const EN_KEYS = "qwertyuiop[]asdfghjkl;'zxcvbnm,.`", UA_KEYS = "йцукенгшщзхїфівапролджєячсмитьбю'";
   const toUA = {}, toEN = {};
   [...EN_KEYS].forEach((c, i) => { toUA[c] = UA_KEYS[i]; toEN[UA_KEYS[i]] = c; });
@@ -631,7 +552,6 @@ window.SAFELEX_DB = (function () {
   const swapLayout = q => /[a-z]/.test(q) && !isCyr(q) ? [...q].map(c => toUA[c] ?? c).join('')
     : isCyr(q) && !/[a-z]/.test(q) ? [...q].map(c => toEN[c] ?? c).join('') : '';
 
-  // Індекс будується один раз, при першому пошуку
   let sIdx = null;
   function searchIndex() {
     if (sIdx) return sIdx;
@@ -647,9 +567,8 @@ window.SAFELEX_DB = (function () {
     }
     return sIdx;
   }
-  const allowTypos = n => n >= 8 ? 2 : n >= 5 ? 1 : 0; // у коротких словах одруківок не шукаємо: «hose» ≠ «home»
+  const allowTypos = n => n >= 8 ? 2 : n >= 5 ? 1 : 0;
 
-  // Наскільки добре одне слово запиту збігається з терміном: 0 — ніяк
   function tokenScore(tk, st, x, marks) {
     let best = 0, hit = '';
     const tryWords = (words, exact, prefix) => {
@@ -663,10 +582,9 @@ window.SAFELEX_DB = (function () {
     tryWords(x.uaW, 11, 8);
     if (best) { marks.add(hit); return { s: best }; }
     if (tk.length >= 3 && (x.en.some(e => e.includes(tk)) || x.ua.includes(tk) || x.full.includes(tk))) { marks.add(tk); return { s: 5 }; }
-    // одруківка: порівнюємо зі словом цілком або з його початком такої ж довжини
     const k = allowTypos(tk.length);
     if (k) for (const w of isCyr(tk) ? x.uaW : x.enW) {
-      if (w[0] !== tk[0] || w.length < tk.length - k) continue; // перша літера зазвичай правильна — так і швидше
+      if (w[0] !== tk[0] || w.length < tk.length - k) continue;
       if (typos(w, tk) <= k || (w.length > tk.length && typos(w.slice(0, tk.length), tk) <= k)) { marks.add(w); return { s: 3, fuzzy: true }; }
     }
     if (tk.length >= 3 && (x.ex.includes(tk) || (st.length >= 4 && x.ex.includes(st)))) return { s: 1, ex: true };
@@ -686,20 +604,18 @@ window.SAFELEX_DB = (function () {
         const r = tokenScore(tokens[i], stems[i], x, m);
         if (!r) { sum = -1; break; }
         sum += r.s; fuzzy ||= !!r.fuzzy; ex &&= !!r.ex;
-        // збіг на початку головного перекладу чи терміна важить більше, ніж десь у поясненні
         if (!r.fuzzy && !r.ex) {
           if (x.headW.startsWith(tokens[i]) || x.senseW[0]?.startsWith(stems[i])) sum += 6;
           else if (x.senseW.some(w => w.startsWith(stems[i]))) sum += 3;
         }
       }
       if (sum < 0) continue;
-      // збіг усього запиту
       if (x.en.includes(nq) || x.full === nq || x.sense === nq) sum += 100;
       else if (x.en.some(e => e.startsWith(nq)) || x.sense.startsWith(nq)) sum += 40;
       else if (x.en.some(e => e.includes(nq)) || x.ua.includes(nq)) sum += 15;
       if (t.core) sum += 3;
       if (recent.includes(t.id)) sum += 2;
-      sum -= t.en.length * .04; // коротший термін — ймовірніше саме він
+      sum -= t.en.length * .04;
       out.push({ t, score: sum, fuzzy: fuzzy && sum < 100, ex });
       m.forEach(w => marks.add(w));
     }
@@ -707,7 +623,6 @@ window.SAFELEX_DB = (function () {
     return { list: out, marks: [...marks] };
   }
 
-  // Пошук із запасним варіантом: якщо нічого путнього — пробуємо іншу розкладку клавіатури
   let ssMemo = { key: '', pool: null, res: null };
   function smartSearch(q, pool = TERMS) {
     q = q.trim();
@@ -730,7 +645,6 @@ window.SAFELEX_DB = (function () {
   }
   const search = (q, cat = 'all') => smartSearch(q, cat === 'all' ? TERMS : TERMS.filter(t => t.cat === cat)).list.map(r => r.t);
 
-  // Підсвічує знайдені слова (на початку слів, з урахуванням форм і одруківок)
   function highlight(text, marks) {
     text = String(text ?? '');
     if (!marks || !marks.length) return esc(text);
@@ -749,7 +663,6 @@ window.SAFELEX_DB = (function () {
     return out + esc(text.slice(last));
   }
 
-  // Історія запитів і підказки для порожнього поля
   const qHist = store.get('safelex:qhist', []);
   function rememberQuery(q) {
     q = q.trim();
@@ -759,7 +672,7 @@ window.SAFELEX_DB = (function () {
     qHist.unshift(q); qHist.length = Math.min(qHist.length, 8);
     store.set('safelex:qhist', qHist);
   }
-  const TRY_Q = ['arson', 'рукав', 'foam', 'breathing apparatus', 'вогнегасник', 'hydrant', 'дим', 'rescue'];
+  const TRY_Q = ['arson', 'горіння', 'fire alarm', 'breathing apparatus', 'вогнегасник', 'first aid', 'задимлення', 'false alarm'];
 
   function renderHome() {
     app.innerHTML = `
@@ -774,30 +687,26 @@ window.SAFELEX_DB = (function () {
         </div>
         <label class="searchbox">
           ${I.search}
-          <input id="q" type="search" value="${esc(lastQuery)}" placeholder="hose, arson, рукав…" aria-label="Пошук терміна" enterkeyhint="search" autocomplete="off" autocapitalize="off" spellcheck="false">
+          <input id="q" type="search" value="${esc(lastQuery)}" placeholder="arson, fire alarm, горіння…" aria-label="Пошук терміна" enterkeyhint="search" autocomplete="off" autocapitalize="off" spellcheck="false">
           <button class="clear" data-action="clear" aria-label="Очистити" ${lastQuery ? '' : 'hidden'}>${I.x}</button>
         </label>
         <div class="chips scroll" id="qchips"></div>
       </header>
       <section class="section" id="homeBody"></section>`;
     const input = document.getElementById('q');
-    input.addEventListener('keydown', e => { if (e.key === 'Enter') { rememberQuery(input.value); input.blur(); } }); // ховає клавіатуру
-    // під час швидкого набору перемальовуємо не на кожну літеру, а після короткої паузи
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') { rememberQuery(input.value); input.blur(); } });
     let typing = 0;
     input.addEventListener('input', () => { lastQuery = input.value; clearTimeout(typing); typing = setTimeout(drawHome, lastQuery.trim() ? 70 : 0); });
-    // відкрили результат — запит потрапляє в історію
     document.getElementById('homeBody').addEventListener('click', e => { if (e.target.closest('a.result, .best a')) rememberQuery(lastQuery); });
     drawHome();
   }
 
-  // Порожній запит → завдання дня; є запит → результати пошуку
   function drawHome() {
     const body = document.getElementById('homeBody'), chips = document.getElementById('qchips');
     if (!body) return;
     const q = lastQuery.trim();
     document.querySelector('.searchbox .clear')?.toggleAttribute('hidden', !lastQuery);
     if (!q) {
-      // порожнє поле: нещодавні запити або приклади, що можна шукати
       chips.innerHTML = qHist.length
         ? `<span class="qc-label">Ви шукали</span>${qHist.map(h => `<button class="chip qc" data-q="${esc(h)}">${esc(h)}</button>`).join('')}<button class="chip qc-x" data-action="qhist-clear" aria-label="Очистити історію">${I.x}</button>`
         : `<span class="qc-label">Спробуйте</span>${TRY_Q.map(h => `<button class="chip qc" data-q="${esc(h)}">${esc(h)}</button>`).join('')}`;
@@ -841,7 +750,6 @@ window.SAFELEX_DB = (function () {
       rest.slice(0, MAX_RESULTS).map(row).join('');
   }
 
-  // Точний збіг — одразу з перекладом і прикладом, щоб не відкривати картку
   function bestCard(t, marks) {
     const fav = favs.has(t.id);
     return `
@@ -858,7 +766,6 @@ window.SAFELEX_DB = (function () {
         </span>
       </div>`;
   }
-  // Шматок речення-прикладу навколо знайденого слова
   function exSnippet(t, words) {
     const src = t.exEn && words.some(w => normS(t.exEn).includes(w)) ? t.exEn : t.exUa || t.exEn || '';
     const low = normS(src), w = words.find(w => w.length >= 3 && low.includes(w)) || '';
@@ -868,16 +775,13 @@ window.SAFELEX_DB = (function () {
     return (a ? '…' : '') + src.slice(a, b) + (b < src.length ? '…' : '');
   }
 
-  // Картка «Завдання дня»: вогник із серією, тиждень і шлях до наступного звання
   function dailyCard() {
     const done = doneToday(), days = streak(), best = bestStreak(), res = store.get('safelex:dailyScore', {});
-    // звання — за найкращою серією (як у «Моє»); до наступного треба дійти поточною серією
     const next = nextRank(best), prev = rankOf(best);
-    // Сьогодні і 6 наступних днів: у кожному — яку серію ви матимете, якщо не пропускати; зірка — день нового звання
     const base = done ? days : days + 1;
     const week = [0, 1, 2, 3, 4, 5, 6].map(i => {
       const d = new Date(); d.setDate(d.getDate() + i);
-      const n = base + i, r = RANKS.find(r => r.days === n && r.days > best); // лише звання, яких ще немає
+      const n = base + i, r = RANKS.find(r => r.days === n && r.days > best);
       const inner = i === 0 && done ? I.flame : r ? badge(r, true) : `<b class="len${String(n).length}">${n}</b>`;
       return `<span class="wd ${i === 0 ? 'today' : ''} ${i === 0 && done ? 'on' : ''} ${r ? 'rk' : ''}" ${r ? `title="День ${n}: звання «${esc(r.title)}»"` : ''}><i>${inner}</i>${i === 0 ? 'Сьогодні' : ['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'][d.getDay()]}</span>`;
     }).join('');
@@ -905,7 +809,6 @@ window.SAFELEX_DB = (function () {
       </a>`;
   }
 
-  // «Термін дня» — щодня інший; кнопка «Ще один» показує випадковий
   let todTerm = null, todShown = false;
   const hashStr = str => { let h = 7; for (const c of str) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; };
   const todPool = () => CORE.length ? CORE : TERMS;
@@ -937,7 +840,6 @@ window.SAFELEX_DB = (function () {
       </div>`;
   }
 
-  // Нещодавно переглянуті терміни
   const recent = store.get('safelex:recent', []).filter(id => termById[id]);
   function rememberTerm(id) {
     const i = recent.indexOf(id);
@@ -952,22 +854,18 @@ window.SAFELEX_DB = (function () {
       <div class="recent">${recent.slice(0, 5).map(id => `<a class="${toneOf(termById[id].cat)}" href="#/term/${id}"><b>${esc(termById[id].en)}</b><span>${esc(termById[id].ua)}</span></a>`).join('')}</div>`;
   }
 
-  /* =================== ДОВІДНИК =================== */
-  // Розділи з прогресом; у розділі — фільтр, алфавіт і підвантаження списку під час гортання
   const GUIDE_CHUNK = 120;
   const sortedCache = {};
   const sortKey = t => t.en.replace(/^[^a-z0-9]+/i, '');
   const sortedTerms = cat => sortedCache[cat] ||= poolFor(cat).slice().sort((a, b) => sortKey(a).localeCompare(sortKey(b), 'en', { sensitivity: 'base' }));
-  const letterOf = t => { const c = (t.en.match(/[a-z0-9]/i) || ['#'])[0].toUpperCase(); return /[A-Z]/.test(c) ? c : '#'; }; // «(alarm) card» → A
+  const letterOf = t => { const c = (t.en.match(/[a-z0-9]/i) || ['#'])[0].toUpperCase(); return /[A-Z]/.test(c) ? c : '#'; };
   const gv = { cat: '', filter: '', letter: '', items: [], shown: 0, lastLetter: '', marks: [] };
   let guideObs = null;
 
-  // 3 найвпізнаваніші терміни розділу для плитки: спершу ключові та абревіатури, коротші першими
   function previewTerms(list) {
     return list.slice().sort((a, b) => (b.core ? 1 : 0) - (a.core ? 1 : 0) || (b.full ? 1 : 0) - (a.full ? 1 : 0) || a.en.length - b.en.length).slice(0, 3);
   }
 
-  // Розділи довідника об’єднано в групи за змістом. Тема, якої немає в жодній групі, потрапить в «Інше»
   const GROUPS = [
     { title: 'Служба та зв’язок', ids: ['service', 'alarm'] },
     { title: 'Вогонь і гасіння', ids: ['combustion', 'extinguishing', 'heat', 'forest'] },
@@ -984,7 +882,7 @@ window.SAFELEX_DB = (function () {
   }
   function renderGuide() {
     const p = progressOf(TERMS), n = TERMS.length || 1;
-    let no = 0; // наскрізна нумерація 01, 02, 03… у тому порядку, як розділи стоять на екрані
+    let no = 0;
     app.innerHTML = `
       <header class="hero">
         <h1>Довідник</h1>
@@ -1066,10 +964,8 @@ window.SAFELEX_DB = (function () {
     input.addEventListener('input', () => { gv.filter = input.value; applyGuideFilter(); guideToTop(); });
     input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); });
     applyGuideFilter();
-    // Літери-заголовки в списку прилипають одразу під панеллю фільтра
     app.style.setProperty('--gbar', document.getElementById('gbar').offsetHeight + 'px');
   }
-  // Після вибору літери чи фільтра список починається одразу під панеллю, а не десь унизу
   function guideToTop() {
     const list = document.getElementById('glist'), bar = document.getElementById('gbar');
     if (!list || !bar) return;
@@ -1080,7 +976,6 @@ window.SAFELEX_DB = (function () {
   function applyGuideFilter() {
     const q = gv.filter.trim();
     const base = sortedTerms(gv.cat).filter(t => !gv.letter || letterOf(t) === gv.letter);
-    // з фільтром — той самий розумний пошук, що й на головній (найкращі збіги першими); без фільтра — за абеткою
     const found = q ? smartSearch(q, base) : null;
     gv.items = found ? found.list.map(r => r.t) : base;
     gv.marks = found ? found.marks : [];
@@ -1092,7 +987,6 @@ window.SAFELEX_DB = (function () {
     renderMoreTerms();
   }
 
-  // Малюємо список порціями: наступна порція — коли користувач догортав до кінця
   function renderMoreTerms() {
     const list = document.getElementById('glist'), more = document.getElementById('gmore');
     if (!list) return;
@@ -1112,14 +1006,12 @@ window.SAFELEX_DB = (function () {
     } else if (gv.shown < gv.items.length) renderMoreTerms();
   }
 
-  // Розробники додатка (показуються в довіднику і в «Про додаток»)
   const AUTHORS = [
     { name: 'Зелінський Гліб Сергійович', role: 'курсант 3 курсу' },
     { name: 'Пальчевська Олександра Святославівна', role: 'доцент кафедри іноземних мов та перекладознавства' }
   ];
   const authorsList = () => AUTHORS.map(a => `<span class="author"><b>${esc(a.name)}</b><span>${esc(a.role)}</span></span>`).join('');
 
-  // Картка «Розробка» з гербом ЛДУ БЖД
   function devCard() {
     return `
       <a class="dev-card" href="#/about">
@@ -1134,10 +1026,8 @@ window.SAFELEX_DB = (function () {
       </a>`;
   }
 
-  // Три галочки ✓ ✓ ○ — скільки днів термін уже «зараховано»
   const checksHtml = n => `<span class="checks">${Array.from({ length: MASTERED }, (_, i) => `<i class="${i < n ? 'on' : ''}">${i < n ? I.check : ''}</i>`).join('')}</span>`;
 
-  // Статус терміна з поясненням
   function learnBadge(id) {
     const st = statusOf(id), n = boxOf(id), left = MASTERED - n, today = srs[id]?.day === dayKey();
     const text = st === 'new' ? 'Новий термін — ще не тренували'
@@ -1252,11 +1142,10 @@ window.SAFELEX_DB = (function () {
           <span class="about-dep">Кафедра іноземних мов та перекладознавства</span>
         </div>
         <p class="meta" style="text-align:center">Версія 3.0 · ${new Date().getFullYear()}</p>
+        <p class="meta" style="text-align:center">© 2026 Зелінський Г. С., Пальчевська О. С. Усі права захищено.<br>Копіювання, зміна й поширення застосунку без письмового дозволу авторів заборонені.</p>
       </section>`;
   }
 
-  /* =================== МОЄ =================== */
-  // Пояснення статусів «Нові / Вчу / Вивчено» (показується в «Моє» і на картці терміна)
   const learnHelp = () => `
     <div class="how-rule">
       <b>Термін вивчено, коли ви правильно відповіли на нього в ${MASTERED} різні дні.</b>
@@ -1269,12 +1158,9 @@ window.SAFELEX_DB = (function () {
     </ul>
     <p class="how-note"><b>Нові</b> — ще не траплялися вам. <b>Вчу</b> — є 0–2 галочки. <b>Вивчено</b> — усі ${MASTERED}.</p>`;
 
-  // Серія, звання, прогрес і збережені терміни (їх можна одразу тренувати)
-  // Рівень «вогню» плитки в «Моє»: що більше число, то яскравіша анімація (0…4)
   const streakLv = d => d >= 100 ? 4 : d >= 10 ? 3 : d >= 3 ? 2 : d >= 1 ? 1 : 0;
   const masteredLv = f => f >= .6 ? 4 : f >= .3 ? 3 : f >= .1 ? 2 : f > 0 ? 1 : 0;
 
-  // Підказка під «днів поспіль»: що робити далі
   function streakHint(days, best) {
     if (!days) return 'почніть сьогодні';
     if (!doneToday()) return 'виконайте завдання сьогодні, щоб не перервати';
@@ -1282,7 +1168,6 @@ window.SAFELEX_DB = (function () {
     return `до рекорду ще ${nDays(best - days + 1)}`;
   }
 
-  // Числа «набігають» від 0 до значення (на екрані «Моє»)
   function countUp(root) {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     root.querySelectorAll('[data-count]').forEach(el => {
@@ -1299,7 +1184,6 @@ window.SAFELEX_DB = (function () {
     });
   }
 
-  // Картка поточного звання: погон із відблиском, смужка до наступного звання і його погон
   function rankHero(rank, best, days) {
     const i = RANKS.indexOf(rank), next = nextRank(best);
     const from = rank.days, pct = next ? Math.round(Math.min(1, Math.max(0, (days - from) / (next.days - from))) * 100) : 100;
@@ -1372,23 +1256,18 @@ window.SAFELEX_DB = (function () {
     countUp(app);
   }
 
-  /* =================== СТАТИСТИКА =================== */
-  // Активність за 14 днів, календар практики, точність, розділи, повторення і найскладніші терміни.
-  // Дані — з журналу safelex:log (ведеться з цієї версії) і з днів виконаного завдання дня.
-  const STATS_DAYS = 14;    // стовпчиків у графіку активності
+  const STATS_DAYS = 14;
   const keyToDate = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
   const dayLabel = k => { const t = keyToDate(k).toLocaleDateString('uk-UA', { weekday: 'short', day: 'numeric', month: 'short' }); return t.charAt(0).toUpperCase() + t.slice(1); };
   const nAnswers = n => `${n} ${plural(n, 'відповідь', 'відповіді', 'відповідей')}`;
   const pct = (r, a) => a ? Math.round(r / a * 100) : 0;
 
-  // Підпис під графіком для вибраного дня
   function dayText(k) {
     const d = actLog[k];
     const when = k === dayKey() ? 'Сьогодні' : dayLabel(k);
     if (!d || !d.a) return `<b>${esc(when)}</b> · ${doneDays.has(k) ? 'завдання дня виконано' : 'без практики'}`;
     return `<b>${esc(when)}</b> · ${nAnswers(d.a)} · ${pct(d.r, d.a)}% правильних${doneDays.has(k) ? ' · завдання дня ✓' : ''}`;
   }
-  // Вибраний день підсвічується лише в тому графіку, де його торкнулися; підпис — під цим графіком
   function showDay(k, el) {
     const card = el.closest('.card');
     if (!card) return;
@@ -1398,12 +1277,10 @@ window.SAFELEX_DB = (function () {
     card.querySelectorAll('[data-day]').forEach(b => b.classList.toggle('sel', b.dataset.day === k));
   }
 
-  // Календар практики: місяць сіткою пн…нд, колір — скільки відповідей, крапка — виконане завдання дня.
-  // Стрілки гортають місяці назад (до року) і вперед до поточного.
   const MONTH_NAMES = ['Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень', 'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'];
   const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'];
-  let hmOffset = 0;  // 0 — поточний місяць, 1 — попередній…
-  let hmSel = '';    // вибраний у календарі день (спершу — жоден, сьогодні й так виділено кольором)
+  let hmOffset = 0;
+  let hmSel = '';
   const heatLevel = k => { const a = actLog[k]?.a || 0; return a >= 50 ? 4 : a >= 25 ? 3 : a >= 10 ? 2 : a > 0 || doneDays.has(k) ? 1 : 0; };
   const practiced = k => !!(actLog[k]?.a) || doneDays.has(k);
   const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -1413,7 +1290,7 @@ window.SAFELEX_DB = (function () {
     const first = new Date(now.getFullYear(), now.getMonth() - hmOffset, 1);
     const y = first.getFullYear(), m = first.getMonth();
     const len = new Date(y, m + 1, 0).getDate();
-    const lead = (first.getDay() + 6) % 7; // порожніх клітинок до 1-го числа (тиждень з понеділка)
+    const lead = (first.getDay() + 6) % 7;
     let cells = '<i class="hm-cell blank"></i>'.repeat(lead), inMonth = 0;
     for (let d = 1; d <= len; d++) {
       const k = ymd(new Date(y, m, d));
@@ -1445,7 +1322,6 @@ window.SAFELEX_DB = (function () {
     const p = progressOf(TERMS);
     const today = dayKey();
 
-    // Активність: останні 14 днів
     const last = Array.from({ length: STATS_DAYS }, (_, i) => dayKey(STATS_DAYS - 1 - i));
     const max = Math.max(1, ...last.map(k => actLog[k]?.a || 0));
     const bars = last.map(k => {
@@ -1458,12 +1334,10 @@ window.SAFELEX_DB = (function () {
     const week = last.slice(-7).reduce((n, k) => n + (actLog[k]?.a || 0), 0);
 
     const now = new Date(); now.setHours(0, 0, 0, 0);
-    // Повторення: скільки термінів чекає сьогодні, завтра, цього тижня
     const endOf = n => { const d = new Date(now); d.setDate(d.getDate() + n + 1); return d.getTime(); };
     const dueIn = n => Object.keys(srs).filter(id => termById[id] && srs[id].due < endOf(n)).length;
     const dueToday = dueIn(0), dueTomorrow = dueIn(1) - dueToday, dueWeek = dueIn(6);
 
-    // Найскладніші: найбільше помилок, ще не вивчені
     const hard = Object.keys(srs).filter(id => termById[id] && srs[id].wrong > 0)
       .sort((a, b) => srs[b].wrong - srs[a].wrong || boxOf(a) - boxOf(b)).slice(0, 5).map(id => termById[id]);
 
@@ -1540,10 +1414,9 @@ window.SAFELEX_DB = (function () {
     countUp(app);
   }
 
-  /* =================== ТРЕНАЖЕР =================== */
   let trainCat = store.get('safelex:trainCat', 'all');
-  let ticker = null; // таймер для «Пар» і «Спринту»
-  const inTrainMode = m => location.hash.startsWith('#/train/' + m); // відкладені дії не малюють поверх іншого екрана
+  let ticker = null;
+  const inTrainMode = m => location.hash.startsWith('#/train/' + m);
   const stopTicker = () => { clearInterval(ticker); ticker = null; };
 
   const MODES = [
@@ -1580,7 +1453,6 @@ window.SAFELEX_DB = (function () {
       </section>`;
   }
 
-  // Верхня панель режиму: закрити · прогрес · лічильник
   const trainBar = (title, pos, total, counter, exit = '#/train') => `
     <div class="topbar">
       <a class="icon-btn" href="${exit}" aria-label="Закрити">${I.close}</a>
@@ -1599,6 +1471,7 @@ window.SAFELEX_DB = (function () {
 
   function runMode(mode, cat) {
     cat = cat || trainCat;
+    if (!['all', 'core', 'fav'].includes(cat) && !catById[cat]) cat = 'all';
     if (mode === 'daily') return startQuiz('daily', 'all');
     if (mode === 'quiz' || mode === 'mistakes') return startQuiz(mode, cat);
     if (mode === 'cards') return startCards(cat);
@@ -1607,7 +1480,6 @@ window.SAFELEX_DB = (function () {
     location.hash = '#/train';
   }
 
-  /* ---------- Тест, Помилки, Завдання дня ---------- */
   const tr = { mode: 'quiz', cat: 'all', qs: [], base: 0, i: 0, score: 0, ans: null, done: false, missed: [], rank: null };
   const QUIZ_TITLE = { quiz: 'Тест', mistakes: 'Робота над помилками', daily: 'Завдання дня' };
 
@@ -1622,7 +1494,7 @@ window.SAFELEX_DB = (function () {
 
   function answer(right, extra) {
     const q = tr.qs[tr.i];
-    app.classList.remove('enter'); // відповідь одразу після відкриття — без повторної «появи» екрана
+    app.classList.remove('enter');
     tr.ans = Object.assign({ right }, extra);
     vibrate(right ? 25 : [40, 60, 40]);
     if (!q.retry) {
@@ -1632,7 +1504,6 @@ window.SAFELEX_DB = (function () {
       if (right) tr.score++;
       else {
         tr.missed.push(q.t);
-        // Помилку повторюємо через 3 питання, в іншому напрямку — так термін краще запам’ятовується
         tr.qs.splice(Math.min(tr.i + 3, tr.qs.length), 0, Object.assign(makeQuestion(q.t, q.kind === 'en2ua' ? 'ua2en' : 'en2ua'), { retry: true }));
       }
     }
@@ -1710,17 +1581,15 @@ window.SAFELEX_DB = (function () {
         <button class="btn" data-action="next">${tr.i + 1 < tr.qs.length ? 'Далі' : 'Результат'}</button>` : ''}`;
   }
 
-  // Підсумок для екрана результату: скільки галочок здобуто сьогодні
   const gainLine = (gained, learned) => gained || learned
     ? `<span class="res-gain"><i>${I.check}</i>+${gained} ${plural(gained, 'галочка', 'галочки', 'галочок')}${learned ? ` · ${learned} ${plural(learned, 'термін', 'терміни', 'термінів')} вивчено` : ''}</span>`
     : `<span class="res-gain muted">Нових галочок немає — сьогодні ці терміни вже зараховано</span>`;
 
-  // Після завдання дня: смужка до наступного звання помітно підростає на сьогоднішній день
   function rankProgress(days) {
     const best = bestStreak(), next = nextRank(best), cur = rankOf(best);
     if (!next) return `<div class="res-rank top">${badge(cur, true, false, true)}<span class="rr-body"><span class="k">Найвище звання</span><b>${esc(cur.title)}</b></span></div>`;
     const span = next.days - cur.days, pct = d => Math.round(Math.min(1, Math.max(0, (d - cur.days) / span)) * 100);
-    const fresh = !!tr.rank; // звання отримано саме сьогодні
+    const fresh = !!tr.rank;
     return `
       <button class="res-rank" data-rank="${RANKS.indexOf(next)}">
         <span class="rr-pg">${badge(next, true)}</span>
@@ -1752,8 +1621,6 @@ window.SAFELEX_DB = (function () {
         <a class="btn ghost" href="#/train">Інший режим</a>`}`;
   }
 
-  /* ---------- Картки ---------- */
-  // Екран будується один раз; після кожної оцінки оновлюються лише колода й лічильники — без «смикання»
   const cd = { cat: 'all', deck: [], i: 0, flipped: false, known: 0, again: 0, requeued: new Set() };
 
   function startCards(cat) {
@@ -1763,30 +1630,24 @@ window.SAFELEX_DB = (function () {
 
   function rateCard(knows) {
     const t = cd.deck[cd.i];
-    const g = grade(t.id, knows);
+    const repeat = !knows && cd.requeued.has(t.id);
+    const g = repeat ? (logAnswer(false), { gain: 0, mastered: false }) : grade(t.id, knows);
     if (g.gain > 0) cd.gained++;
     if (g.mastered) cd.learned++;
     if (knows) cd.known++;
     else {
       cd.again++;
-      // «Ще вчу» — картка повернеться в кінці колоди (один раз)
       if (!cd.requeued.has(t.id)) { cd.requeued.add(t.id); cd.deck.push(t); }
     }
     cd.i++; cd.flipped = false;
     if (cd.i >= cd.deck.length) drawCards(); else nextCard();
   }
 
-  // Верхня картка + дві картки позаду.
-  // mode 'first' — колода щойно з'явилась: картка піднімається зі стосу.
-  // mode 'next' — стос уже підсунувся під час вильоту: на місці верхньої лежить сорочка (d0),
-  // і нова картка м'яко проявляється поверх неї — без стрибка між старим і новим DOM.
-  const FLY_MS = 380; // тривалість вильоту картки й підсування стосу (= flyYes/flyNo і promote у CSS)
-  // Розмір шрифту на картці: довгий текст або одне довге слово («пожежонебезпечні») — дрібніше, щоб слово не рвалося посередині
+  const FLY_MS = 380;
   const longestWord = str => Math.max(0, ...String(str).split(/[\s\-–—/]+/).map(w => w.length));
   const enCls = str => str.length > 28 || longestWord(str) > 14 ? 'long' : '';
   const uaCls = str => str.length > 60 || longestWord(str) > 18 ? 'xl' : str.length > 30 || longestWord(str) > 13 ? 'mid' : '';
 
-  // Обидва боки картки — в одних пропорціях: розмір беремо за довшим із двох текстів
   const SIZE_RANK = { '': 0, long: 1, mid: 1, xl: 2 }, SIZE_CLS = ['', 'mid', 'xl'];
   const pairCls = (en, ua) => SIZE_CLS[Math.max(SIZE_RANK[enCls(en)], SIZE_RANK[uaCls(ua)])];
 
@@ -1842,7 +1703,6 @@ window.SAFELEX_DB = (function () {
       </div></div>`;
   }
 
-  // Наступна картка: міняємо тільки колоду, прогрес і лічильники
   function nextCard() {
     const deck = document.getElementById('deck');
     if (!deck) return drawCards();
@@ -1852,8 +1712,7 @@ window.SAFELEX_DB = (function () {
     deck.classList.remove('advance', 'dragging'); deck.classList.add('settled');
     deck.style.height = ''; deck.style.removeProperty('--p');
     deck.innerHTML = deckHtml('next');
-    if (burst) deck.appendChild(burst); // сплеск догорає поверх нової картки
-    // Нова картка іншої висоти: колода плавно підлаштовується, а кнопки під нею не стрибають
+    if (burst) deck.appendChild(burst);
     const now = deck.offsetHeight;
     if (Math.abs(now - was) > 2) {
       deck.style.height = was + 'px'; void deck.offsetHeight;
@@ -1873,7 +1732,6 @@ window.SAFELEX_DB = (function () {
     tally('cYes', `Знаю · ${cd.known}`);
   }
 
-  // Картка плавно відлітає вправо («Знаю») або вліво («Ще вчу»), а стос одночасно підсувається вгору
   function flyCard(knows) {
     if (cd.busy) return;
     const card = document.querySelector('.deck .flash');
@@ -1881,19 +1739,16 @@ window.SAFELEX_DB = (function () {
     cd.busy = true;
     drag = null;
     if (card) {
-      // картка ще пружно вертається після короткого свайпу — виліт починається звідти, де вона зараз, а не з центру
       if (!card.style.getPropertyValue('--dx')) {
         const x = new DOMMatrix(getComputedStyle(card).transform).e;
         if (Math.abs(x) > 2) { card.style.setProperty('--dx', x + 'px'); card.style.setProperty('--rot', x / 18 + 'deg'); }
       }
       card.classList.remove('enter', 'reveal', 'lift', 'dragging');
       card.style.transform = '';
-      // без свайпу (кнопка чи стрілка) картка стартує з місця — інша крива розгону
       card.classList.toggle('from-rest', !card.style.getPropertyValue('--dx'));
       card.classList.add(knows ? 'fly-yes' : 'fly-no');
     }
     vibrate(knows ? 20 : [30, 40, 30]);
-    // «Сплеск» у центрі колоди: зелена ✓ або червона ↺
     if (deck) {
       deck.classList.remove('dragging');
       deck.classList.add('advance');
@@ -1906,13 +1761,12 @@ window.SAFELEX_DB = (function () {
     setTimeout(() => { cd.busy = false; if (inTrainMode('cards')) rateCard(knows); }, card ? FLY_MS : 0);
   }
 
-  // Свайп картки пальцем. Позиція малюється раз на кадр (rAF); швидкий змах зараховується й на коротшій відстані
-  const SWIPE_DIST = 90, FLICK_DIST = 40, FLICK_SPEED = .5; // px, px, px/мс
+  const SWIPE_DIST = 90, FLICK_DIST = 40, FLICK_SPEED = .5;
   let drag = null, dragMoved = false, dragFrame = 0;
   const resetDrag = card => {
     card.style.transform = ''; ['--yes', '--no', '--dx', '--rot'].forEach(v => card.style.removeProperty(v));
     const deck = card.closest('.deck');
-    if (deck) { deck.classList.remove('dragging'); deck.style.removeProperty('--p'); } // стос пружно опускається назад
+    if (deck) { deck.classList.remove('dragging'); deck.style.removeProperty('--p'); }
   };
   function paintDrag() {
     dragFrame = 0;
@@ -1934,14 +1788,13 @@ window.SAFELEX_DB = (function () {
     const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
     if (!dragMoved) {
       if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
-      if (Math.abs(dy) > Math.abs(dx)) { drag = null; return; } // це вертикальне гортання сторінки
+      if (Math.abs(dy) > Math.abs(dx)) { drag = null; return; }
       dragMoved = true;
-      // анімації «появи» і «підйому» сильніші за inline-transform — знімаємо, щоб картка йшла за пальцем
       drag.card.classList.remove('enter', 'reveal', 'lift'); drag.card.classList.add('dragging');
       drag.card.parentElement.classList.add('dragging');
     }
     const dt = e.timeStamp - drag.t;
-    if (dt > 0) drag.v = drag.v * .5 + (dx - drag.dx) / dt * .5; // згладжена швидкість
+    if (dt > 0) drag.v = drag.v * .5 + (dx - drag.dx) / dt * .5;
     drag.dx = dx; drag.t = e.timeStamp;
     if (!dragFrame) dragFrame = requestAnimationFrame(paintDrag);
   });
@@ -1959,14 +1812,10 @@ window.SAFELEX_DB = (function () {
   document.addEventListener('pointerup', endDrag);
   document.addEventListener('pointercancel', endDrag);
 
-  /* ---------- Пари ---------- */
-  // Раунди по 5 пар: торкніться терміна, потім його перекладу. Швидше й без помилок — краще.
-  // Сітка малюється лише на початку раунду; далі змінюються тільки ті плитки, яких торкнулись
   const mt = { cat: 'all', rounds: [], r: 0, left: [], right: [], sel: null, matched: new Set(), bad: new Set(), mistakes: 0, start: 0, time: 0, over: false, record: false, busy: false };
 
   function startMatch(cat) {
     stopTicker();
-    // Для гри на швидкість — терміни з коротким перекладом (якщо таких вистачає) і без однакових перекладів
     const seen = new Set(), all = poolFor(cat), shortOnes = all.filter(t => (t.uaShort || t.ua).length <= 45);
     const terms = pickTerms(shortOnes.length >= MATCH_PAIRS * 2 ? shortOnes : all, MATCH_ROUNDS * MATCH_PAIRS * 2)
       .filter(t => { const k = sense(t.uaShort || t.ua); if (seen.has(k)) return false; seen.add(k); return true; })
@@ -1991,7 +1840,6 @@ window.SAFELEX_DB = (function () {
 
   const tileEl = (side, id) => document.querySelector(`.tile[data-mt="${side}"][data-id="${id}"]`);
 
-  // Прогрес-бар і лічильник помилок
   function updateMatchHud() {
     const done = mt.rounds.slice(0, mt.r).reduce((n, r) => n + r.length, 0) + mt.matched.size;
     const total = mt.rounds.reduce((n, r) => n + r.length, 0);
@@ -2004,7 +1852,6 @@ window.SAFELEX_DB = (function () {
     if (mt.over || mt.busy || mt.matched.has(id)) return;
     const el = tileEl(side, id);
     if (!el) return;
-    // Перший вибір (або інший вибір з того самого стовпця)
     if (!mt.sel || mt.sel.side === side) {
       const same = mt.sel && mt.sel.id === id;
       if (mt.sel) tileEl(mt.sel.side, mt.sel.id)?.classList.remove('sel');
@@ -2015,7 +1862,6 @@ window.SAFELEX_DB = (function () {
     const other = tileEl(mt.sel.side, mt.sel.id), pair = [el, other].filter(Boolean);
     pair.forEach(t => t.classList.remove('sel'));
     if (mt.sel.id === id) {
-      // Правильна пара: лише ці дві плитки стають зеленими й згасають
       mt.matched.add(id); mt.sel = null; vibrate(20);
       grade(id, !mt.bad.has(id));
       pair.forEach(t => { t.classList.add('ok'); t.disabled = true; });
@@ -2033,7 +1879,6 @@ window.SAFELEX_DB = (function () {
         }, 680);
       }
     } else {
-      // Помилка: обидві плитки коротко трусяться червоним, решта не змінюється
       mt.mistakes++; vibrate([40, 60, 40]);
       mt.bad.add(mt.sel.id); mt.bad.add(id); mt.sel = null;
       pair.forEach(t => t.classList.add('bad'));
@@ -2079,12 +1924,9 @@ window.SAFELEX_DB = (function () {
         }).join('')}
       </div>
       <span class="meta dark match-hint">Торкніться терміна, а потім його перекладу</span></div>`;
-    // після каскадної появи прибираємо клас, щоб анімація не повторювалась
     setTimeout(() => document.querySelector('.match.entering')?.classList.remove('entering'), 700);
   }
 
-  /* ---------- Спринт ---------- */
-  // 60 секунд: показано термін і переклад — правильний він чи ні. Помилки йдуть у «Помилки».
   const sp = { cat: 'all', pool: [], started: false, over: false, left: SPRINT_SEC, score: 0, total: 0, pair: null, flash: '', missed: [], record: false };
 
   function startSprint(cat) {
@@ -2123,7 +1965,7 @@ window.SAFELEX_DB = (function () {
     app.classList.remove('enter');
     sp.total++;
     if (right) { sp.score++; vibrate(15); logAnswer(true); }
-    else { vibrate([40, 60, 40]); grade(p.t.id, false); if (!sp.missed.includes(p.t)) sp.missed.push(p.t); }
+    else { vibrate([40, 60, 40]); logAnswer(false); if (!sp.missed.includes(p.t)) sp.missed.push(p.t); }
     sp.flash = right ? 'ok' : 'bad';
     nextPair(); drawSprint();
   }
@@ -2167,7 +2009,6 @@ window.SAFELEX_DB = (function () {
     app.innerHTML = `<div class="trainer">${trainBar(title, sp.started ? SPRINT_SEC - sp.left : 0, SPRINT_SEC, `${sp.left} с`)}${body}</div>`;
   }
 
-  /* =================== НАВІГАЦІЯ =================== */
   function route() {
     const h = location.hash.slice(1) || '/';
     const [path, qs] = h.split('?');
@@ -2180,7 +2021,6 @@ window.SAFELEX_DB = (function () {
     document.querySelector('.sheet-wrap')?.remove();
     document.documentElement.classList.remove('sheet-open');
     document.body.classList.remove('dark', 'kb');
-    // після жесту «назад» новий екран стає на місце одразу, без зворотного руху
     if (app.style.transform) {
       app.classList.add('swiping'); app.classList.remove('swipe-out');
       app.style.transform = app.style.opacity = '';
@@ -2191,7 +2031,7 @@ window.SAFELEX_DB = (function () {
       case undefined: case 'search':
         if (params.has('q')) lastQuery = params.get('q');
         renderHome();
-        if (parts[0] === 'search') document.getElementById('q').focus(); // ярлик «Пошук» на іконці додатка
+        if (parts[0] === 'search') document.getElementById('q').focus();
         break;
       case 'term': renderTerm(parts[1]); tab = null; break;
       case 'guide': parts[1] ? renderCategory(parts[1]) : renderGuide(); tab = 'guide'; break;
@@ -2209,23 +2049,17 @@ window.SAFELEX_DB = (function () {
     document.querySelectorAll('.tabbar a').forEach(a => a.classList.toggle('active', a.dataset.tab === tab));
     const y = restoreY; restoreY = null;
     if (y) {
-      // список довідника малюється порціями — домальовуємо, доки не дійдемо до потрібного місця
       while (document.getElementById('glist') && gv.shown < gv.items.length && document.documentElement.scrollHeight < y + innerHeight) renderMoreTerms();
       window.scrollTo(0, y);
-      app.classList.remove('enter'); // повернення — без анімації появи, екран просто на місці
+      app.classList.remove('enter');
       return;
     }
     window.scrollTo(0, 0);
-    // Плавна поява нового екрана
     app.classList.remove('enter'); void app.offsetWidth; app.classList.add('enter');
-    // Лише одна поява на екран — інакше анімація повторювалась би при кожному натисканні
     clearTimeout(route.enterTimer);
     route.enterTimer = setTimeout(() => app.classList.remove('enter'), 700);
   }
 
-  /* ---------- Демо-режим (#/demo) ----------
-     Для показу: серія DEMO_STREAK днів, DEMO_MASTERED вивчених термінів, ще частина — «вчу».
-     Замінює поточний прогрес на пристрої (збережені терміни лишаються). Повернути — «Моє» → «Скинути прогрес». */
   const DEMO_STREAK = 456, DEMO_MASTERED = 1298, DEMO_LEARNING = 402;
   function seedDemo() {
     if (!confirm(`Демо-режим: серія ${nDays(DEMO_STREAK)} і ${nTerms(DEMO_MASTERED)} вивчено.\nПоточний прогрес на цьому пристрої буде замінено. Продовжити?`)) {
@@ -2246,7 +2080,6 @@ window.SAFELEX_DB = (function () {
     location.reload();
   }
 
-  /* =================== НАТИСКАННЯ =================== */
   document.addEventListener('click', e => {
     const el = e.target.closest('[data-action],[data-cat],[data-q],[data-pick],[data-tcat],[data-letter],[data-mt],[data-sprint],[data-day],[data-rank]');
     if (!el) return;
@@ -2282,7 +2115,10 @@ window.SAFELEX_DB = (function () {
         vibrate(15);
         break;
       }
-      case 'install': if (installEvent) { installEvent.prompt(); installEvent.userChoice.finally(() => { installEvent = null; route(); }); } break;
+      case 'install':
+        if (installEvent) { installEvent.prompt(); installEvent.userChoice.finally(() => { installEvent = null; route(); }); }
+        else alert('Щоб встановити: меню ⋮ у Chrome → «Встановити додаток» або «Додати на головний екран».');
+        break;
       case 'hide-install': store.set('safelex:hideInstall', true); el.closest('.install-card')?.remove(); break;
       case 'next': nextQuestion(); break;
       case 'check': submitTyped(false); break;
@@ -2292,7 +2128,7 @@ window.SAFELEX_DB = (function () {
         if (dragMoved) { dragMoved = false; break; }
         if (cd.busy) break;
         cd.flipped = !cd.flipped;
-        el.classList.remove('enter', 'reveal', 'lift'); void el.offsetWidth; // перезапуск анімації «підйому»
+        el.classList.remove('enter', 'reveal', 'lift'); void el.offsetWidth;
         el.classList.toggle('flipped', cd.flipped); el.classList.add('lift');
         { const deck = el.closest('.deck'); deck?.classList.add('flipping'); clearTimeout(deck?._f); if (deck) deck._f = setTimeout(() => deck.classList.remove('flipping'), 650); }
         break;
@@ -2313,14 +2149,13 @@ window.SAFELEX_DB = (function () {
       case 'reset':
         if (confirm('Скинути весь прогрес навчання, серію днів і рекорди? Збережені терміни залишаться.')) {
           ['safelex:srs', 'safelex:days', 'safelex:best', 'safelex:ranksSeen', 'safelex:dailyScore', 'safelex:matchBest', 'safelex:sprintBest', 'safelex:log']
-            .forEach(k => { try { localStorage.removeItem(k); } catch (err) { /* ігноруємо */ } });
+            .forEach(k => { try { localStorage.removeItem(k); } catch {} });
           srs = {}; doneDays.clear(); for (const k in actLog) delete actLog[k]; renderMe();
         }
         break;
     }
   });
 
-  /* ---------- Клавіатура на комп’ютері: 1–4 — відповідь, Enter — далі, ← → — спринт ---------- */
   document.addEventListener('keydown', e => {
     if (!location.hash.startsWith('#/train/') || e.target.tagName === 'INPUT' || e.metaKey || e.ctrlKey || e.altKey) return;
     const btn = /^[1-4]$/.test(e.key) ? document.querySelector(`.opt:nth-child(${e.key}):not(:disabled)`)
@@ -2331,16 +2166,12 @@ window.SAFELEX_DB = (function () {
     if (btn) { e.preventDefault(); btn.click(); }
   });
 
-  /* ---------- Телефон: жести й дрібниці, як у справжньому застосунку ---------- */
-  // Під час прокрутки під рядком стану з’являється підкладка, щоб текст не налазив на годинник
   const onScroll = () => document.documentElement.classList.toggle('scrolled', window.scrollY > 8);
   window.addEventListener('scroll', onScroll, { passive: true });
 
-  // Відкрита клавіатура — нижнє меню ховається, щоб не займало пів екрана над нею
   document.addEventListener('focusin', e => { if (e.target.matches('input:not([type=checkbox])')) document.body.classList.add('kb'); });
   document.addEventListener('focusout', () => document.body.classList.remove('kb'));
 
-  // Повторне натискання на поточну вкладку — плавно вгору; на «Пошуку», якщо вже вгорі, — одразу до поля пошуку
   document.querySelector('.tabbar').addEventListener('click', e => {
     const a = e.target.closest('a');
     if (!a || a.getAttribute('href') !== (location.hash || '#/')) return;
@@ -2349,8 +2180,6 @@ window.SAFELEX_DB = (function () {
     else if (a.dataset.tab === 'home') document.getElementById('q')?.focus();
   });
 
-  // У встановленому додатку на iPhone немає системного жесту «назад» — робимо свій:
-  // потягніть від лівого краю екрана вправо (працює там, де є кнопка «Назад»)
   if (isIOS && isStandalone()) {
     let on = false, sx = 0, sy = 0, dx = 0, t0 = 0;
     document.addEventListener('touchstart', e => {
@@ -2362,7 +2191,7 @@ window.SAFELEX_DB = (function () {
       if (!on) return;
       const t = e.touches[0];
       dx = Math.max(0, t.clientX - sx);
-      if (dx < 10 && Math.abs(t.clientY - sy) > 10) { on = false; app.style.transform = app.style.opacity = ''; return; } // це прокрутка
+      if (dx < 10 && Math.abs(t.clientY - sy) > 10) { on = false; app.style.transform = app.style.opacity = ''; return; }
       e.preventDefault();
       app.classList.add('swiping');
       app.style.transform = `translateX(${dx}px)`;
@@ -2380,10 +2209,7 @@ window.SAFELEX_DB = (function () {
     document.addEventListener('touchcancel', endSwipe);
   }
 
-  // Перехід між екранами, як в iOS: новий виїжджає справа, «Назад» — навпаки, між вкладками — м’яке перетікання.
-  // Нижнє меню в цей час стоїть на місці. Де браузер цього не вміє (старіші iOS/Android) — звичайна поява екрана
   const TABS = ['', '#', '#/', '#/guide', '#/train', '#/me'];
-  // Індекс пошуку будуємо заздалегідь, поки користувач роздивляється екран — перший запит буде миттєвим
   (window.requestIdleCallback || (f => setTimeout(f, 1200)))(() => searchIndex());
 
   window.addEventListener('hashchange', e => {
@@ -2394,45 +2220,15 @@ window.SAFELEX_DB = (function () {
     html.dataset.nav = TABS.includes(hashOf(e.oldURL)) && TABS.includes(hashOf(e.newURL)) ? 'tab' : navDir;
     html.classList.add('vt');
     const vt = document.startViewTransition(route);
-    // швидкі натискання переривають попередній перехід — це нормально, не помилка
     vt.ready.catch(() => {});
     vt.finished.catch(() => {}).finally(() => html.classList.remove('vt'));
   });
   route();
 
-  /* ---------- Екран завантаження ---------- */
-  // sessionStorage може бути недоступний (приватний режим, заблоковані дані) — тоді заставка просто зникає
   const splash = document.getElementById('splash');
-  let splashSeen = false;
-  try { splashSeen = !!sessionStorage.getItem('safelex:splash'); sessionStorage.setItem('safelex:splash', '1'); } catch (e) { /* ігноруємо */ }
-  if (splashSeen) splash.remove();
+  try { localStorage.setItem('safelex:launched', '1'); } catch {}
+  if (document.documentElement.classList.contains('returning')) splash.remove();
   else setTimeout(() => { splash.classList.add('hide'); setTimeout(() => splash.remove(), 400); }, 700);
-
-  /* ---------- Офлайн-режим і автооновлення (service worker) ---------- */
-  // Встановлений додаток (особливо на iPhone) часто не перезапускається днями,
-  // а лише «прокидається» з фону. Тому при кожному поверненні в додаток
-  // перевіряємо, чи не вийшла нова версія, і тихо оновлюємося.
-  // Перезавантажуємо лише тоді, коли файли на сервері справді змінилися
-  // (порівнюємо їхні ETag), а не щоразу — інакше сторінка блимала б при кожному відкритті.
-  const VERSION_FILES = ['index.html', 'js/app.js', 'data/terms.js', 'css/style.css'];
-  let loadedVersion = null;
-  let reloadPending = false;
-
-  function serverVersion() {
-    return Promise.all(VERSION_FILES.map(f =>
-      fetch(f, { method: 'HEAD', cache: 'no-store' }).then(r => {
-        if (!r.ok) throw new Error(f);
-        return (r.headers.get('etag') || '').replace(/^W\//, '');
-      })
-    )).then(tags => tags.some(Boolean) ? tags.join('|') : null);
-  }
-  const inMode = () => location.hash.startsWith('#/train/');
-
-  // Перезавантажуємо лише там, де користувач нічого не втратить (не посеред тренування)
-  function safeReload() {
-    if (inMode()) { reloadPending = true; showUpdateToast(); return; }
-    location.reload();
-  }
 
   function showUpdateToast() {
     if (document.querySelector('.update-toast')) return;
@@ -2443,24 +2239,14 @@ window.SAFELEX_DB = (function () {
     document.body.appendChild(t);
   }
 
-  window.addEventListener('hashchange', () => { if (reloadPending && !inMode()) location.reload(); });
-
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     const hadController = !!navigator.serviceWorker.controller;
-    // Новий service worker узяв керування → сторінка ще зі старими файлами, перезавантажуємо
-    navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController) safeReload(); });
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController) showUpdateToast(); });
 
     window.addEventListener('load', () => {
-      if (navigator.onLine) serverVersion().then(v => { loadedVersion = v; }).catch(() => {});
       navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
         document.addEventListener('visibilitychange', () => {
-          if (document.visibilityState !== 'visible' || !navigator.onLine) return;
-          reg.update().catch(() => {});
-          serverVersion().then(v => {
-            if (!v) return;
-            if (!loadedVersion) { loadedVersion = v; return; }
-            if (v !== loadedVersion) safeReload(); // на сервері нова версія — підтягуємо свіжі терміни
-          }).catch(() => {});
+          if (document.visibilityState === 'visible' && navigator.onLine) reg.update().catch(() => {});
         });
       }).catch(() => {});
     });
