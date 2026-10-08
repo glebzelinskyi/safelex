@@ -30,11 +30,13 @@ window.SAFELEX_DB = (function () {
     if (typeof MARCH_STEPS !== 'undefined') march = MARCH_STEPS;
   }
 
+  const apos = str => typeof str === 'string' ? str.replace(/([а-яіїєґ])['ʼ`]([а-яіїєґ])/gi, '$1’$2') : str;
+  cats.forEach(c => { c.title = apos(c.title); c.short = apos(c.short); c.desc = apos(c.desc); });
   terms.forEach(t => {
     if (!t || !t.en || !t.ua) return;
     t.cat = t.cat || t.topic;
-    if (Array.isArray(t.ex)) { t.exEn = t.ex[0] || ''; t.exUa = t.ex[1] || ''; }
-    t.ua = String(t.ua).replace(/(^|[;,]\s*)pl\s+/g, '$1мн. ');
+    if (Array.isArray(t.ex)) { t.exEn = t.ex[0] || ''; t.exUa = apos(t.ex[1] || ''); }
+    t.ua = apos(String(t.ua)).replace(/(^|[;,]\s*)pl\s+/g, '$1мн. ');
     t.senses = t.ua.split(/\s*;\s*/).filter(Boolean);
     t.uaShort = (t.senses[0] || t.ua).replace(/\.$/, '');
     t.forms = formsOf(t.en);
@@ -169,6 +171,14 @@ window.SAFELEX_DB = (function () {
     if (srs[id].checks === undefined) srs[id].checks = b >= 4 ? MASTERED : b >= 2 ? 1 : 0;
   }
 
+  function noteMistake(id) {
+    const s = srs[id] || { checks: 0, day: '', due: 0, wrong: 0 };
+    s.wrong = (s.wrong || 0) + 1;
+    s.due = Date.now();
+    srs[id] = s; store.set('safelex:srs', srs);
+    logAnswer(false);
+  }
+
   function grade(id, right) {
     const s = srs[id] || { checks: 0, day: '', due: 0, wrong: 0 };
     const today = dayKey(), before = s.checks;
@@ -248,7 +258,7 @@ window.SAFELEX_DB = (function () {
       kind = kinds[Math.floor(Math.random() * kinds.length)];
     }
     const q = { t, kind };
-    if (kind === 'type') return Object.assign(q, { label: 'Напишіть англійською', ask: t.ua, hint: `Починається на «${(t.en.match(/[a-z0-9]/i) || [t.en[0]])[0]}»` });
+    if (kind === 'type') return Object.assign(q, { label: 'Напишіть англійською', ask: t.ua, hint: `Починається з «${(t.en.match(/[a-z0-9]/i) || [t.en[0]])[0]}»` });
     if (kind === 'context') Object.assign(q, { label: 'Заповніть пропуск', ask: blankOut(t), hint: t.exUa, key: 'en' });
     else if (kind === 'abbr') Object.assign(q, { label: 'Що означає абревіатура?', ask: t.en, hint: '', key: 'full' });
     else if (kind === 'ua2en') Object.assign(q, { label: 'Як це англійською?', ask: t.ua, hint: '', key: 'en' });
@@ -683,7 +693,7 @@ window.SAFELEX_DB = (function () {
             <div class="brand-name">Safe<span>Lex</span></div>
             <div class="brand-sub">Англо-український словник рятувальника</div>
           </div>
-          <a href="#/about" aria-label="Про додаток"><img class="hdr-emblem" src="icons/emblem.png" alt="Герб ДСНС"></a>
+          <a href="#/about" aria-label="Про застосунок"><img class="hdr-emblem" src="icons/emblem.png" alt="Герб ДСНС"></a>
         </div>
         <label class="searchbox">
           ${I.search}
@@ -718,17 +728,16 @@ window.SAFELEX_DB = (function () {
     all.list.forEach(r => { counts[r.t.cat] = (counts[r.t.cat] || 0) + 1; });
     if (searchCat !== 'all' && !counts[searchCat]) searchCat = 'all';
     const cats = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
-    chips.innerHTML = cats.length > 1
+    chips.innerHTML = cats.length
       ? `<button class="chip ${searchCat === 'all' ? 'active' : ''}" data-cat="all">Усі <em>${all.list.length}</em></button>` +
-        cats.map(c => `<button class="chip ${searchCat === c ? 'active' : ''}" data-cat="${c}">${esc(short(catById[c]))} <em>${counts[c]}</em></button>`).join('')
-      : '';
-    chips.toggleAttribute('hidden', cats.length < 2);
+        (cats.length > 1 ? cats.map(c => `<button class="chip ${searchCat === c ? 'active' : ''}" data-cat="${c}">${esc(short(catById[c]))} <em>${counts[c]}</em></button>`).join('') : '')
+      : `<span class="qc-label">Спробуйте</span>${TRY_Q.map(h => `<button class="chip qc" data-q="${esc(h)}">${esc(h)}</button>`).join('')}`;
+    chips.removeAttribute('hidden');
     const res = searchCat === 'all' ? all.list : all.list.filter(r => r.t.cat === searchCat);
     const marks = all.marks;
     if (!res.length) {
       body.innerHTML = `<div class="empty-box sr-empty"><span class="eb-ic">${I.search}</span><b>Нічого не знайдено</b>
-        <span>Перевірте написання або спробуйте шукати іншою мовою — пошук розуміє і англійські, і українські слова.</span></div>
-        <div class="qchips-try"><span class="qc-label">Спробуйте</span>${TRY_Q.slice(0, 5).map(h => `<button class="chip qc" data-q="${esc(h)}">${esc(h)}</button>`).join('')}</div>`;
+        <span>Перевірте написання або спробуйте шукати іншою мовою — пошук розуміє і англійські, і українські слова.</span></div>`;
       return;
     }
     const top = res[0], best = !top.fuzzy && !top.ex && top.score >= 100 ? top.t : null;
@@ -982,7 +991,7 @@ window.SAFELEX_DB = (function () {
     gv.shown = 0; gv.lastLetter = '';
     document.getElementById('glist').innerHTML = gv.items.length ? '' : `<div class="empty"><b>Нічого не знайдено</b>Змініть фільтр або оберіть іншу літеру.</div>`;
     document.getElementById('gcount').innerHTML = found?.layout ? `Знайдено: ${gv.items.length} · показано для «<b>${esc(found.layout)}</b>» (інша розкладка)`
-      : q || gv.letter ? `Знайдено: ${gv.items.length}` : '';
+      : q || gv.letter ? `Знайдено: ${gv.items.length}` : 'Оберіть літеру або введіть слово';
     document.getElementById('march')?.toggleAttribute('hidden', !!(q || gv.letter));
     renderMoreTerms();
   }
@@ -1100,7 +1109,7 @@ window.SAFELEX_DB = (function () {
       <header class="hero" style="gap:16px">
         <div class="topbar">
           <button class="icon-btn" data-action="back" aria-label="Назад">${I.back}</button>
-          <span class="crumb">Про додаток</span>
+          <span class="crumb">Про застосунок</span>
         </div>
         <div class="about-logos">
           <img class="emb" src="icons/emblem.png" alt="Герб ДСНС України">
@@ -1195,7 +1204,7 @@ window.SAFELEX_DB = (function () {
           <b>${esc(rank.title)}</b>
           ${next ? `
             <span class="rh-bar"><i style="width:${pct}%"></i></span>
-            <span class="rh-next">до «${esc(next.title)}» — ще <b>${nDays(Math.max(0, next.days - days))}</b> поспіль</span>`
+            <span class="rh-next">до звання «${esc(next.title)}» — ще <b>${nDays(Math.max(0, next.days - days))}</b> поспіль</span>`
           : '<span class="rh-next">Найвище звання служби цивільного захисту</span>'}
         </span>
         ${next ? `<span class="rh-nx">${badge(next, true)}<small>далі</small></span>` : ''}
@@ -1225,7 +1234,7 @@ window.SAFELEX_DB = (function () {
           <span class="body"><b>Статистика</b><span>Активність, точність, складні терміни</span></span>${I.chev}
         </a>
         <div class="card">
-          <span class="label">Прогрес по базі</span>
+          <span class="label">Прогрес вивчення</span>
           <div class="stack"><span class="s-mastered" style="width:${p.mastered / n * 100}%"></span><span class="s-learning" style="width:${p.learning / n * 100}%"></span></div>
           <div class="legend">
             <span><i class="s-mastered"></i>Вивчено ${p.mastered}</span>
@@ -1233,7 +1242,7 @@ window.SAFELEX_DB = (function () {
             <span><i class="s-new"></i>Нові ${p.new}</span>
           </div>
           <details class="how">
-            <summary>Як це рахується?</summary>
+            <summary>Як рахують прогрес?</summary>
             ${learnHelp()}
           </details>
         </div>
@@ -1331,7 +1340,7 @@ window.SAFELEX_DB = (function () {
         <span class="ab-d">${d.getDate()}</span>
       </button>`;
     }).join('');
-    const week = last.slice(-7).reduce((n, k) => n + (actLog[k]?.a || 0), 0);
+    const week = last.reduce((n, k) => n + (actLog[k]?.a || 0), 0);
 
     const now = new Date(); now.setHours(0, 0, 0, 0);
     const endOf = n => { const d = new Date(now); d.setDate(d.getDate() + n + 1); return d.getTime(); };
@@ -1359,7 +1368,7 @@ window.SAFELEX_DB = (function () {
       </header>
       <section class="section" style="gap:14px">
         <div class="card">
-          <div class="st-head"><span class="label">Активність · ${STATS_DAYS} днів</span><span class="meta">${nAnswers(week)} за тиждень</span></div>
+          <div class="st-head"><span class="label">Активність</span><span class="meta">${nAnswers(week)} за ${STATS_DAYS} днів</span></div>
           <div class="abars ${week || last.some(k => actLog[k]?.a) ? '' : 'none'}">${bars}</div>
           ${last.some(k => actLog[k]?.a) ? '' : '<span class="ab-empty">Графік з’явиться після перших відповідей у тренажері</span>'}
           <span class="st-read" aria-live="polite">${dayText(today)}</span>
@@ -1687,7 +1696,7 @@ window.SAFELEX_DB = (function () {
       app.innerHTML = `<div class="trainer">${trainBar(title, total, total)}
         <div class="result-screen">
           <span class="score">${cd.known}</span>
-          <span class="msg">${plural(cd.known, 'картку', 'картки', 'карток')} ви знаєте${cd.again ? ` · ${cd.again} ще вчите` : ''}</span>
+          <span class="msg">${plural(cd.known, 'картку', 'картки', 'карток')} ви вже знаєте${cd.again ? ` · ще вчите: ${cd.again}` : ''}</span>
           ${gainLine(cd.gained, cd.learned)}
         </div>
         <button class="btn" data-action="restart">Нова колода</button>
@@ -1965,7 +1974,7 @@ window.SAFELEX_DB = (function () {
     app.classList.remove('enter');
     sp.total++;
     if (right) { sp.score++; vibrate(15); logAnswer(true); }
-    else { vibrate([40, 60, 40]); logAnswer(false); if (!sp.missed.includes(p.t)) sp.missed.push(p.t); }
+    else { vibrate([40, 60, 40]); noteMistake(p.t.id); if (!sp.missed.includes(p.t)) sp.missed.push(p.t); }
     sp.flash = right ? 'ok' : 'bad';
     nextPair(); drawSprint();
   }
@@ -1977,7 +1986,7 @@ window.SAFELEX_DB = (function () {
     if (!sp.started) body = `
       <div class="q-card">
         <span class="label">${SPRINT_SEC} секунд</span>
-        <span class="q">Вірно чи ні?</span>
+        <span class="q">Правильно чи ні?</span>
         <span class="hint">Бачите термін і переклад — вирішуйте якомога швидше, чи переклад правильний.</span>
       </div>
       <ul class="sp-rules">
@@ -2117,7 +2126,7 @@ window.SAFELEX_DB = (function () {
       }
       case 'install':
         if (installEvent) { installEvent.prompt(); installEvent.userChoice.finally(() => { installEvent = null; route(); }); }
-        else alert('Щоб встановити: меню ⋮ у Chrome → «Встановити додаток» або «Додати на головний екран».');
+        else alert('Щоб встановити: відкрийте меню ⋮ у Chrome і виберіть «Додати на головний екран» або «Встановити».');
         break;
       case 'hide-install': store.set('safelex:hideInstall', true); el.closest('.install-card')?.remove(); break;
       case 'next': nextQuestion(); break;

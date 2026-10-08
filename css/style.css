@@ -1506,7 +1506,6 @@ html.vt #app.enter .section > * { animation: none; }
 .chip.qc-x { display: inline-flex; align-items: center; justify-content: center; min-width: 40px; padding: 0 10px; color: var(--muted); }
 .chip em { font-style: normal; font-weight: 700; opacity: .65; margin-left: 2px; }
 .chip.active em { opacity: .9; }
-.qchips-try { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; justify-content: center; }
 .sr-empty .eb-ic { background: var(--surface-2); color: var(--muted); }
 
 .sr-note { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: 12px; background: rgba(242, 193, 78, .1); border: 1px solid rgba(242, 193, 78, .25); font-size: 14px; line-height: 1.45; color: var(--text-2); animation: rise .25s ease-out both; }
