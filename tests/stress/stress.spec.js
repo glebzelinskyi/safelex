@@ -230,7 +230,7 @@ test.describe('без мережі', () => {
   });
 });
 
-test('заставка йде плавно навіть на повільному телефоні (процесор ×4)', async ({ page }) => {
+test('заставка розчиняється плавно навіть на повільному телефоні (процесор ×4)', async ({ page }) => {
   for (const returning of [false, true]) {
     await page.context().clearCookies();
     const p = await page.context().newPage();
@@ -239,7 +239,7 @@ test('заставка йде плавно навіть на повільном�
     await p.addInitScript(r => {
       try { sessionStorage.getItem('x') || (localStorage.clear(), r && localStorage.setItem('safelex:launched', '1')); sessionStorage.setItem('x', 1); } catch {}
       window.__f = []; let last = 0;
-      const f = t => { if (last && document.querySelector('#splash.ready')) window.__f.push(t - last); last = t; if (t < 6000) requestAnimationFrame(f); };
+      const f = t => { if (last && document.querySelector('#splash.hide')) window.__f.push(t - last); last = t; if (t < 6000) requestAnimationFrame(f); };
       requestAnimationFrame(f);
     }, returning);
     await p.goto('./');
@@ -247,9 +247,9 @@ test('заставка йде плавно навіть на повільном�
     const gaps = await p.evaluate(() => window.__f);
     const janky = gaps.filter(g => g > 50).length;
     console.log(returning ? 'наступний запуск' : 'перший запуск', 'кадрів:', gaps.length, 'найдовший:', Math.round(Math.max(...gaps)), 'мс, пропусків >50 мс:', janky);
-    expect(gaps.length).toBeGreaterThan(10);
-    // Стара заставка, що анімувалась під час завантаження, давала затримки 83–117 мс; плавна — до ~50 мс.
-    expect(Math.max(...gaps)).toBeLessThan(75);
+    // Розчинення заставки (~0,34 с) має йти рівно: на 60 кадрах/с кадр — ~17 мс.
+    expect(gaps.length).toBeGreaterThan(8);
+    expect(Math.max(...gaps)).toBeLessThan(50);
     await p.close();
   }
 });

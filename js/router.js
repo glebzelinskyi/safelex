@@ -70,7 +70,10 @@ export function route() {
     return;
   }
   window.scrollTo(0, 0);
-  app.classList.remove('enter'); void app.offsetWidth; app.classList.add('enter');
+  app.classList.remove('enter');
+  // Перший екран після запуску з'являється з-під заставки готовим, без власної анімації появи.
+  if (document.getElementById('splash')) return;
+  void app.offsetWidth; app.classList.add('enter');
   clearTimeout(enterTimer);
   enterTimer = setTimeout(() => app.classList.remove('enter'), 700);
 }

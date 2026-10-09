@@ -66,9 +66,8 @@ function start() {
   });
 
   startRouter();
-  // Пошуковий індекс — після заставки, щоб не забирати процесор у її анімації.
-  hideSplash().then(warmSearch);
-  registerServiceWorker();
+  // Пошуковий індекс і service worker — після заставки, щоб не забирати процесор у її анімації.
+  hideSplash().then(() => { warmSearch(); registerServiceWorker(); });
 }
 
 function showUpdateToast() {
