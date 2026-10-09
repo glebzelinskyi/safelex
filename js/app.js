@@ -144,7 +144,8 @@ window.SAFELEX_DB = (function () {
     eye: '<svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>'
   };
 
-  let navDepth = history.state?.d || 0;
+  if (history.state?.d == null) history.replaceState({ d: 0 }, '');
+  let navDepth = history.state.d;
   const scrollAt = {};
   let restoreY = null;
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
