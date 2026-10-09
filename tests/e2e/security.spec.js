@@ -135,6 +135,18 @@ test.describe('Пошкоджені або недоступні дані', () =>
     await expect(page.locator('.rank-hero')).toBeVisible();
   });
 
+  test('порожня база (terms.js не завантажився або зламаний) — жоден екран не падає', async ({ page }) => {
+    await seed(page);
+    await page.route('**/data/terms.js', r => r.fulfill({ contentType: 'text/javascript', body: '' }));
+    for (const hash of ['#/', '#/guide', '#/guide/all', '#/train', '#/train/quiz', '#/train/daily', '#/train/cards',
+      '#/train/match', '#/train/sprint', '#/train/mistakes', '#/me', '#/stats', '#/about', '#/term/arson']) {
+      await page.goto('./' + hash);
+      await expect(page.locator('#app > *').first()).toBeVisible();
+    }
+    await page.goto('./#/train/daily');
+    await expect(page.locator('.empty-box')).toContainText('Термінів немає');
+  });
+
   test('переповнене сховище — відповіді не ламаються', async ({ page }) => {
     await seed(page);
     await page.addInitScript(() => {
