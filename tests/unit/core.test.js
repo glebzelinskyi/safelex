@@ -15,7 +15,7 @@ describe('util', () => {
     [21, 'день'], [22, 'дні'], [25, 'днів'], [101, 'день'], [111, 'днів'], [0, 'днів']
   ])('plural(%i) → %s', (n, word) => {
     expect(plural(n, 'день', 'дні', 'днів')).toBe(word);
-    expect(nDays(n)).toBe(`${n} ${word}`);
+    expect(nDays(n)).toBe(`${n}\u00A0${word}`);
   });
 
   test('typos рахує відстань Левенштейна', () => {

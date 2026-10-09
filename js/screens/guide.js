@@ -61,7 +61,7 @@ export function renderGuide() {
                 ${c.en ? `<span class="tp-en">${esc(c.en)}</span>` : ''}
                 <span class="tp-peek">напр.: ${previewTerms(list).map(t => esc(t.en)).join(', ')}</span>
               </span>
-              <span class="tp-count"><em>${list.length}</em><small>${pc.mastered ? `вивч. ${pc.mastered}` : plural(list.length, 'термін', 'терміни', 'термінів')}</small></span>
+              <span class="tp-count"><em>${list.length}</em><small>${pc.mastered ? `вивчено ${pc.mastered}` : plural(list.length, 'термін', 'терміни', 'термінів')}</small></span>
             </a>`;
           }).join('')}
         </div>`;

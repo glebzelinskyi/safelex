@@ -32,9 +32,9 @@ export function plural(n, one, few, many) {
   if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
   return many;
 }
-export const nDays = n => `${n} ${plural(n, 'день', 'дні', 'днів')}`;
-export const nTerms = n => `${n} ${plural(n, 'термін', 'терміни', 'термінів')}`;
-export const nAnswers = n => `${n} ${plural(n, 'відповідь', 'відповіді', 'відповідей')}`;
+export const nDays = n => `${n}\u00A0${plural(n, 'день', 'дні', 'днів')}`;
+export const nTerms = n => `${n}\u00A0${plural(n, 'термін', 'терміни', 'термінів')}`;
+export const nAnswers = n => `${n}\u00A0${plural(n, 'відповідь', 'відповіді', 'відповідей')}`;
 
 export function typos(a, b) {
   let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
