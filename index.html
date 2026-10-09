@@ -23,6 +23,51 @@
 
   <link rel="stylesheet" href="css/style.css">
   <script src="js/boot.js"></script>
+  <!-- Усі модулі завантажуються паралельно, а не ланцюжком імпортів. Список перевіряє tests/unit/assets.test.js. -->
+  <link rel="modulepreload" href="js/main.js">
+  <link rel="modulepreload" href="js/config.js">
+  <link rel="modulepreload" href="js/core/dates.js">
+  <link rel="modulepreload" href="js/core/db.js">
+  <link rel="modulepreload" href="js/core/store.js">
+  <link rel="modulepreload" href="js/core/util.js">
+  <link rel="modulepreload" href="js/data.js">
+  <link rel="modulepreload" href="js/learn/activity.js">
+  <link rel="modulepreload" href="js/learn/questions.js">
+  <link rel="modulepreload" href="js/learn/ranks.js">
+  <link rel="modulepreload" href="js/learn/reset.js">
+  <link rel="modulepreload" href="js/learn/srs.js">
+  <link rel="modulepreload" href="js/learn/streak.js">
+  <link rel="modulepreload" href="js/router.js">
+  <link rel="modulepreload" href="js/screens/about.js">
+  <link rel="modulepreload" href="js/screens/demo.js">
+  <link rel="modulepreload" href="js/screens/guide.js">
+  <link rel="modulepreload" href="js/screens/home.js">
+  <link rel="modulepreload" href="js/screens/me.js">
+  <link rel="modulepreload" href="js/screens/stats.js">
+  <link rel="modulepreload" href="js/screens/term.js">
+  <link rel="modulepreload" href="js/screens/train/cards.js">
+  <link rel="modulepreload" href="js/screens/train/hub.js">
+  <link rel="modulepreload" href="js/screens/train/index.js">
+  <link rel="modulepreload" href="js/screens/train/match.js">
+  <link rel="modulepreload" href="js/screens/train/quiz.js">
+  <link rel="modulepreload" href="js/screens/train/shared.js">
+  <link rel="modulepreload" href="js/screens/train/sprint.js">
+  <link rel="modulepreload" href="js/search/engine.js">
+  <link rel="modulepreload" href="js/search/highlight.js">
+  <link rel="modulepreload" href="js/search/index.js">
+  <link rel="modulepreload" href="js/search/text.js">
+  <link rel="modulepreload" href="js/ui/authors.js">
+  <link rel="modulepreload" href="js/ui/badge.js">
+  <link rel="modulepreload" href="js/ui/dom.js">
+  <link rel="modulepreload" href="js/ui/events.js">
+  <link rel="modulepreload" href="js/ui/fav.js">
+  <link rel="modulepreload" href="js/ui/gestures.js">
+  <link rel="modulepreload" href="js/ui/icons.js">
+  <link rel="modulepreload" href="js/ui/install.js">
+  <link rel="modulepreload" href="js/ui/learn.js">
+  <link rel="modulepreload" href="js/ui/ranks.js">
+  <link rel="modulepreload" href="js/ui/sheet.js">
+  <link rel="modulepreload" href="js/user.js">
 </head>
 <body>
 
@@ -61,6 +106,6 @@
   </nav>
 
   <script src="data/terms.js"></script>
-  <script src="js/app.js"></script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>
