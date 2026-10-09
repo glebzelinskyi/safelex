@@ -70,11 +70,6 @@ body.dark #app { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
 .brand-name { font-family: var(--font-display); font-weight: 700; font-size: 18px; letter-spacing: -.2px; }
 .brand-name span, .splash-name span { color: var(--accent-2); }
 
-/* Заставка. Навмисно проста: поки застосунок вантажиться, вона нерухома, а потім
-   розчиняється однією анімацією прозорості — найдешевшою для телефона (js/ui/splash.js).
-   Перший запуск — повна заставка (герб, назва, кафедра); наступні (клас .returning ставить js/boot.js) — лише плитка SL.
-   Плитка — сама картинка значка застосунку (не текст), завжди точно в центрі екрана:
-   значок, на який натиснули, системна заставка Android і наша заставка збігаються, нічого не підміняється. */
 #splash {
   position: fixed; inset: 0; z-index: 100;
   background: var(--bg); color: #fff;
@@ -92,7 +87,6 @@ body.dark #app { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
 .splash-credit { display: flex; align-items: center; gap: 12px; font-size: 12px; line-height: 1.35; color: var(--muted); text-align: left; }
 .splash-credit img { width: 57px; height: 46px; }
 
-/* Наступні запуски: лише плитка SL, натискання проходять крізь заставку. */
 .returning #splash { pointer-events: none; }
 .returning #splash > :not(.splash-center), .returning .splash-center > :not(.splash-logo) { display: none; }
 
@@ -647,8 +641,6 @@ img { -webkit-user-drag: none; -webkit-touch-callout: none; }
 }
 
 @keyframes rise { from { opacity: 0; transform: translateY(6px); } }
-/* Смужки «виростають» через transform, а не width: зміна ширини щокадру перераховує розмітку
-   й на телефоні смикається, а transform телефон анімує окремо від сторінки. */
 @keyframes grow { from { transform: scaleX(0); } }
 .tp-bar i, .nr-bar span, .stack span, .ms-bar i, .rh-bar i, .rs-bar i, .rr-bar i, .progress div { transform-origin: left; }
 @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
@@ -1057,8 +1049,6 @@ details > summary::-webkit-details-marker { display: none; }
   box-shadow: 0 16px 40px rgba(242, 80, 40, .38);
   position: relative; overflow: hidden; isolation: isolate;
 }
-/* Перелив градієнта: широкий шар (300%) повільно їде вбік через transform. Раніше рухався
-   background-position — це перемальовування всієї картки щокадру, і прокрутка на телефоні гальмувала. */
 .daily::before, .me-stats > span::before {
   content: ''; position: absolute; z-index: -1; left: 0; top: 0; width: 300%; height: 100%; pointer-events: none;
   background: var(--grad) 0 50% / 100% 300%; animation: shimmer 10s ease infinite;
@@ -1095,7 +1085,6 @@ details > summary::-webkit-details-marker { display: none; }
 .nr-bar { height: 6px; border-radius: 3px; background: rgba(0,0,0,.2); overflow: hidden; }
 .nr-bar span { display: block; height: 100%; border-radius: 3px; background: #fff; }
 .nr-txt { font-size: 12px; font-weight: 700; opacity: .95; position: relative; z-index: 1; }
-
 
 :root {
   --fs-xs: 12px; --fs-sm: 13px; --fs-md: 14px; --fs-base: 16px; --fs-lg: 18px; --fs-xl: 22px; --fs-2xl: 28px; --fs-3xl: 32px;
@@ -1303,7 +1292,6 @@ html.scrolled .gbar { box-shadow: 0 1px 0 var(--line), 0 10px 18px -10px rgba(0,
 .result-screen .score { letter-spacing: -.05em; }
 .sp-score b { font-size: 17px; }
 @media (max-width: 360px) { .me-stats b { font-size: 22px; } .st-tiles b { font-size: 21px; } }
-
 
 .wd i { width: 40px; height: 40px; }
 .wd i b { font-size: 14px; letter-spacing: -.02em; line-height: 1; }

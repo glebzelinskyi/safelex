@@ -1,4 +1,3 @@
-// Галочки вивчення терміна та пояснення, як рахується прогрес.
 import { plural } from '../core/util.js';
 import { dayKey } from '../core/dates.js';
 import { MASTERED } from '../config.js';
@@ -19,7 +18,6 @@ export const learnHelp = () => `
   </ul>
   <p class="how-note"><b>Нові</b> — ще не траплялися вам. <b>Вчу</b> — є 0–2 галочки. <b>Вивчено</b> — усі ${MASTERED}.</p>`;
 
-/** Статус вивчення на картці терміна з розгортним поясненням. */
 export function learnBadge(id) {
   const st = statusOf(id), n = boxOf(id), left = MASTERED - n, today = srs[id]?.day === dayKey();
   const text = st === 'new' ? 'Новий термін — ще не тренували'

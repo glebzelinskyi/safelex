@@ -1,4 +1,3 @@
-// «Спринт»: 60 секунд — правильний переклад чи ні.
 import { esc, plural } from '../../core/util.js';
 import { store } from '../../core/store.js';
 import { SPRINT_SEC } from '../../config.js';
@@ -35,7 +34,6 @@ function goSprint() {
   });
 }
 
-/** Наступна пара: з імовірністю 50% — з чужим перекладом. Той самий термін двічі поспіль не трапляється. */
 function nextPair() {
   const prev = sp.pair?.t;
   let t;

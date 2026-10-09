@@ -1,4 +1,3 @@
-// «Про застосунок».
 import { esc, nTerms } from '../core/util.js';
 import { VERSION } from '../config.js';
 import { TERMS, CATEGORIES, CORE, SOURCES, MARCH_STEPS } from '../data.js';

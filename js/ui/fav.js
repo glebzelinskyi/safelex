@@ -1,4 +1,3 @@
-// Кнопка-зірочка «Зберегти» — однакова на картці терміна, у точному збігу й «Терміні дня».
 import { toggleFav } from '../user.js';
 import { vibrate } from './dom.js';
 import { onAction } from './events.js';

@@ -1,12 +1,9 @@
-// Спільне для режимів тренажера: верхня панель, порожній стан, результати, таймер.
 import { esc, plural } from '../../core/util.js';
 import { I } from '../../ui/icons.js';
 import { onLeave } from '../../router.js';
 
-/** Чи відкритий зараз режим m (щоб відкладені дії не спрацювали на іншому екрані). */
 export const inTrainMode = m => location.hash.startsWith('#/train/' + m);
 
-// Один таймер на весь тренажер (пари, спринт); зупиняється при переході на інший екран.
 let ticker = null;
 export const startTicker = (fn, ms = 1000) => { stopTicker(); ticker = setInterval(fn, ms); };
 export const stopTicker = () => { clearInterval(ticker); ticker = null; };

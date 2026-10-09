@@ -1,4 +1,3 @@
-// Звання в інтерфейсі: шторка з описом звання, блок «Ваше звання», святковий екран.
 import { esc, nDays } from '../core/util.js';
 import { RANKS, RANK_INS, rankGroup, rankOf, nextRank } from '../learn/ranks.js';
 import { streak, bestStreak, doneToday, rankDate } from '../learn/streak.js';
@@ -37,7 +36,6 @@ function rankSheetHtml(i) {
     <span class="rs-dots">${RANKS.map((x, k) => `<i class="${k === i ? 'on' : ''} ${best >= x.days ? 'got' : ''}"></i>`).join('')}</span>`;
 }
 
-/** Відкриває шторку звання i або гортає вже відкриту. */
 export function openRank(i) {
   i = Math.max(0, Math.min(RANKS.length - 1, i));
   const open = document.querySelector('.sheet.rank-sheet .sheet-body');
@@ -49,7 +47,6 @@ export function openRank(i) {
 }
 onClick('rank', (v, el) => { if (!el.disabled) openRank(+v); });
 
-/** Кнопка «Ваше звання» вгорі екрана «Моє». */
 export function rankHero(rank, best, days) {
   const i = RANKS.indexOf(rank), next = nextRank(best);
   const from = rank.days, pct = next ? Math.round(Math.min(1, Math.max(0, (days - from) / (next.days - from))) * 100) : 100;
@@ -68,7 +65,6 @@ export function rankHero(rank, best, days) {
     </button>`;
 }
 
-/** Святковий екран з конфеті, коли присвоєно нове звання. */
 export function celebrate(r) {
   const colors = ['#FFC53D', '#D4570F', '#F28A45', '#7FD49B', '#9DB4D8', '#fff'];
   const bits = Array.from({ length: 48 }, (_, i) =>

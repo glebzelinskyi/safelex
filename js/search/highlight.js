@@ -1,7 +1,6 @@
 import { esc } from '../core/util.js';
 import { normS } from './text.js';
 
-/** Безпечний HTML тексту, де знайдені слова (на початку слова) обгорнуті в <mark>. */
 export function highlight(text, marks) {
   text = String(text ?? '');
   if (!marks || !marks.length) return esc(text);
@@ -20,7 +19,6 @@ export function highlight(text, marks) {
   return out + esc(text.slice(last));
 }
 
-/** Уривок прикладу навколо знайденого слова (до ~70 символів). */
 export function exSnippet(t, words) {
   const src = t.exEn && words.some(w => normS(t.exEn).includes(w)) ? t.exEn : t.exUa || t.exEn || '';
   const low = normS(src), w = words.find(w => w.length >= 3 && low.includes(w)) || '';

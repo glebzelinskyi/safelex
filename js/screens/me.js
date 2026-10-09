@@ -1,4 +1,3 @@
-// «Моє»: звання, серія, прогрес вивчення, збережені терміни.
 import { esc, plural, nDays } from '../core/util.js';
 import { TERMS } from '../data.js';
 import { favs } from '../user.js';
@@ -23,8 +22,6 @@ function streakHint(days, best) {
   return `до рекорду ще ${nDays(best - days + 1)}`;
 }
 
-// Збережені показуються частинами: тисячі рядків одразу робили сторінку завдовжки в сотні тисяч пікселів,
-// і на слабких телефонах перехід на «Моє» міг «застрягати».
 const SAVED_CHUNK = 50;
 let savedShown = 0;
 function savedRows(saved, from) {

@@ -1,11 +1,8 @@
-// Розумний пошук термінів. Чистий модуль: працює з будь-яким масивом термінів,
-// тож його можна перевіряти окремо від сторінки (tests/unit/search.test.js).
 import { typos } from '../core/util.js';
 import { normS, wordsOf, isCyr, stem, swapLayout } from './text.js';
 
 const allowTypos = n => n >= 8 ? 2 : n >= 5 ? 1 : 0;
 
-/** Наскільки добре одне слово запиту tk (з основою st) підходить до терміна x. null — не підходить. */
 function tokenScore(tk, st, x, marks) {
   let best = 0, hit = '';
   const tryWords = (words, exact, prefix) => {
@@ -28,10 +25,6 @@ function tokenScore(tk, st, x, marks) {
   return null;
 }
 
-/**
- * @param {object[]} terms — уся база
- * @param {{ isRecent?: (id: string) => boolean }} [opts] — нещодавно переглянуті трохи піднімаються вгору
- */
 export function createSearchEngine(terms, { isRecent = () => false } = {}) {
   let idx = null;
   function index() {
@@ -95,11 +88,6 @@ export function createSearchEngine(terms, { isRecent = () => false } = {}) {
   }
 
   let memo = { key: '', pool: null, res: null };
-  /**
-   * Пошук у pool (за замовчуванням — уся база).
-   * Повертає { list: [{ t, score, fuzzy, ex }], marks: слова для підсвічування, layout?: запит в іншій розкладці }.
-   * fuzzy — знайдено з одруківкою, ex — лише в реченні-прикладі.
-   */
   function search(q, pool = terms) {
     q = q.trim();
     if (memo.key === q && memo.pool === pool) return memo.res;

@@ -1,10 +1,8 @@
-// Особисті списки користувача: збережені терміни, нещодавно переглянуті, історія пошуку.
 import { store } from './core/store.js';
 import { termById } from './data.js';
 
 export const favs = new Set(store.get('safelex:favs', []).filter(id => termById[id]));
 
-/** Додає або прибирає термін зі збережених. Повертає новий стан. */
 export function toggleFav(id) {
   favs.has(id) ? favs.delete(id) : favs.add(id);
   store.set('safelex:favs', [...favs]);

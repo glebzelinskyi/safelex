@@ -1,11 +1,9 @@
-// Журнал активності: скільки відповідей (a) і скільки правильних (r) було кожного дня.
 import { store } from '../core/store.js';
 import { isRecord, num } from '../core/util.js';
 import { dayKey } from '../core/dates.js';
 
 export const LOG_DAYS = 400;
 
-/** Прибирає пошкоджені записи; r не може перевищувати a. Змінює об'єкт на місці. */
 export function sanitizeLog(log) {
   for (const k in log) {
     const d = log[k];

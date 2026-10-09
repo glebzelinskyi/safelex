@@ -1,4 +1,3 @@
-// «Пари»: з'єднати терміни з перекладами на час, кілька раундів.
 import { esc, plural, shuffle, fmtTime } from '../../core/util.js';
 import { store } from '../../core/store.js';
 import { MATCH_ROUNDS, MATCH_PAIRS } from '../../config.js';
@@ -14,7 +13,6 @@ const mt = { cat: 'all', rounds: [], r: 0, left: [], right: [], sel: null, match
 
 export function startMatch(cat) {
   stopTicker();
-  // Короткі переклади (до 45 символів) вміщаються в плитку; однакові за змістом — лише один раз.
   const seen = new Set(), all = poolFor(cat), shortOnes = all.filter(t => (t.uaShort || t.ua).length <= 45);
   const terms = pickTerms(shortOnes.length >= MATCH_PAIRS * 2 ? shortOnes : all, MATCH_ROUNDS * MATCH_PAIRS * 2)
     .filter(t => { const k = sense(t.uaShort || t.ua); if (seen.has(k)) return false; seen.add(k); return true; })

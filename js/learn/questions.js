@@ -1,13 +1,10 @@
-// Питання для тренажера: варіанти відповідей, пропуск у реченні, перевірка введеної відповіді.
 import { sample, shuffle, typos } from '../core/util.js';
 import { DAILY_LEN } from '../config.js';
 import { TERMS, CORE, byCat } from '../data.js';
 import { srs, boxOf, isDue } from './srs.js';
 
-/** Значення без дужок і розділових знаків — щоб не показувати два однакові за змістом варіанти. */
 export const sense = s => String(s).toLowerCase().replace(/\([^)]*\)|\[[^\]]*\]/g, ' ').replace(/[^a-zа-яіїєґ0-9]+/gi, ' ').trim();
 
-/** n неправильних варіантів для терміна t за полем key — спершу з того самого розділу. */
 export function distractors(t, key, n = 3) {
   const seen = [sense(t[key])], loose = key !== 'en';
   const skip = o => {
@@ -21,7 +18,6 @@ export function distractors(t, key, n = 3) {
   return out;
 }
 
-/** Речення-приклад, у якому термін замінено на «_____», або '' — якщо терміна в прикладі немає. */
 export function blankOut(t) {
   const ex = t.exEn || '', low = ex.toLowerCase();
   for (const f of (t.forms || [t.en]).slice().sort((a, b) => b.length - a.length)) {
@@ -36,11 +32,6 @@ export function blankOut(t) {
   return '';
 }
 
-/**
- * Питання про термін t. Без kind тип обирається за знанням терміна:
- * нові — «оберіть переклад», далі — «як це англійською», потім — написати самому.
- * mixed=true (завдання дня) — будь-який доречний тип.
- */
 export function makeQuestion(t, kind, mixed) {
   if (!kind) {
     const box = boxOf(t.id);
@@ -62,7 +53,6 @@ export function makeQuestion(t, kind, mixed) {
 
 const norm = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
-/** Чи правильно введено термін: будь-яка форма, синонім чи розшифровка; у словах від 5 літер — одна одруківка. */
 export function typedRight(input, t) {
   const a = norm(input);
   if (!a) return false;
@@ -70,7 +60,6 @@ export function typedRight(input, t) {
   return [...(t.forms || [t.en]), ...(t.syn || [])].some(f => { const b = norm(f); return a === b || (b.length > 4 && typos(a, b) <= 1); });
 }
 
-/** Завдання дня: до 5 термінів на повторення, 3 нові ключові, решта — випадкові з усієї бази. */
 export function dailyTerms() {
   const picked = new Set(shuffle(TERMS.filter(t => isDue(t.id))).slice(0, 5));
   sample(CORE.length ? CORE : TERMS, 3, t => !!srs[t.id] || picked.has(t)).forEach(t => picked.add(t));

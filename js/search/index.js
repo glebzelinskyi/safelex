@@ -1,4 +1,3 @@
-// Пошук по базі застосунку. Індекс будується у вільну хвилину після запуску.
 import { TERMS } from '../data.js';
 import { recent } from '../user.js';
 import { createSearchEngine } from './engine.js';

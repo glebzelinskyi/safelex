@@ -1,20 +1,15 @@
-// Налаштування SafeLex, які можна змінювати без знання решти коду.
+export const MASTERED = 3;
+export const REVIEW_DAYS = [0, 1, 3, 10];
+export const QUIZ_LEN = 10;
+export const DAILY_LEN = 10;
+export const CARDS_LEN = 20;
+export const MATCH_ROUNDS = 3;
+export const MATCH_PAIRS = 5;
+export const SPRINT_SEC = 60;
 
-// НАВЧАННЯ
-export const MASTERED = 3;               // у скільки різних днів треба відповісти правильно, щоб термін вважався вивченим
-export const REVIEW_DAYS = [0, 1, 3, 10]; // через скільки днів повторювати термін з 0, 1, 2, 3 галочками
-export const QUIZ_LEN = 10;              // питань у тесті
-export const DAILY_LEN = 10;             // питань у завданні дня
-export const CARDS_LEN = 20;             // карток у колоді
-export const MATCH_ROUNDS = 3;           // раундів у грі «Пари»
-export const MATCH_PAIRS = 5;            // пар у раунді
-export const SPRINT_SEC = 60;            // тривалість спринту, с
+export const MAX_RESULTS = 50;
+export const GUIDE_CHUNK = 120;
 
-// ПОШУК
-export const MAX_RESULTS = 50;           // скільки результатів показувати під рядком пошуку
-export const GUIDE_CHUNK = 120;          // скільки рядків довідника домальовувати за раз під час гортання
-
-// ПРО ЗАСТОСУНОК
 export const VERSION = '3.0';
 export const AUTHORS = [
   { name: 'Зелінський Гліб Сергійович', role: 'курсант 3 курсу' },

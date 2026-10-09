@@ -1,4 +1,3 @@
-// Головний екран: пошук, завдання дня, термін дня, нещодавні.
 import { esc, plural, nDays, sample, hashStr } from '../core/util.js';
 import { dayKey } from '../core/dates.js';
 import { store } from '../core/store.js';
@@ -127,7 +126,6 @@ function dailyCard() {
   const done = doneToday(), days = streak(), best = bestStreak(), res = store.get('safelex:dailyScore', {});
   const next = nextRank(best), prev = rankOf(best);
   const base = done ? days : days + 1;
-  // Тиждень наперед: яка серія буде кожного дня і коли нове звання.
   const week = [0, 1, 2, 3, 4, 5, 6].map(i => {
     const d = new Date(); d.setDate(d.getDate() + i);
     const n = base + i, r = RANKS.find(r => r.days === n && r.days > best);
@@ -158,7 +156,6 @@ function dailyCard() {
     </a>`;
 }
 
-// Термін дня однаковий упродовж дня; «Ще один» показує випадковий.
 let todTerm = null, todShown = false;
 const todPool = () => CORE.length ? CORE : TERMS;
 const termOfToday = () => todTerm || todPool()[hashStr(dayKey()) % todPool().length];

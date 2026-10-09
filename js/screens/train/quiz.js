@@ -1,5 +1,3 @@
-// Тест, «Помилки» й завдання дня: питання з варіантами або з введенням відповіді.
-// Помилку тест повертає ще раз через 3 питання (без впливу на галочки).
 import { esc, plural, shuffle, nDays } from '../../core/util.js';
 import { QUIZ_LEN, MASTERED } from '../../config.js';
 import { catTitle } from '../../data.js';
@@ -122,7 +120,6 @@ function quizBody() {
       <button class="btn" data-action="next">${tr.i + 1 < tr.qs.length ? 'Далі' : 'Результат'}</button>` : ''}`;
 }
 
-/** Смужка до наступного звання на екрані результату завдання дня. */
 function rankProgress(days) {
   const best = bestStreak(), next = nextRank(best), cur = rankOf(best);
   if (!next) return `<div class="res-rank top">${badge(cur, true, false, true)}<span class="rr-body"><span class="k">Найвище звання</span><b>${esc(cur.title)}</b></span></div>`;

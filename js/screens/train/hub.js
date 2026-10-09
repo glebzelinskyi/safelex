@@ -1,4 +1,3 @@
-// Тренажер: вибір розділу й режиму.
 import { esc, fmtTime, nTerms } from '../../core/util.js';
 import { store } from '../../core/store.js';
 import { QUIZ_LEN, CARDS_LEN, MATCH_ROUNDS, SPRINT_SEC } from '../../config.js';
@@ -12,7 +11,6 @@ import { onClick } from '../../ui/events.js';
 let trainCat = store.get('safelex:trainCat', 'all');
 export const currentTrainCat = () => trainCat;
 
-/** Чи можна тренувати cat: 'all', 'core', 'fav' (від 2 збережених) або існуючий розділ. */
 const usable = cat => cat === 'all' || (cat === 'fav' ? favs.size >= 2 : cat === 'core' ? CORE.length > 0 : !!catById[cat]);
 
 const MODES = [

@@ -1,5 +1,3 @@
-// Флеш-картки: згадати переклад, перевернути, «Знаю» / «Ще вчу» (кнопкою або свайпом).
-// «Ще вчу» повертає картку в кінець колоди один раз.
 import { esc, plural } from '../../core/util.js';
 import { CARDS_LEN } from '../../config.js';
 import { catTitle, toneOf } from '../../data.js';
@@ -36,7 +34,6 @@ const FLY_MS = 380;
 const longestWord = str => Math.max(0, ...String(str).split(/[\s\-–—/]+/).map(w => w.length));
 const enCls = str => str.length > 28 || longestWord(str) > 14 ? 'long' : '';
 const uaCls = str => str.length > 60 || longestWord(str) > 18 ? 'xl' : str.length > 30 || longestWord(str) > 13 ? 'mid' : '';
-// Обидві сторони картки — одним розміром шрифту, щоб картка не «стрибала» під час перевертання.
 const SIZE_RANK = { '': 0, long: 1, mid: 1, xl: 2 }, SIZE_CLS = ['', 'mid', 'xl'];
 const pairCls = (en, ua) => SIZE_CLS[Math.max(SIZE_RANK[enCls(en)], SIZE_RANK[uaCls(ua)])];
 
@@ -92,7 +89,6 @@ function drawCards() {
     </div></div>`;
 }
 
-/** Наступна картка без перемальовування всього екрана — щоб анімація колоди була плавною. */
 function nextCard() {
   const deck = document.getElementById('deck');
   if (!deck) return drawCards();
@@ -122,7 +118,6 @@ function nextCard() {
   tally('cYes', `Знаю · ${cd.known}`);
 }
 
-/** Картка відлітає праворуч («Знаю») або ліворуч («Ще вчу»); поки летить, нові натискання ігноруються. */
 function flyCard(knows) {
   if (cd.busy) return;
   const card = document.querySelector('.deck .flash');
@@ -152,7 +147,6 @@ function flyCard(knows) {
   setTimeout(() => { cd.busy = false; if (inTrainMode('cards')) rateCard(knows); }, card ? FLY_MS : 0);
 }
 
-// Свайп картки пальцем або мишею.
 const SWIPE_DIST = 90, FLICK_DIST = 40, FLICK_SPEED = .5;
 let drag = null, dragMoved = false, dragFrame = 0;
 const resetDrag = card => {
@@ -205,7 +199,7 @@ document.addEventListener('pointerup', endDrag);
 document.addEventListener('pointercancel', endDrag);
 
 onAction('flip', el => {
-  if (dragMoved) { dragMoved = false; return; } // після свайпу «клік» не перевертає картку
+  if (dragMoved) { dragMoved = false; return; }
   if (cd.busy) return;
   cd.flipped = !cd.flipped;
   el.classList.remove('enter', 'reveal', 'lift'); void el.offsetWidth;

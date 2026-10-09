@@ -1,4 +1,3 @@
-// SVG-іконки інтерфейсу (лінійні, колір береться з CSS currentColor).
 export const I = {
   search: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
   back: '<svg viewBox="0 0 24 24" style="stroke-width:2.4"><path d="m15 6-6 6 6 6"/></svg>',

@@ -1,5 +1,3 @@
-// Свайп від лівого краю — «Назад», як у звичайних застосунках iPhone
-// (у встановленому з Safari застосунку системного жесту немає).
 import { app, vibrate } from './dom.js';
 
 export function initSwipeBack(goBack) {

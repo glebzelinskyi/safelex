@@ -1,4 +1,3 @@
-// Нижня шторка: закривається кнопкою, Escape, натисканням поза нею або свайпом униз.
 import { vibrate } from './dom.js';
 
 export function openSheet(html, cls = '') {
@@ -36,7 +35,6 @@ export function openSheet(html, cls = '') {
   return { wrap, sheet: sh, close };
 }
 
-/** Прибирає шторку й святковий екран — під час переходу на інший екран. */
 export function closeOverlays() {
   document.querySelector('.celebrate')?.remove();
   document.querySelector('.sheet-wrap')?.remove();

@@ -1,5 +1,3 @@
-// Статистика: відповіді й точність, активність за 14 днів, календар практики,
-// терміни на повторення, прогрес за розділами, найскладніші терміни, рекорди.
 import { esc, plural, fmtTime, nAnswers } from '../core/util.js';
 import { dayKey, keyToDate, dayLabel, ymd } from '../core/dates.js';
 import { store } from '../core/store.js';
@@ -16,8 +14,8 @@ const MONTH_NAMES = ['Січень', 'Лютий', 'Березень', 'Квіт
 const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'];
 const pct = (r, a) => a ? Math.round(r / a * 100) : 0;
 
-let hmOffset = 0; // скільки місяців тому показує календар
-let hmSel = '';   // вибраний у календарі день
+let hmOffset = 0;
+let hmSel = '';
 
 function dayText(k) {
   const d = actLog[k];

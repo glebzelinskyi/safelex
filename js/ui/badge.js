@@ -1,4 +1,3 @@
-// Погони звань у SVG — за зразками постанови КМУ № 81. Індекс у PG відповідає RANKS.
 import { esc } from '../core/util.js';
 import { RANKS } from '../learn/ranks.js';
 
@@ -49,10 +48,6 @@ const PG = [
 ];
 
 let uid = 0;
-/**
- * Погон звання r. got — отримано (кольоровий) чи ні (приглушений); big — великий розмір;
- * shine — відблиск, що пробігає по погону.
- */
 export function badge(r, got, big, shine) {
   const i = RANKS.indexOf(r), gen = r.title.startsWith('Генерал');
   const shape = gen ? '<path d="M5,63 V11 L12,3.5 H28 L35,11 V63 Z"/>' : '<rect x="5" y="3" width="30" height="60" rx="2"/>';

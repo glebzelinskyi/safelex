@@ -4,7 +4,6 @@ import { I } from './icons.js';
 
 export const authorsList = () => AUTHORS.map(a => `<span class="author"><b>${esc(a.name)}</b><span>${esc(a.role)}</span></span>`).join('');
 
-/** Картка «Розробка · ЛДУ БЖД» внизу довідника. */
 export const devCard = () => `
   <a class="dev-card" href="#/about">
     <span class="dev-top">
