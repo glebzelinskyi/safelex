@@ -1066,8 +1066,6 @@ details > summary::-webkit-details-marker { display: none; }
 .fire { position: relative; width: 66px; height: 66px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
 .fire svg { position: absolute; inset: 0; width: 66px; height: 66px; fill: rgba(255,255,255,.25); stroke: none; }
 .fire.lit svg { fill: var(--yellow); filter: drop-shadow(0 0 12px rgba(255, 220, 90, .8)); animation: flicker 2.4s ease-in-out infinite; transform-origin: 50% 90%; }
-.fire b { position: relative; margin-top: 16px; font-family: var(--font-card); font-weight: 800; font-size: 22px;  color: #6B1D00; }
-.fire:not(.lit) b { color: #fff; }
 @keyframes flicker { 0%, 100% { transform: scale(1) rotate(0); } 30% { transform: scale(1.06, .96) rotate(-2deg); } 60% { transform: scale(.97, 1.05) rotate(2deg); } }
 .daily-txt { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .daily-txt .k { font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; opacity: .9; }
@@ -1132,7 +1130,7 @@ body { font-size: var(--fs-base); line-height: 1.5; font-feature-settings: 'kern
 }
 .daily-txt .t { font-size: var(--fs-xl); line-height: 1.15; }
 .q-card .q { line-height: 1.2; }
-.me-stats b, .st-tiles b, .st-due b, .fire b, .ct-count, .tp-count, .counter, .hm-title b, .badge b {
+.me-stats b, .st-tiles b, .st-due b, .ct-count, .tp-count, .counter, .hm-title b, .badge b {
   font-family: var(--font); font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.3px;
 }
 .result-screen .score { font-family: var(--font-display); font-weight: 700; letter-spacing: -2px; font-variant-numeric: tabular-nums; }
@@ -1149,7 +1147,6 @@ body { font-size: var(--fs-base); line-height: 1.5; font-feature-settings: 'kern
 .wd i b { font-family: var(--font); font-size: var(--fs-sm); font-weight: 800; font-variant-numeric: tabular-nums; }
 .daily-txt .s { font-size: var(--fs-md); font-weight: 500; }
 .nr-txt { font-size: var(--fs-sm); font-weight: 600; }
-.fire b { font-size: var(--fs-xl); }
 
 .card .ex-en { color: var(--text); font-weight: 500; }
 .tod-ex { font-size: var(--fs-base); font-weight: 400; color: var(--text-2); }
@@ -1286,7 +1283,7 @@ html.scrolled .gbar { box-shadow: 0 1px 0 var(--line), 0 10px 18px -10px rgba(0,
 }
 
 :root { --font-num: 'Unbounded', 'Onest', system-ui, sans-serif; }
-.me-stats b, .st-tiles b, .st-due b, .fire b, .result-screen .score, .sp-score b {
+.me-stats b, .st-tiles b, .st-due b, .result-screen .score, .sp-score b {
   font-family: var(--font-num); font-weight: 700; font-variant-numeric: proportional-nums lining-nums; letter-spacing: -.04em;
 }
 .tp-count, .rk-d, .st-cat-top .mono, .hm-cell, .ab-d, .wd i b, .mode-meta, .tp-no b, .opt .key, .legend, .meta, .crumb, .hm-title, .badge b, .cel-days {
@@ -1303,9 +1300,6 @@ html.scrolled .gbar { box-shadow: 0 1px 0 var(--line), 0 10px 18px -10px rgba(0,
 .sp-score b { font-size: 17px; }
 @media (max-width: 360px) { .me-stats b { font-size: 22px; } .st-tiles b { font-size: 21px; } }
 
-.fire b { font-size: 21px; margin-top: 18px; }
-.fire b.len3 { font-size: 18px; }
-.fire b.len4 { font-size: 15px; }
 
 .wd i { width: 40px; height: 40px; }
 .wd i b { font-size: 14px; letter-spacing: -.02em; line-height: 1; }
