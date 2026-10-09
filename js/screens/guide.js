@@ -7,7 +7,7 @@ import { progressOf, poolFor } from '../learn/srs.js';
 import { smartSearch } from '../search/index.js';
 import { highlight } from '../search/highlight.js';
 import { I } from '../ui/icons.js';
-import { app, countUp } from '../ui/dom.js';
+import { app } from '../ui/dom.js';
 import { onClick } from '../ui/events.js';
 import { devCard } from '../ui/authors.js';
 import { onLeave, onRestoreScroll } from '../router.js';
@@ -64,14 +64,13 @@ export function renderGuide() {
                 ${c.en ? `<span class="tp-en">${esc(c.en)}</span>` : ''}
                 <span class="tp-peek">напр.: ${previewTerms(list).map(t => esc(t.en)).join(', ')}</span>
               </span>
-              <span class="tp-count"><em data-count="${list.length}">${list.length}</em><small>${pc.mastered ? `вивч. ${pc.mastered}` : plural(list.length, 'термін', 'терміни', 'термінів')}</small></span>
+              <span class="tp-count"><em>${list.length}</em><small>${pc.mastered ? `вивч. ${pc.mastered}` : plural(list.length, 'термін', 'терміни', 'термінів')}</small></span>
             </a>`;
           }).join('')}
         </div>`;
       }).join('')}
       ${devCard()}
     </section>`;
-  countUp(app);
 }
 
 // Список розділу: відсортований за алфавітом, домальовується шматками під час гортання.

@@ -11,7 +11,7 @@ import { smartSearch } from '../search/index.js';
 import { wordsOf } from '../search/text.js';
 import { highlight, exSnippet } from '../search/highlight.js';
 import { I } from '../ui/icons.js';
-import { app, countUp } from '../ui/dom.js';
+import { app } from '../ui/dom.js';
 import { onClick, onAction } from '../ui/events.js';
 import { badge } from '../ui/badge.js';
 import { installCard } from '../ui/install.js';
@@ -62,7 +62,7 @@ function drawHome() {
       ? `<span class="qc-label">Ви шукали</span>${qHist.map(h => `<button class="chip qc" data-q="${esc(h)}">${esc(h)}</button>`).join('')}<button class="chip qc-x" data-action="qhist-clear" aria-label="Очистити історію">${I.x}</button>`
       : tryChips();
     chips.removeAttribute('hidden');
-    body.innerHTML = installCard() + dailyCard() + termOfDayCard() + recentBlock(); countUp(body); return;
+    body.innerHTML = installCard() + dailyCard() + termOfDayCard() + recentBlock(); return;
   }
   const all = smartSearch(q);
   const counts = {};
@@ -138,7 +138,7 @@ function dailyCard() {
   return `
     <a class="daily ${done ? 'done' : ''}" href="#/train/daily">
       <span class="daily-top">
-        <span class="fire ${days ? 'lit' : ''}">${I.flame}<b class="len${String(days).length}" data-count="${days}">${days}</b></span>
+        <span class="fire ${days ? 'lit' : ''}">${I.flame}<b class="len${String(days).length}">${days}</b></span>
         <span class="daily-txt">
           <span class="k">${days ? `${plural(days, 'день', 'дні', 'днів')} поспіль` : 'Серія ще не почалася'}</span>
           <span class="t">${done ? 'Сьогодні виконано' : 'Завдання дня'}</span>
