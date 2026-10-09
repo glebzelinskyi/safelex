@@ -14,14 +14,34 @@ test.describe('Головний екран', () => {
     await expect(page.locator('#qchips')).toContainText('Спробуйте');
   });
 
-  test('заставка показується лише при першому запуску', async ({ page }) => {
-    const fresh = await page.context().newPage();
+  test('заставка: повна при першому запуску, лише плитка SL — при наступних', async ({ browser }) => {
+    // З анімаціями, як у звичайного користувача.
+    const ctx = await browser.newContext({ reducedMotion: 'no-preference' });
+    const fresh = await ctx.newPage();
     await seed(fresh, { firstLaunch: true });
     await fresh.goto('./');
-    await expect(fresh.locator('#splash')).toBeAttached();
-    await expect(fresh.locator('#splash')).not.toBeAttached({ timeout: 3000 });
+    await expect(fresh.locator('.splash-name')).toBeVisible();
+    await expect(fresh.locator('.splash-credit')).toBeVisible();
+    await expect(fresh.locator('#splash')).not.toBeAttached({ timeout: 4000 });
+    await expect(fresh.locator('.brand .logo')).toBeVisible();
+
     await fresh.reload();
-    await expect(fresh.locator('#splash')).not.toBeAttached();
+    await expect(fresh.locator('#splash .logo-xl')).toBeVisible();
+    await expect(fresh.locator('.splash-name')).toBeHidden();
+    await expect(fresh.locator('.splash-emblem')).toBeHidden();
+    // Натискання проходять крізь коротку заставку — застосунком можна користуватися одразу.
+    await fresh.locator('#q').fill('arson');
+    await expect(fresh.locator('#splash')).not.toBeAttached({ timeout: 3000 });
+    await expect(fresh.locator('.best .best-en')).toHaveText('arson');
+    await expect(fresh.locator('.brand .logo')).toHaveCSS('visibility', 'visible');
+    await ctx.close();
+  });
+
+  test('без анімацій (налаштування системи) заставка не затримує відкриття', async ({ page }) => {
+    await seed(page);
+    await page.goto('./');
+    await expect(page.locator('#splash')).not.toBeAttached();
+    await expect(page.locator('#q')).toBeVisible();
   });
 
   test('«Термін дня» відкриває переклад і показує інший термін', async ({ page }) => {
