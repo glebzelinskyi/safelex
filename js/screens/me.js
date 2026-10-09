@@ -17,7 +17,7 @@ const masteredLv = f => f >= .6 ? 4 : f >= .3 ? 3 : f >= .1 ? 2 : f > 0 ? 1 : 0;
 
 function streakHint(days, best) {
   if (!days) return 'почніть сьогодні';
-  if (!doneToday()) return 'виконайте завдання сьогодні, щоб не перервати';
+  if (!doneToday()) return 'сьогодні ще не виконано';
   if (days >= best) return best > 1 ? 'це ваш рекорд' : 'перший день';
   return `до рекорду ще ${nDays(best - days + 1)}`;
 }
@@ -42,12 +42,12 @@ export function renderMe() {
     <header class="hero">
       ${rankHero(rank, best, days)}
       <div class="me-stats">
-        <span class="lv${streakLv(days)}"><b class="fl">${I.flame}<em>${days}</em></b>${plural(days, 'день', 'дні', 'днів')} поспіль
+        <span class="lv${streakLv(days)}"><b class="fl">${I.flame}<em>${days}</em></b><span class="ms-label">${plural(days, 'день', 'дні', 'днів')} поспіль</span>
           <small class="ms-hint">${streakHint(days, best)}</small></span>
-        <span class="lv${streakLv(best)}"><b><em>${best}</em></b>рекорд серії
-          <small class="ms-hint">${!best ? 'ще попереду' : days >= best ? 'це ваш рекорд — тримайте!' : `поточна серія — ${nDays(days)}`}</small></span>
-        <span class="lv${masteredLv(p.mastered / n)}"><b><em>${p.mastered}</em></b>вивчено
-          <small class="ms-hint">${Math.round(p.mastered / n * 100)}% бази · вчу ${p.learning}</small>
+        <span class="lv${streakLv(best)}"><b><em>${best}</em></b><span class="ms-label">рекорд серії</span>
+          <small class="ms-hint">${!best ? 'ще попереду' : days >= best ? 'серія триває' : `зараз — ${nDays(days)}`}</small></span>
+        <span class="lv${masteredLv(p.mastered / n)}"><b><em>${p.mastered}</em></b><span class="ms-label">вивчено</span>
+          <small class="ms-hint">${Math.round(p.mastered / n * 100)}%\u00A0бази · вчу\u00A0${p.learning}</small>
           <i class="ms-bar"><i style="width:${p.mastered / n * 100}%"></i></i></span>
       </div>
     </header>

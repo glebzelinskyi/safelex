@@ -125,7 +125,7 @@ export function renderStats() {
           <span><b>${Math.max(0, dueTomorrow)}</b>завтра</span>
           <span><b>${dueWeek}</b>за 7 днів</span>
         </div>
-        <span class="meta" style="padding:0">Тренажер сам підкидає ці терміни першими.</span>
+        <span class="meta" style="padding:0">Тренажер пропонує ці терміни першими.</span>
       </div>
       <div class="card sc">
         <span class="label">За розділами</span>
