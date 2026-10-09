@@ -13,6 +13,7 @@ import { app } from './ui/dom.js';
 import { onAction } from './ui/events.js';
 import { initInstall, isIOS, isStandalone } from './ui/install.js';
 import { initSwipeBack } from './ui/gestures.js';
+import { hideSplash } from './ui/splash.js';
 import './ui/fav.js';
 import { warmSearch } from './search/index.js';
 import { addRoute, setFallback, startRouter, route, goBack, STOP } from './router.js';
@@ -68,14 +69,6 @@ function start() {
   startRouter();
   hideSplash();
   registerServiceWorker();
-}
-
-// Заставка — лише при першому запуску (boot.js ставить клас returning ще до малювання сторінки).
-function hideSplash() {
-  const splash = document.getElementById('splash');
-  try { localStorage.setItem('safelex:launched', '1'); } catch {}
-  if (document.documentElement.classList.contains('returning')) splash.remove();
-  else setTimeout(() => { splash.classList.add('hide'); setTimeout(() => splash.remove(), 400); }, 700);
 }
 
 function showUpdateToast() {

@@ -72,26 +72,52 @@ body.dark #app { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
 .brand-name { font-family: var(--font-display); font-weight: 700; font-size: 18px; letter-spacing: -.2px; }
 .brand-name span, .splash-name span { color: var(--accent-2); }
 
+/* Заставка. Перший запуск — повна (герб, плитка SL, назва, кафедра), елементи з'являються по черзі.
+   Наступні запуски (клас .returning ставить js/boot.js) — лише плитка SL, яка перелітає в логотип шапки (js/ui/splash.js). */
 #splash {
   position: fixed; inset: 0; z-index: 100;
   background: var(--bg); color: #fff;
   display: flex; flex-direction: column; align-items: center; justify-content: space-between;
   padding: 64px 32px calc(48px + env(safe-area-inset-bottom));
-  transition: opacity .3s ease, visibility .3s;
+  transition: opacity .3s ease, visibility .3s, background-color .35s ease;
 }
 #splash.hide { opacity: 0; visibility: hidden; }
-.returning #splash > * { display: none; }
-.splash-emblem { width: 84px; height: 84px; object-fit: contain; }
+.splash-emblem { width: 84px; height: 84px; object-fit: contain; animation: sp-in .6s .05s cubic-bezier(.2, .8, .2, 1) both; }
 .splash-center { display: flex; flex-direction: column; align-items: center; gap: 20px; margin: auto 0; }
-.splash-name { font-family: var(--font-display); font-weight: 700; font-size: 30px; }
-.splash-sub { font-size: 15px; color: var(--muted); text-align: center; line-height: 1.4; margin-top: -10px; }
-.splash-bottom { width: 100%; max-width: 300px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.splash-center .logo-xl { position: relative; animation: sp-pop .7s .15s cubic-bezier(.2, .9, .25, 1.12) both; box-shadow: 0 18px 50px rgba(238, 106, 31, .28); }
+.splash-center .logo-xl small { position: absolute; bottom: 19px; }
+.splash-center .logo-xl span { margin-top: -14px; }
+.splash-center .logo-xl::before {
+  content: ''; position: absolute; inset: -70px; z-index: -1; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(238, 106, 31, .32), rgba(238, 106, 31, 0) 62%);
+  animation: sp-glow 2.4s .2s ease-in-out both;
+}
+.splash-name { font-family: var(--font-display); font-weight: 700; font-size: 30px; animation: sp-in .6s .4s cubic-bezier(.2, .8, .2, 1) both; }
+.splash-sub { font-size: 15px; color: var(--muted); text-align: center; line-height: 1.4; margin-top: -10px; animation: sp-in .6s .5s cubic-bezier(.2, .8, .2, 1) both; }
+.splash-bottom { width: 100%; max-width: 300px; display: flex; flex-direction: column; align-items: center; gap: 14px; animation: sp-in .6s .6s ease-out both; }
 .splash-bar { width: 100%; height: 3px; border-radius: 2px; background: rgba(255,255,255,.08); overflow: hidden; }
-.splash-bar div { width: 0; height: 100%; background: var(--accent); animation: load .9s ease-out forwards; }
+.splash-bar div { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--accent-2)); animation: load .7s .4s cubic-bezier(.4, 0, .2, 1) forwards; }
 @keyframes load { to { width: 100%; } }
+@keyframes sp-in { from { opacity: 0; transform: translateY(12px); } }
+@keyframes sp-pop { from { opacity: 0; transform: scale(.72); } }
+@keyframes sp-glow { 0% { opacity: 0; transform: scale(.6); } 45% { opacity: 1; transform: scale(1); } 100% { opacity: .55; transform: scale(1.08); } }
 .splash-text { font-size: 13px; color: var(--muted); }
 .splash-credit { display: flex; align-items: center; gap: 12px; margin-top: 14px; font-size: 12px; line-height: 1.35; color: var(--muted); text-align: left; }
 .splash-credit img { height: 46px; width: auto; }
+
+/* Наступні запуски: лише плитка SL, натискання проходять крізь заставку. */
+.returning #splash { pointer-events: none; }
+.returning #splash > :not(.splash-center), .returning .splash-center > :not(.logo-xl), .returning .splash-center .logo-xl small { display: none; }
+.returning .splash-center .logo-xl { animation: sp-pop .35s cubic-bezier(.2, .9, .25, 1.12) both; box-shadow: 0 14px 40px rgba(238, 106, 31, .22); }
+.returning .splash-center .logo-xl span { margin-top: 0; }
+.returning .splash-center .logo-xl::before { animation-duration: 1s; animation-delay: 0s; }
+
+/* Вихід: фон тане, плитка перелітає в шапку, решта зникає. */
+#splash.leaving { pointer-events: none; background-color: rgba(10, 17, 34, 0); }
+#splash.leaving > :not(.splash-center), #splash.leaving .splash-center > :not(.logo-xl),
+#splash.leaving .logo-xl small, #splash.leaving .logo-xl::before { opacity: 0; transition: opacity .2s ease; }
+#splash.leaving .logo-xl { box-shadow: none; transition: box-shadow .3s ease; }
+#splash.leaving .logo-xl span { margin-top: 0; transition: margin-top .3s ease; }
 
 .hero {
   position: relative;
