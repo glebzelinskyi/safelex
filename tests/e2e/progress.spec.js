@@ -142,3 +142,19 @@ test.describe('Демо-режим', () => {
     await expect(page.locator('.legend')).toContainText('Вивчено 1298');
   });
 });
+
+test('тисячі збережених показуються частинами з кнопкою «Показати ще»', async ({ page }) => {
+  await seed(page);
+  await open(page);
+  await page.evaluate(() => localStorage.setItem('safelex:favs', JSON.stringify(window.TERMS.slice(0, 120).map(t => t.id))));
+  await page.goto('./#/me');
+  await page.reload();
+  const rows = page.locator('#savedList a.row'), more = page.locator('[data-action="saved-more"]');
+  await expect(rows).toHaveCount(50);
+  await expect(more).toHaveText('Показати ще · 70');
+  await more.click();
+  await expect(rows).toHaveCount(100);
+  await more.click();
+  await expect(rows).toHaveCount(120);
+  await expect(more).toHaveCount(0);
+});

@@ -23,6 +23,20 @@ function streakHint(days, best) {
   return `до рекорду ще ${nDays(best - days + 1)}`;
 }
 
+// Збережені показуються частинами: тисячі рядків одразу робили сторінку завдовжки в сотні тисяч пікселів,
+// і на слабких телефонах перехід на «Моє» міг «застрягати».
+const SAVED_CHUNK = 50;
+let savedShown = 0;
+function savedRows(saved, from) {
+  savedShown = Math.min(saved.length, from + SAVED_CHUNK);
+  return saved.slice(from, savedShown).map(t => `
+    <a class="row" href="#/term/${t.id}">
+      <span class="body"><span class="en">${esc(t.en)}</span><span class="sub">${esc(t.ua)}</span></span>${I.chev}
+    </a>`).join('');
+}
+const moreBtn = total => savedShown < total
+  ? `<button class="link-btn" data-action="saved-more">Показати ще · ${total - savedShown}</button>` : '';
+
 export function renderMe() {
   const days = streak(), best = bestStreak(), p = progressOf(TERMS), n = TERMS.length || 1;
   const saved = TERMS.filter(t => favs.has(t.id));
@@ -67,15 +81,18 @@ export function renderMe() {
           <span class="rk-d">${cur ? 'ви тут' : nx ? `ще ${nDays(r.days - best)}` : r.days ? nDays(r.days) : 'старт'}</span></button>`;
       }).join('')}</div>
       <div class="section-head"><h2>Збережені</h2>${saved.length >= 2 ? `<a href="#/train?cat=fav">Тренувати</a>` : ''}</div>
-      ${saved.length ? `<div class="list">${saved.map(t => `
-        <a class="row" href="#/term/${t.id}">
-          <span class="body"><span class="en">${esc(t.en)}</span><span class="sub">${esc(t.ua)}</span></span>${I.chev}
-        </a>`).join('')}</div>`
+      ${saved.length ? `<div class="list" id="savedList">${savedRows(saved, 0)}</div>${moreBtn(saved.length)}`
       : `<div class="empty"><b>Поки що порожньо</b>Натисніть ☆ на картці терміна, щоб зберегти його сюди і вчити окремо.</div>`}
       <button class="link-btn" data-action="reset">Скинути прогрес навчання</button>
     </section>`;
   countUp(app);
 }
+
+onAction('saved-more', el => {
+  const saved = TERMS.filter(t => favs.has(t.id));
+  document.getElementById('savedList')?.insertAdjacentHTML('beforeend', savedRows(saved, savedShown));
+  el.outerHTML = moreBtn(saved.length);
+});
 
 onAction('reset', () => {
   if (confirm('Скинути весь прогрес навчання, серію днів і рекорди? Збережені терміни залишаться.')) {
