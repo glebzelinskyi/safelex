@@ -1063,11 +1063,14 @@ details > summary::-webkit-details-marker { display: none; }
 .daily.done { --grad: linear-gradient(120deg, #2BD98A, #0E9F6E, #0B7F8C, #1FC48D, #2BD98A); background: #0E9F6E; box-shadow: 0 16px 40px rgba(20, 180, 120, .32); }
 @keyframes shimmer { 50% { transform: translateX(-66.6667%); } }
 .daily-top { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
-.fire { position: relative; width: 66px; height: 66px; flex-shrink: 0; }
-.fire svg { position: absolute; inset: 0; width: 66px; height: 66px; fill: rgba(255,255,255,.25); stroke: none; }
-.fire b { position: absolute; left: 50%; bottom: -7px; transform: translateX(-50%); min-width: 32px; height: 24px; padding: 0 8px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: #fff; color: #C2410C; font-family: var(--font-card); font-size: 15px; font-weight: 800; letter-spacing: -.3px; font-variant-numeric: tabular-nums; white-space: nowrap; box-shadow: 0 4px 12px rgba(120, 30, 0, .3); }
-.daily.done .fire b { color: #0B7F5A; }
-.fire.lit svg { fill: var(--yellow); filter: drop-shadow(0 0 12px rgba(255, 220, 90, .8)); animation: flicker 2.4s ease-in-out infinite; transform-origin: 50% 90%; }
+.fire { width: 68px; height: 76px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 20px; background: rgba(255,255,255,.18); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.35); }
+.fire svg { width: 26px; height: 26px; fill: rgba(255,255,255,.55); stroke: none; }
+.fire b { font-family: var(--font-display); font-size: 24px; font-weight: 800; line-height: 1.05; letter-spacing: -1px; color: #fff; font-variant-numeric: tabular-nums; }
+.fire b.len3 { font-size: 20px; }
+.fire b.len4 { font-size: 16px; }
+.fire b.len5 { font-size: 13px; }
+.fire small { font-size: 10px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; opacity: .85; }
+.fire.lit svg { fill: var(--yellow); filter: drop-shadow(0 0 8px rgba(255, 220, 90, .8)); animation: flicker 2.4s ease-in-out infinite; transform-origin: 50% 90%; }
 @keyframes flicker { 0%, 100% { transform: scale(1) rotate(0); } 30% { transform: scale(1.06, .96) rotate(-2deg); } 60% { transform: scale(.97, 1.05) rotate(2deg); } }
 .daily-txt { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .daily-txt .k { font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; opacity: .9; }

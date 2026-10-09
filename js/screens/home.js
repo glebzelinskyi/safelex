@@ -136,9 +136,9 @@ function dailyCard() {
   return `
     <a class="daily ${done ? 'done' : ''}" href="#/train/daily">
       <span class="daily-top">
-        <span class="fire ${days ? 'lit' : ''}">${I.flame}${days ? `<b>${days}</b>` : ''}</span>
+        <span class="fire ${days ? 'lit' : ''}">${I.flame}<b class="len${String(days).length}">${days}</b><small>${plural(days, 'день', 'дні', 'днів')}</small></span>
         <span class="daily-txt">
-          <span class="k">${days ? `${plural(days, 'день', 'дні', 'днів')} поспіль` : 'Серія ще не почалася'}</span>
+          <span class="k">${days ? 'Серія' : 'Серія ще не почалася'}</span>
           <span class="t">${done ? 'Сьогодні виконано' : 'Завдання дня'}</span>
           <span class="s">${done && res.date === dayKey() ? `Результат ${res.score} з ${res.total} · наступне — завтра` : `${DAILY_LEN} питань з усієї бази`}</span>
         </span>
