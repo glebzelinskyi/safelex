@@ -1105,7 +1105,7 @@ body { font-size: var(--fs-base); line-height: 1.5; font-feature-settings: 'kern
 .card .ex-en, .tod-ex, .tp-en, .feedback .fb-ex, .flash .flash-ex { font-style: normal; }
 .wd i, .wd i b, .checks i, .legend i, .hm-cell, .ms-bar, .em, .res-gain i { font-style: normal; }
 
-.hero h1 { font-family: var(--font-display); font-size: var(--fs-2xl); font-weight: 700; line-height: 1.15; letter-spacing: -.4px; }
+.hero h1 { font-family: var(--font-display); font-size: min(var(--fs-2xl), 7.6vw); font-weight: 700; line-height: 1.15; letter-spacing: -.4px; overflow-wrap: break-word; -webkit-hyphens: auto; hyphens: auto; }
 .brand-name { font-family: var(--font-display); letter-spacing: -.2px; }
 .section-head h2 { font-family: var(--font); font-size: var(--fs-lg); font-weight: 700; letter-spacing: -.1px; }
 
