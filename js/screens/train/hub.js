@@ -14,7 +14,7 @@ export const currentTrainCat = () => trainCat;
 const usable = cat => cat === 'all' || (cat === 'fav' ? favs.size >= 2 : cat === 'core' ? CORE.length > 0 : !!catById[cat]);
 
 const MODES = [
-  { id: 'quiz', title: 'Тест', desc: `${QUIZ_LEN} питань. Складність росте разом із вашими знаннями`, icon: I.target, meta: () => '≈3 хв' },
+  { id: 'quiz', title: 'Тест', desc: `${QUIZ_LEN} питань. Складність росте разом із вашими знаннями`, icon: I.target },
   { id: 'cards', title: 'Картки', desc: 'Згадайте переклад, переверніть картку й чесно оцініть себе', icon: I.cards, meta: () => `${CARDS_LEN} карток` },
   { id: 'match', title: 'Пари', desc: 'З’єднайте терміни з перекладами якнайшвидше', icon: I.link, meta: () => { const b = store.get('safelex:matchBest', 0); return b ? `рекорд ${fmtTime(b)}` : `${MATCH_ROUNDS} раунди`; } },
   { id: 'sprint', title: 'Спринт', desc: `${SPRINT_SEC} секунд: переклад правильний чи ні?`, icon: I.bolt, meta: () => { const b = store.get('safelex:sprintBest', 0); return b ? `рекорд ${b}` : `${SPRINT_SEC} с`; } },
@@ -32,7 +32,7 @@ export function renderTrainHub(cat) {
     return `<a class="mode m-${m.id} ${big ? 'big' : ''} ${off ? 'off' : ''}" ${off ? 'aria-disabled="true"' : `href="#/train/${m.id}?cat=${trainCat}"`}>
       <span class="mode-ic">${m.icon}</span>
       <span class="mode-body"><b>${m.title}</b><span>${off ? 'Поки що помилок немає' : m.desc}</span></span>
-      ${off ? '' : `<span class="mode-meta">${m.meta(trainCat)}</span>`}
+      ${off || !m.meta ? '' : `<span class="mode-meta">${m.meta(trainCat)}</span>`}
     </a>`;
   };
   app.innerHTML = `

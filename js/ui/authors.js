@@ -2,7 +2,7 @@ import { esc } from '../core/util.js';
 import { AUTHORS } from '../config.js';
 import { I } from './icons.js';
 
-export const authorsList = () => AUTHORS.map(a => `<span class="author"><b>${esc(a.name)}</b><span>${esc(a.role)}</span></span>`).join('');
+export const authorsList = () => AUTHORS.map(a => `<span class="author"><b>${esc(a.name)}</b>${a.role ? `<span>${esc(a.role)}</span>` : ''}</span>`).join('');
 
 export const devCard = () => `
   <a class="dev-card" href="#/about">
