@@ -21,7 +21,8 @@ export const vibrate = p => { try { navigator.vibrate ? navigator.vibrate(p) : i
 
 /** Числа з атрибутом data-count «набігають» від 0 до свого значення. */
 export function countUp(root) {
-  if (reducedMotion()) return;
+  // Під заставкою числа не «набігають» — щоб нічого не відбирало кадри в її анімації.
+  if (reducedMotion() || document.getElementById('splash')) return;
   root.querySelectorAll('[data-count]').forEach(el => {
     const to = +el.dataset.count;
     if (!to) return;
