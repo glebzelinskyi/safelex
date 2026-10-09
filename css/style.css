@@ -774,8 +774,9 @@ details > summary::-webkit-details-marker { display: none; }
 .st-cat-top { display: flex; justify-content: space-between; font-size: 14px; font-weight: 500; }
 .st-cat-top b { font-size: 14px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
 .st-cat .stack { margin: 4px 0 2px; height: 6px; }
-.st-cat-n { margin-bottom: 8px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.st-cat-n b { font-weight: 700; }
+.st-cat-n { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-bottom: 8px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.st-cat-n b { font-weight: 700; color: var(--text-2); }
+.st-cat-n .of { margin-left: auto; }
 .st-cat-n b.m { color: #72CFA6; }
 .st-cat-n b.l { color: var(--st-learning); }
 .st-wrong { font-size: 12px; font-weight: 600; color: var(--bad-line); white-space: nowrap; }
@@ -1057,8 +1058,9 @@ details > summary::-webkit-details-marker { display: none; }
 .daily.done { --grad: linear-gradient(120deg, #2BD98A, #0E9F6E, #0B7F8C, #1FC48D, #2BD98A); background: #0E9F6E; box-shadow: 0 16px 40px rgba(20, 180, 120, .32); }
 @keyframes shimmer { 50% { transform: translateX(-66.6667%); } }
 .daily-top { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
-.fire { position: relative; width: 66px; height: 66px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-.fire svg { position: absolute; inset: 0; width: 66px; height: 66px; fill: rgba(255,255,255,.25); stroke: none; }
+.fire { position: relative; min-width: 66px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.fire svg { width: 52px; height: 52px; fill: rgba(255,255,255,.25); stroke: none; }
+.fire b { margin-top: -2px; font-family: var(--font-card); font-size: 24px; font-weight: 800; line-height: 1; color: #fff; font-variant-numeric: tabular-nums; text-shadow: 0 2px 8px rgba(120, 30, 0, .35); }
 .fire.lit svg { fill: var(--yellow); filter: drop-shadow(0 0 12px rgba(255, 220, 90, .8)); animation: flicker 2.4s ease-in-out infinite; transform-origin: 50% 90%; }
 @keyframes flicker { 0%, 100% { transform: scale(1) rotate(0); } 30% { transform: scale(1.06, .96) rotate(-2deg); } 60% { transform: scale(.97, 1.05) rotate(2deg); } }
 .daily-txt { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
