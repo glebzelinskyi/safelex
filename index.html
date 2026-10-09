@@ -19,6 +19,13 @@
   <meta name="apple-mobile-web-app-title" content="SafeLex">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+  <!-- Заставка має з'явитися одразу цілою: плитка — та сама картинка, що й значок застосунку,
+       а шрифти назви приходять разом зі сторінкою, щоб текст не перемальовувався іншим шрифтом. -->
+  <link rel="preload" href="icons/icon-512.png" as="image" fetchpriority="high">
+  <link rel="preload" href="icons/emblem.png" as="image">
+  <link rel="preload" href="icons/ldubzhd-logo-white.png" as="image">
+  <link rel="preload" href="fonts/unbounded-latin-wght-normal.woff2?v=2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/onest-cyrillic-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="css/fonts.css">
 
   <link rel="stylesheet" href="css/style.css">
@@ -75,7 +82,7 @@
   <div id="splash" aria-hidden="true">
     <img class="splash-emblem" src="icons/emblem.png" alt="">
     <div class="splash-center">
-      <div class="logo logo-xl"><span>SL</span><small>EN · UA</small></div>
+      <img class="splash-logo" src="icons/icon-512.png" width="112" height="112" alt="" decoding="sync" fetchpriority="high">
       <div class="splash-name">Safe<span>Lex</span></div>
       <div class="splash-sub">Англо-український словник<br>пожежно-рятувальної термінології</div>
     </div>
@@ -83,7 +90,7 @@
       <div class="splash-bar"><div></div></div>
       <div class="splash-text">Завантаження бази термінів…</div>
       <div class="splash-credit">
-        <img src="icons/ldubzhd-logo-white.png" alt="">
+        <img src="icons/ldubzhd-logo-white.png" width="57" height="46" alt="">
         <span>Кафедра іноземних мов та перекладознавства<br>ЛДУ БЖД</span>
       </div>
     </div>

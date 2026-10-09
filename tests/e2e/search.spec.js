@@ -26,7 +26,7 @@ test.describe('Головний екран', () => {
     await expect(fresh.locator('.brand .logo')).toBeVisible();
 
     await fresh.reload();
-    await expect(fresh.locator('#splash .logo-xl')).toBeVisible();
+    await expect(fresh.locator('#splash .splash-logo')).toBeVisible();
     await expect(fresh.locator('.splash-name')).toBeHidden();
     await expect(fresh.locator('.splash-emblem')).toBeHidden();
     // Натискання проходять крізь коротку заставку — застосунком можна користуватися одразу.

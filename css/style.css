@@ -67,14 +67,14 @@ body.dark #app { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
   flex-shrink: 0;
 }
 .logo small { display: none; }
-.logo-xl { width: 112px; height: 112px; border-radius: 26px; font-size: 44px; letter-spacing: -2px; gap: 6px; }
-.logo-xl small { display: block; font-family: var(--font-display); font-weight: 500; font-size: 11px; letter-spacing: 2px; color: rgba(255,255,255,.75); }
 .brand-name { font-family: var(--font-display); font-weight: 700; font-size: 18px; letter-spacing: -.2px; }
 .brand-name span, .splash-name span { color: var(--accent-2); }
 
 /* Заставка. Навмисно проста: поки застосунок вантажиться, вона нерухома, а потім
    розчиняється однією анімацією прозорості — найдешевшою для телефона (js/ui/splash.js).
-   Перший запуск — повна заставка зі смужкою; наступні (клас .returning ставить js/boot.js) — лише плитка SL. */
+   Перший запуск — повна заставка зі смужкою; наступні (клас .returning ставить js/boot.js) — лише плитка SL.
+   Плитка — сама картинка значка застосунку (не текст), точно в центрі екрана й однакова при кожному запуску:
+   значок, на який натиснули, системна заставка Android і наша заставка збігаються, нічого не підміняється. */
 #splash {
   position: fixed; inset: 0; z-index: 100;
   background: var(--bg); color: #fff;
@@ -85,7 +85,10 @@ body.dark #app { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
 #splash.hide { opacity: 0; visibility: hidden; pointer-events: none; }
 .splash-emblem { width: 84px; height: 84px; object-fit: contain; }
 .splash-center { display: flex; flex-direction: column; align-items: center; gap: 20px; margin: auto 0; }
-.splash-center .logo-xl { box-shadow: 0 16px 40px rgba(238, 106, 31, .25); }
+/* Плитка точно в центрі, де це не зсуває підпис на смужку: на високому екрані й при наступних запусках (лише плитка). */
+@media (min-height: 740px) { .splash-center { position: absolute; left: 0; right: 0; top: calc(50% - 56px); margin: 0; } }
+.returning .splash-center { position: absolute; left: 0; right: 0; top: calc(50% - 56px); margin: 0; }
+.splash-logo { display: block; width: 112px; height: 112px; filter: drop-shadow(0 14px 28px rgba(212, 87, 15, .3)); }
 .splash-name { font-family: var(--font-display); font-weight: 700; font-size: 30px; }
 .splash-sub { font-size: 15px; color: var(--muted); text-align: center; line-height: 1.4; margin-top: -10px; }
 .splash-bottom { width: 100%; max-width: 300px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
@@ -94,11 +97,11 @@ body.dark #app { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
 #splash.ready .splash-bar div { transition: transform .7s cubic-bezier(.4, 0, .2, 1); transform: scaleX(1); }
 .splash-text { font-size: 13px; color: var(--muted); }
 .splash-credit { display: flex; align-items: center; gap: 12px; margin-top: 14px; font-size: 12px; line-height: 1.35; color: var(--muted); text-align: left; }
-.splash-credit img { height: 46px; width: auto; }
+.splash-credit img { width: 57px; height: 46px; }
 
 /* Наступні запуски: лише плитка SL, натискання проходять крізь заставку. */
 .returning #splash { pointer-events: none; }
-.returning #splash > :not(.splash-center), .returning .splash-center > :not(.logo-xl), .returning .splash-center .logo-xl small { display: none; }
+.returning #splash > :not(.splash-center), .returning .splash-center > :not(.splash-logo) { display: none; }
 
 .hero {
   position: relative;
