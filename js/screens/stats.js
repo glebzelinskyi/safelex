@@ -130,12 +130,13 @@ export function renderStats() {
         <span class="meta" style="padding:0">Тренажер сам підкидає ці терміни першими.</span>
       </div>
       <div class="card">
-        <span class="label">За розділами</span>
+        <div class="st-head"><span class="label">За розділами</span><span class="meta">вивчено ${p.mastered} · вчу ${p.learning}</span></div>
         ${CATEGORIES.map(c => {
           const list = byCat[c.id] || [], pc = progressOf(list), n = list.length || 1;
           return `<a class="st-cat" href="#/guide/${c.id}">
-            <span class="st-cat-top"><span>${esc(short(c))}</span><span class="mono">${pc.mastered}/${list.length}</span></span>
+            <span class="st-cat-top"><span>${esc(short(c))}</span><b>${pct(pc.mastered, list.length)}%</b></span>
             <span class="stack"><span class="s-mastered" style="width:${pc.mastered / n * 100}%"></span><span class="s-learning" style="width:${pc.learning / n * 100}%"></span></span>
+            <span class="st-cat-n">Вивчено <b class="m">${pc.mastered}</b> з ${list.length}${pc.learning ? ` · вчу <b class="l">${pc.learning}</b>` : ''}</span>
           </a>`;
         }).join('')}
         <div class="legend">

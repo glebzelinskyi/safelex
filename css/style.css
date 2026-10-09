@@ -780,8 +780,12 @@ details > summary::-webkit-details-marker { display: none; }
 
 .st-cat { display: flex; flex-direction: column; gap: 2px; color: var(--text); text-decoration: none; }
 .st-cat-top { display: flex; justify-content: space-between; font-size: 14px; font-weight: 500; }
-.st-cat-top .mono { font-size: 12px; color: var(--muted); }
-.st-cat .stack { margin: 4px 0 6px; height: 6px; }
+.st-cat-top b { font-size: 14px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+.st-cat .stack { margin: 4px 0 2px; height: 6px; }
+.st-cat-n { margin-bottom: 8px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.st-cat-n b { font-weight: 700; }
+.st-cat-n b.m { color: #72CFA6; }
+.st-cat-n b.l { color: var(--st-learning); }
 .st-wrong { font-size: 12px; font-weight: 600; color: var(--bad-line); white-space: nowrap; }
 
 .hero.tinted { background: var(--ts, transparent); border-radius: 0 0 22px 22px; margin-bottom: 6px; }
@@ -1022,7 +1026,7 @@ details > summary::-webkit-details-marker { display: none; }
 .row .en, .result .en, .recent b, .miss a b, .rel a, .tile.en, .tp-peek { font-weight: 700; }
 .type-input, .typed { font-weight: 600; }
 .letters .chip, .letter-h, .tp-no, .az-mark { font-weight: 700; }
-.counter, .dl-no, .tp-no, .tp-count, .ab-d, .mt-miss, .st-cat-top .mono, .mode-meta { font-variant-numeric: tabular-nums; }
+.counter, .dl-no, .tp-no, .tp-count, .ab-d, .mt-miss, .mode-meta { font-variant-numeric: tabular-nums; }
 
 .row .en, .row .sub { font-size: 16px; line-height: 1.4; }
 .result .en, .result .ua { font-size: 17px; line-height: 1.4; }
@@ -1211,7 +1215,7 @@ body { font-size: var(--fs-base); line-height: 1.5; font-feature-settings: 'kern
 
 .ranks { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 6px; padding: 16px 8px; }
 .rank { position: relative; gap: 6px; padding: 10px 2px 8px; border-radius: 12px; transition: background .2s; }
-.rank .rk-t { font-size: 12.5px; font-weight: 700; line-height: 1.2; color: var(--text-2); }
+.rank .rk-t { max-width: 100%; font-size: 12.5px; font-weight: 700; line-height: 1.2; color: var(--text-2); -webkit-hyphens: auto; hyphens: auto; overflow-wrap: anywhere; }
 .rank .rk-d { font-size: 11px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
 .rank:not(.got) .rk-t { color: var(--muted); }
 .rank.cur { background: var(--accent-soft); box-shadow: inset 0 0 0 1px rgba(255, 141, 77, .45); }
@@ -1286,10 +1290,10 @@ html.scrolled .gbar { box-shadow: 0 1px 0 var(--line), 0 10px 18px -10px rgba(0,
 .me-stats b, .st-tiles b, .st-due b, .result-screen .score, .sp-score b {
   font-family: var(--font-num); font-weight: 700; font-variant-numeric: proportional-nums lining-nums; letter-spacing: -.04em;
 }
-.tp-count, .rk-d, .st-cat-top .mono, .hm-cell, .ab-d, .wd i b, .mode-meta, .tp-no b, .opt .key, .legend, .meta, .crumb, .hm-title, .badge b, .cel-days {
+.tp-count, .rk-d, .st-cat-top b, .st-cat-n, .hm-cell, .ab-d, .wd i b, .mode-meta, .tp-no b, .opt .key, .legend, .meta, .crumb, .hm-title, .badge b, .cel-days {
   font-variant-numeric: proportional-nums lining-nums;
 }
-.me-stats em, .rank .rk-d, .hm .hm-cell, .counter, .card-tally, .mt-miss, .rounds b, .st-cat-top .mono { font-variant-numeric: proportional-nums lining-nums; }
+.me-stats em, .rank .rk-d, .hm .hm-cell, .counter, .card-tally, .mt-miss, .rounds b, .st-cat-top b, .st-cat-n { font-variant-numeric: proportional-nums lining-nums; }
 .counter { min-width: 48px; }
 
 .me-stats b { font-size: 26px; line-height: 1; gap: 4px; margin-bottom: 4px; }
