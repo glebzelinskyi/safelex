@@ -770,15 +770,22 @@ details > summary::-webkit-details-marker { display: none; }
 .st-due b { font-size: 21px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
 .st-rec > * { background: var(--surface); border: 1px solid var(--line); }
 
-.st-cat { display: flex; flex-direction: column; gap: 2px; color: var(--text); text-decoration: none; }
-.st-cat-top { display: flex; justify-content: space-between; font-size: 14px; font-weight: 500; }
-.st-cat-top b { font-size: 14px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
-.st-cat .stack { margin: 4px 0 2px; height: 6px; }
-.st-cat-n { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-bottom: 8px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.st-cat-n b { font-weight: 700; color: var(--text-2); }
-.st-cat-n .of { margin-left: auto; }
-.st-cat-n b.m { color: #72CFA6; }
-.st-cat-n b.l { color: var(--st-learning); }
+.sc { --c-m: var(--st-mastered); --c-l: var(--st-learning); --c-n: rgba(255, 255, 255, .3); }
+.sc .m { --c: var(--c-m); --ct: #72CFA6; }
+.sc .l { --c: var(--c-l); --ct: #F2C46B; }
+.sc .n { --c: var(--c-n); --ct: var(--muted); }
+.sc-sum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 4px 0 2px; }
+.sc-sum span { position: relative; display: flex; flex-direction: column; gap: 2px; padding: 10px 12px 9px; border-radius: 12px; background: var(--surface-2); box-shadow: inset 0 3px 0 var(--c); font-size: 12px; font-weight: 500; color: var(--muted); }
+.sc-sum b { font-size: 22px; font-weight: 800; line-height: 1.1; letter-spacing: -.5px; color: var(--ct); font-variant-numeric: tabular-nums; }
+.sc-sum .n b { color: var(--text-2); }
+.sc-list { display: flex; flex-direction: column; }
+.sc-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 10px; padding: 11px 0 10px; border-top: 1px solid var(--line); color: var(--text); text-decoration: none; }
+.sc-row:first-child { border-top: none; }
+.sc-name { font-size: 15px; font-weight: 500; line-height: 1.25; }
+.sc-nums { display: flex; }
+.sc-nums b { width: 40px; text-align: right; font-size: 14px; font-weight: 700; color: var(--ct); font-variant-numeric: tabular-nums; }
+.sc-row .stack { grid-column: 1 / -1; height: 5px; margin: 7px 0 0; }
+.sc-row:active { background: rgba(255, 255, 255, .03); }
 .st-wrong { font-size: 12px; font-weight: 600; color: var(--bad-line); white-space: nowrap; }
 
 .hero.tinted { background: var(--ts, transparent); border-radius: 0 0 22px 22px; margin-bottom: 6px; }
@@ -859,7 +866,6 @@ details > summary::-webkit-details-marker { display: none; }
 .st-tiles span:nth-child(2) b { color: #72CFA6; }
 .st-tiles span:nth-child(3) b { color: #E8C468; }
 .st-tiles span:nth-child(4) b { color: #B6A8EE; }
-.st-cat .stack .s-mastered { background: var(--st-mastered); }
 
 .icon-btn.on svg, .pill.on svg { animation: starpop .4s cubic-bezier(.3, 1.6, .5, 1); }
 @keyframes starpop { 0% { transform: scale(.6) rotate(-30deg); } 100% { transform: none; } }
@@ -962,7 +968,6 @@ details > summary::-webkit-details-marker { display: none; }
 .st-tiles span { font-size: 13px; }
 .st-tiles b { font-size: 26px; }
 .st-read { font-size: 14px; }
-.st-cat-top { font-size: 15px; }
 .q-card .q { font-size: 28px; }
 .q-card.ctx .q { font-size: 21px; }
 .q-card .hint { font-size: 16px; }
@@ -1058,9 +1063,10 @@ details > summary::-webkit-details-marker { display: none; }
 .daily.done { --grad: linear-gradient(120deg, #2BD98A, #0E9F6E, #0B7F8C, #1FC48D, #2BD98A); background: #0E9F6E; box-shadow: 0 16px 40px rgba(20, 180, 120, .32); }
 @keyframes shimmer { 50% { transform: translateX(-66.6667%); } }
 .daily-top { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
-.fire { position: relative; min-width: 66px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.fire svg { width: 52px; height: 52px; fill: rgba(255,255,255,.25); stroke: none; }
-.fire b { margin-top: -2px; font-family: var(--font-card); font-size: 24px; font-weight: 800; line-height: 1; color: #fff; font-variant-numeric: tabular-nums; text-shadow: 0 2px 8px rgba(120, 30, 0, .35); }
+.fire { position: relative; width: 66px; height: 66px; flex-shrink: 0; }
+.fire svg { position: absolute; inset: 0; width: 66px; height: 66px; fill: rgba(255,255,255,.25); stroke: none; }
+.fire b { position: absolute; left: 50%; bottom: -7px; transform: translateX(-50%); min-width: 32px; height: 24px; padding: 0 8px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: #fff; color: #C2410C; font-family: var(--font-card); font-size: 15px; font-weight: 800; letter-spacing: -.3px; font-variant-numeric: tabular-nums; white-space: nowrap; box-shadow: 0 4px 12px rgba(120, 30, 0, .3); }
+.daily.done .fire b { color: #0B7F5A; }
 .fire.lit svg { fill: var(--yellow); filter: drop-shadow(0 0 12px rgba(255, 220, 90, .8)); animation: flicker 2.4s ease-in-out infinite; transform-origin: 50% 90%; }
 @keyframes flicker { 0%, 100% { transform: scale(1) rotate(0); } 30% { transform: scale(1.06, .96) rotate(-2deg); } 60% { transform: scale(.97, 1.05) rotate(2deg); } }
 .daily-txt { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
@@ -1281,10 +1287,10 @@ html.scrolled .gbar { box-shadow: 0 1px 0 var(--line), 0 10px 18px -10px rgba(0,
 .me-stats b, .st-tiles b, .st-due b, .result-screen .score, .sp-score b {
   font-family: var(--font-num); font-weight: 700; font-variant-numeric: proportional-nums lining-nums; letter-spacing: -.04em;
 }
-.tp-count, .rk-d, .st-cat-top b, .st-cat-n, .hm-cell, .ab-d, .wd i b, .mode-meta, .tp-no b, .opt .key, .legend, .meta, .crumb, .hm-title, .badge b, .cel-days {
+.tp-count, .rk-d, .hm-cell, .ab-d, .wd i b, .mode-meta, .tp-no b, .opt .key, .legend, .meta, .crumb, .hm-title, .badge b, .cel-days {
   font-variant-numeric: proportional-nums lining-nums;
 }
-.me-stats em, .rank .rk-d, .hm .hm-cell, .counter, .card-tally, .mt-miss, .rounds b, .st-cat-top b, .st-cat-n { font-variant-numeric: proportional-nums lining-nums; }
+.me-stats em, .rank .rk-d, .hm .hm-cell, .counter, .card-tally, .mt-miss, .rounds b { font-variant-numeric: proportional-nums lining-nums; }
 .counter { min-width: 48px; }
 
 .me-stats b { font-size: 26px; line-height: 1; gap: 4px; margin-bottom: 4px; }

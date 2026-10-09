@@ -127,21 +127,21 @@ export function renderStats() {
         </div>
         <span class="meta" style="padding:0">Тренажер сам підкидає ці терміни першими.</span>
       </div>
-      <div class="card">
+      <div class="card sc">
         <span class="label">За розділами</span>
-        ${CATEGORIES.map(c => {
-          const list = byCat[c.id] || [], pc = progressOf(list), n = list.length || 1;
-          return `<a class="st-cat" href="#/guide/${c.id}">
-            <span class="st-cat-top"><span>${esc(short(c))}</span><b>${pct(pc.mastered, list.length)}%</b></span>
-            <span class="stack"><span class="s-mastered" style="width:${pc.mastered / n * 100}%"></span><span class="s-learning" style="width:${pc.learning / n * 100}%"></span></span>
-            <span class="st-cat-n"><span>вивчено <b class="m">${pc.mastered}</b></span><span>вчу <b class="l">${pc.learning}</b></span><span>нові <b>${pc.new}</b></span><span class="of">з ${list.length}</span></span>
-          </a>`;
-        }).join('')}
-        <div class="legend">
-          <span><i class="s-mastered"></i>Вивчено ${p.mastered}</span>
-          <span><i class="s-learning"></i>Вчу ${p.learning}</span>
-          <span><i class="s-new"></i>Нові ${p.new}</span>
+        <div class="sc-sum">
+          <span class="m"><b>${p.mastered}</b>вивчено</span>
+          <span class="l"><b>${p.learning}</b>вчу</span>
+          <span class="n"><b>${p.new}</b>нові</span>
         </div>
+        <div class="sc-list">${CATEGORIES.map(c => {
+          const list = byCat[c.id] || [], pc = progressOf(list), n = list.length || 1;
+          return `<a class="sc-row" href="#/guide/${c.id}">
+            <span class="sc-name">${esc(short(c))}</span>
+            <span class="sc-nums"><b class="m">${pc.mastered}</b><b class="l">${pc.learning}</b><b class="n">${pc.new}</b></span>
+            <span class="stack"><span class="s-mastered" style="width:${pc.mastered / n * 100}%"></span><span class="s-learning" style="width:${pc.learning / n * 100}%"></span></span>
+          </a>`;
+        }).join('')}</div>
       </div>
       <div class="section-head"><h2>Найскладніші</h2>${hard.length ? `<a href="#/train/mistakes?cat=all">Тренувати</a>` : ''}</div>
       ${hard.length ? `<div class="list">${hard.map(t => `
