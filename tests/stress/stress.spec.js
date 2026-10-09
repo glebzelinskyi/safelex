@@ -166,7 +166,7 @@ test('прогрес на всі терміни, серія 1000 днів і т�
     expect(ms).toBeLessThan(4000);
   }
   await page.goto('./#/');
-  await expect(page.locator('a.daily .fire b')).toHaveText('1000');
+  await expect(page.locator('a.daily .daily-txt .k')).toHaveText('1000 днів поспіль');
   await page.goto('./#/me');
   await expect(page.locator('.rank-hero .rh-body > b')).toHaveText('Генерал');
   await page.goto('./#/train/quiz?cat=fav');

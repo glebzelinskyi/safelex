@@ -21,7 +21,7 @@ test.describe('Завдання дня й серія', () => {
   test('третій день поспіль присвоює звання «Рядовий» зі святковим екраном', async ({ page }) => {
     await seed(page, { days: [1, 2], data: { 'safelex:best': 2 } });
     await open(page);
-    await expect(page.locator('a.daily .fire b')).toHaveText('2');
+    await expect(page.locator('a.daily .daily-txt .k')).toHaveText('2 дні поспіль');
     await page.locator('a.daily').click();
     await finishQuiz(page);
     const cel = page.locator('.celebrate');
@@ -137,7 +137,7 @@ test.describe('Демо-режим', () => {
     await seed(page);
     page.once('dialog', d => d.accept());
     await page.goto('./#/demo');
-    await expect(page.locator('a.daily .fire b')).toHaveText('456');
+    await expect(page.locator('a.daily .daily-txt .k')).toHaveText('456 днів поспіль');
     await page.goto('./#/me');
     await expect(page.locator('.legend')).toContainText('Вивчено 1298');
   });
