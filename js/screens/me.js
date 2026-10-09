@@ -7,7 +7,7 @@ import { streak, bestStreak, doneToday } from '../learn/streak.js';
 import { progressOf } from '../learn/srs.js';
 import { resetProgress } from '../learn/reset.js';
 import { I } from '../ui/icons.js';
-import { app, countUp } from '../ui/dom.js';
+import { app } from '../ui/dom.js';
 import { onAction } from '../ui/events.js';
 import { badge } from '../ui/badge.js';
 import { rankHero } from '../ui/ranks.js';
@@ -45,11 +45,11 @@ export function renderMe() {
     <header class="hero">
       ${rankHero(rank, best, days)}
       <div class="me-stats">
-        <span class="lv${streakLv(days)}"><b class="fl">${I.flame}<em data-count="${days}">${days}</em></b>${plural(days, 'день', 'дні', 'днів')} поспіль
+        <span class="lv${streakLv(days)}"><b class="fl">${I.flame}<em>${days}</em></b>${plural(days, 'день', 'дні', 'днів')} поспіль
           <small class="ms-hint">${streakHint(days, best)}</small></span>
-        <span class="lv${streakLv(best)}"><b><em data-count="${best}">${best}</em></b>рекорд серії
+        <span class="lv${streakLv(best)}"><b><em>${best}</em></b>рекорд серії
           <small class="ms-hint">${!best ? 'ще попереду' : days >= best ? 'це ваш рекорд — тримайте!' : `поточна серія — ${nDays(days)}`}</small></span>
-        <span class="lv${masteredLv(p.mastered / n)}"><b><em data-count="${p.mastered}">${p.mastered}</em></b>вивчено
+        <span class="lv${masteredLv(p.mastered / n)}"><b><em>${p.mastered}</em></b>вивчено
           <small class="ms-hint">${Math.round(p.mastered / n * 100)}% бази · вчу ${p.learning}</small>
           <i class="ms-bar"><i style="width:${p.mastered / n * 100}%"></i></i></span>
       </div>
@@ -85,7 +85,6 @@ export function renderMe() {
       : `<div class="empty"><b>Поки що порожньо</b>Натисніть ☆ на картці терміна, щоб зберегти його сюди і вчити окремо.</div>`}
       <button class="link-btn" data-action="reset">Скинути прогрес навчання</button>
     </section>`;
-  countUp(app);
 }
 
 onAction('saved-more', el => {

@@ -1,4 +1,4 @@
-// Спільне для всіх екранів: контейнер сторінки, вібрація, анімація чисел.
+// Спільне для всіх екранів: контейнер сторінки, вібрація.
 
 /** <main id="app"> — сюди кожен екран малює свій вміст. */
 export const app = document.getElementById('app');
@@ -18,21 +18,3 @@ function iosHaptic() {
   hapticLabel.click();
 }
 export const vibrate = p => { try { navigator.vibrate ? navigator.vibrate(p) : iosHaptic(); } catch {} };
-
-/** Числа з атрибутом data-count «набігають» від 0 до свого значення. */
-export function countUp(root) {
-  // Під заставкою числа не «набігають» — щоб нічого не відбирало кадри в її анімації.
-  if (reducedMotion() || document.getElementById('splash')) return;
-  root.querySelectorAll('[data-count]').forEach(el => {
-    const to = +el.dataset.count;
-    if (!to) return;
-    const dur = Math.min(900, 400 + to * 30), t0 = performance.now();
-    const step = now => {
-      const k = Math.min(1, (now - t0) / dur);
-      el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3)));
-      if (k < 1 && el.isConnected) requestAnimationFrame(step);
-    };
-    el.textContent = 0;
-    requestAnimationFrame(step);
-  });
-}

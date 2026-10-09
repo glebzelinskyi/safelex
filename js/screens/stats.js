@@ -8,7 +8,7 @@ import { srs, boxOf, progressOf } from '../learn/srs.js';
 import { actLog } from '../learn/activity.js';
 import { doneDays, bestStreak } from '../learn/streak.js';
 import { I } from '../ui/icons.js';
-import { app, countUp } from '../ui/dom.js';
+import { app } from '../ui/dom.js';
 import { onClick, onAction } from '../ui/events.js';
 
 const STATS_DAYS = 14;
@@ -98,10 +98,10 @@ export function renderStats() {
       </div>
       <h1>Статистика</h1>
       <div class="st-tiles">
-        <span><b data-count="${total}">${total}</b>${plural(total, 'відповідь', 'відповіді', 'відповідей')}</span>
-        <span><b>${total ? `<em data-count="${pct(right, total)}">${pct(right, total)}</em>%` : '—'}</b>точність</span>
-        <span><b data-count="${active}">${active}</b>${plural(active, 'день', 'дні', 'днів')} практики</span>
-        <span><b data-count="${p.mastered}">${p.mastered}</b>вивчено з ${TERMS.length}</span>
+        <span><b>${total}</b>${plural(total, 'відповідь', 'відповіді', 'відповідей')}</span>
+        <span><b>${total ? `<em>${pct(right, total)}</em>%` : '—'}</b>точність</span>
+        <span><b>${active}</b>${plural(active, 'день', 'дні', 'днів')} практики</span>
+        <span><b>${p.mastered}</b>вивчено з ${TERMS.length}</span>
       </div>
     </header>
     <section class="section" style="gap:14px">
@@ -158,7 +158,6 @@ export function renderStats() {
         <span><b>${matchBest ? fmtTime(matchBest) : '—'}</b>пари</span>
       </div>
     </section>`;
-  countUp(app);
 }
 
 onClick('day', (k, el) => {
