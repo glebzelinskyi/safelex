@@ -141,7 +141,8 @@ test.describe('Демо-режим', () => {
     await page.goto('./#/me');
     await expect(page.locator('.legend')).toContainText('Вивчено 1298');
     await page.goto('./#/stats');
-    await expect(page.locator('.card', { hasText: 'За розділами' }).locator('.legend')).toHaveText(/Вивчено 1298\s*Вчу 402\s*Нові 1653/);
+    await expect(page.locator('.sc-sum')).toHaveText(/1298\s*вивчено\s*402\s*вчу\s*1653\s*нові/);
+    await expect(page.locator('.sc-row')).toHaveCount(14);
   });
 });
 
