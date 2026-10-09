@@ -1,4 +1,4 @@
-const VERSION = 10;
+const VERSION = 11;
 const CACHE = 'safelex-v' + VERSION;
 const NET_TIMEOUT_MS = 3000, SLOW_WINDOW_MS = 30000;
 let slowUntil = 0;
@@ -46,24 +46,23 @@ self.addEventListener('fetch', event => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  const isOwn = url.origin === location.origin;
-  const isFont = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
-  if (!isOwn && !isFont) return;
+  if (url.origin !== location.origin) return;
+  const key = url.origin + url.pathname;
 
-  const fromCache = () => caches.match(req, { ignoreSearch: true })
+  const fromCache = () => caches.match(key)
     .then(hit => hit || (req.mode === 'navigate' ? caches.match('./index.html') : undefined));
   let saved;
-  const fromNetwork = fetch(req, isOwn ? { cache: 'no-cache' } : undefined).then(res => {
-    if (res && (res.ok || res.type === 'opaque')) {
+  const fromNetwork = fetch(req, { cache: 'no-cache' }).then(res => {
+    if (res && res.ok && res.type === 'basic') {
       const copy = res.clone();
-      saved = caches.open(CACHE).then(c => c.put(req, copy));
+      saved = caches.open(CACHE).then(c => c.put(key, copy));
     }
     return res;
   });
   event.waitUntil(fromNetwork.then(() => saved).catch(() => {}));
   const wait = Date.now() < slowUntil ? 0 : NET_TIMEOUT_MS;
   const slowNetwork = new Promise(resolve => setTimeout(resolve, wait))
-    .then(() => caches.match(req, { ignoreSearch: true })).then(hit => {
+    .then(() => caches.match(key)).then(hit => {
       if (!hit) return fromNetwork;
       if (wait) slowUntil = Date.now() + SLOW_WINDOW_MS;
       return hit;

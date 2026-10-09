@@ -75,8 +75,13 @@ window.SAFELEX_DB = (function () {
   const CORE = TERMS.filter(t => t.core);
   const srcTitle = t => SOURCES[t.src]?.title || '';
 
+  const sameShape = (v, def) => Array.isArray(def) ? Array.isArray(v)
+    : def !== null && typeof def === 'object' ? v !== null && typeof v === 'object' && !Array.isArray(v)
+    : typeof v === typeof def && (typeof v !== 'number' || Number.isFinite(v));
+  const isRecord = v => v !== null && typeof v === 'object' && !Array.isArray(v);
+  const num = v => Number.isFinite(v) ? v : 0;
   const store = {
-    get(key, def) { try { const v = JSON.parse(localStorage.getItem(key)); return v ?? def; } catch (e) { return def; } },
+    get(key, def) { try { const v = JSON.parse(localStorage.getItem(key)); return v != null && sameShape(v, def) ? v : def; } catch { return def; } },
     set(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
   };
   const favs = new Set(store.get('safelex:favs', []).filter(id => termById[id]));
@@ -167,7 +172,11 @@ window.SAFELEX_DB = (function () {
 
   let srs = store.get('safelex:srs', {});
   for (const id in srs) {
-    const b = srs[id].box || 0;
+    const s = srs[id];
+    if (!isRecord(s)) { delete srs[id]; continue; }
+    s.checks = Number.isFinite(s.checks) ? Math.max(0, Math.min(MASTERED, Math.round(s.checks))) : undefined;
+    s.due = num(s.due); s.wrong = Math.max(0, num(s.wrong)); s.day = typeof s.day === 'string' ? s.day : '';
+    const b = num(s.box);
     if (srs[id].checks === undefined) srs[id].checks = b >= 4 ? MASTERED : b >= 2 ? 1 : 0;
   }
 
@@ -196,6 +205,11 @@ window.SAFELEX_DB = (function () {
     return { gain: s.checks - before, checks: s.checks, mastered: before < MASTERED && s.checks >= MASTERED };
   }
   const actLog = store.get('safelex:log', {});
+  for (const k in actLog) {
+    const d = actLog[k];
+    if (!isRecord(d)) delete actLog[k];
+    else { d.a = Math.max(0, num(d.a)); d.r = Math.max(0, Math.min(d.a, num(d.r))); }
+  }
   function logAnswer(right) {
     const d = actLog[dayKey()] ||= { a: 0, r: 0 };
     d.a++; if (right) d.r++;
@@ -307,7 +321,7 @@ window.SAFELEX_DB = (function () {
     const d = new Date(); d.setDate(d.getDate() - daysAgo);
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   }
-  const doneDays = new Set(store.get('safelex:days', []));
+  const doneDays = new Set(store.get('safelex:days', []).filter(k => typeof k === 'string'));
   const doneToday = () => doneDays.has(dayKey());
   function streak() { let n = 0; for (let i = doneToday() ? 0 : 1; doneDays.has(dayKey(i)); i++) n++; return n; }
   const bestStreak = () => Math.max(store.get('safelex:best', 0), streak());
@@ -320,7 +334,7 @@ window.SAFELEX_DB = (function () {
     store.set('safelex:dailyScore', { date: dayKey(), score, total });
     const s = streak(), prevBest = store.get('safelex:best', 0);
     store.set('safelex:best', Math.max(prevBest, s));
-    const seen = new Set(store.get('safelex:ranksSeen', []));
+    const seen = new Set(store.get('safelex:ranksSeen', []).filter(Number.isFinite));
     const r = RANKS.find(r => r.days === s);
     if (!r || seen.has(r.days) || r.days <= prevBest) return null;
     seen.add(r.days); store.set('safelex:ranksSeen', [...seen]);
@@ -673,7 +687,7 @@ window.SAFELEX_DB = (function () {
     return out + esc(text.slice(last));
   }
 
-  const qHist = store.get('safelex:qhist', []);
+  const qHist = store.get('safelex:qhist', []).filter(q => typeof q === 'string' && q.trim()).slice(0, 8);
   function rememberQuery(q) {
     q = q.trim();
     if (q.length < 2) return;
