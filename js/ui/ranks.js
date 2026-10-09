@@ -72,7 +72,7 @@ export function rankHero(rank, best, days) {
 export function celebrate(r) {
   const colors = ['#FFC53D', '#D4570F', '#F28A45', '#7FD49B', '#9DB4D8', '#fff'];
   const bits = Array.from({ length: 48 }, (_, i) =>
-    `<i style="left:${Math.random() * 100}%;background:${colors[i % colors.length]};animation-delay:${(.7 + Math.random() * 0.7).toFixed(2)}s;animation-duration:${(1.8 + Math.random() * 1.4).toFixed(2)}s;transform:rotate(${Math.floor(Math.random() * 360)}deg)"></i>`).join('');
+    `<i style="left:${Math.random() * 100}%;background:${colors[i % colors.length]};animation-delay:${(.7 + Math.random() * 0.7).toFixed(2)}s;animation-duration:${(1.8 + Math.random() * 1.4).toFixed(2)}s;--r:${Math.floor(Math.random() * 360)}deg"></i>`).join('');
   const prev = RANKS[RANKS.indexOf(r) - 1], next = nextRank(r.days);
   const el = document.createElement('div');
   el.className = 'celebrate';

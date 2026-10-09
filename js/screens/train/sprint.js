@@ -31,7 +31,7 @@ function goSprint() {
     }
     const c = document.querySelector('.counter'), bar = document.querySelector('.trainer .progress div');
     if (c) c.textContent = sp.left + ' с';
-    if (bar) bar.style.width = (SPRINT_SEC - sp.left) / SPRINT_SEC * 100 + '%';
+    if (bar) bar.style.transform = `scaleX(${(SPRINT_SEC - sp.left) / SPRINT_SEC})`;
   });
 }
 

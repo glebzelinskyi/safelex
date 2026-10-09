@@ -110,7 +110,7 @@ function nextCard() {
     clearTimeout(deck._h); deck._h = setTimeout(() => { deck.style.height = ''; }, 360);
   }
   const bar = document.querySelector('.trainer .progress div'), counter = document.querySelector('.trainer .counter');
-  if (bar) bar.style.width = cd.i / total * 100 + '%';
+  if (bar) bar.style.transform = `scaleX(${cd.i / total})`;
   if (counter) counter.textContent = `${cd.i + 1}/${total}`;
   const tally = (id, text) => {
     const el = document.getElementById(id);

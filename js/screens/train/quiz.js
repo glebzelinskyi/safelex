@@ -127,14 +127,14 @@ function rankProgress(days) {
   const best = bestStreak(), next = nextRank(best), cur = rankOf(best);
   if (!next) return `<div class="res-rank top">${badge(cur, true, false, true)}<span class="rr-body"><span class="k">Найвище звання</span><b>${esc(cur.title)}</b></span></div>`;
   const span = next.days - cur.days, pct = d => Math.round(Math.min(1, Math.max(0, (d - cur.days) / span)) * 100);
-  const fresh = !!tr.rank;
+  const fresh = !!tr.rank, to = fresh ? 2 : pct(days), from = fresh ? 0 : pct(days - 1);
   return `
     <button class="res-rank" data-rank="${RANKS.indexOf(next)}">
       <span class="rr-pg">${badge(next, true)}</span>
       <span class="rr-body">
         <span class="k">Наступне звання</span>
         <b>${esc(next.title)}</b>
-        <span class="rr-bar"><i style="--from:0%;--to:${fresh ? 2 : pct(days)}%;${fresh ? '' : `--from:${pct(days - 1)}%`}"></i></span>
+        <span class="rr-bar"><i style="width:${to}%;--s0:${to ? from / to : 0}"></i></span>
         <span class="rr-txt">${fresh ? `<em>«${esc(cur.title)}» — ваше!</em>` : '<em>+1 день</em>'} · ще ${nDays(next.days - days)} поспіль</span>
       </span>
     </button>`;

@@ -16,7 +16,7 @@ onLeave(stopTicker);
 export const trainBar = (title, pos, total, counter, exit = '#/train') => `
   <div class="topbar">
     <a class="icon-btn" href="${exit}" aria-label="Закрити">${I.close}</a>
-    <div class="progress"><div style="width:${total ? Math.min(pos / total, 1) * 100 : 0}%"></div></div>
+    <div class="progress"><div style="transform:scaleX(${total ? Math.min(pos / total, 1) : 0})"></div></div>
     <span class="counter">${counter ?? `${pos}/${total}`}</span>
   </div>
   <span class="mode-title">${title}</span>`;

@@ -43,7 +43,7 @@ function updateMatchHud() {
   const done = mt.rounds.slice(0, mt.r).reduce((n, r) => n + r.length, 0) + mt.matched.size;
   const total = mt.rounds.reduce((n, r) => n + r.length, 0);
   const bar = document.querySelector('.trainer .progress div'), miss = document.querySelector('.mt-miss');
-  if (bar) bar.style.width = done / total * 100 + '%';
+  if (bar) bar.style.transform = `scaleX(${done / total})`;
   if (miss) { miss.lastChild.textContent = mt.mistakes; miss.classList.toggle('has', mt.mistakes > 0); }
 }
 
