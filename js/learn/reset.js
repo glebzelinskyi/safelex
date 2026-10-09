@@ -1,4 +1,3 @@
-// Скидання прогресу навчання. Збережені терміни, історія пошуку й нещодавні залишаються.
 import { store } from '../core/store.js';
 import { resetSrs } from './srs.js';
 import { resetActivity } from './activity.js';

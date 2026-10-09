@@ -1,4 +1,3 @@
-// Картка терміна.
 import { esc } from '../core/util.js';
 import { termById, catById, short, toneOf, srcTitle } from '../data.js';
 import { favs, rememberTerm } from '../user.js';

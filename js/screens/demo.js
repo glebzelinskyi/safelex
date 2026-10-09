@@ -1,4 +1,3 @@
-// #/demo — заповнює прогрес для показу (серія 456 днів, 1298 термінів вивчено).
 import { shuffle, nDays, nTerms } from '../core/util.js';
 import { DAY, dayKey } from '../core/dates.js';
 import { store } from '../core/store.js';

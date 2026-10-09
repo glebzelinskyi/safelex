@@ -1,4 +1,3 @@
-// Довідник: розділи за темами, список термінів розділу з фільтром і алфавітом.
 import { esc, plural, pad, nTerms } from '../core/util.js';
 import { GUIDE_CHUNK } from '../config.js';
 import { TERMS, CATEGORIES, MARCH_STEPS, catById, byCat, toneOf } from '../data.js';
@@ -21,7 +20,6 @@ const GROUPS = [
   { title: 'Загальна лексика', ids: ['technical'] }
 ];
 
-/** Розділи, згруповані за GROUPS; ті, що не потрапили в жодну групу, — в «Інше». */
 function guideGroups() {
   const used = new Set(), out = GROUPS.map(g => ({ title: g.title, cats: g.ids.map(id => catById[id]).filter(c => c && !used.has(c.id) && used.add(c.id)) }));
   const rest = CATEGORIES.filter(c => !used.has(c.id));
@@ -29,7 +27,6 @@ function guideGroups() {
   return out.filter(g => g.cats.length);
 }
 
-/** Три терміни-приклади для картки розділу: ключові, абревіатури, короткі. */
 const previewTerms = list => list.slice().sort((a, b) => (b.core ? 1 : 0) - (a.core ? 1 : 0) || (b.full ? 1 : 0) - (a.full ? 1 : 0) || a.en.length - b.en.length).slice(0, 3);
 
 export function renderGuide() {
@@ -73,7 +70,6 @@ export function renderGuide() {
     </section>`;
 }
 
-// Список розділу: відсортований за алфавітом, домальовується шматками під час гортання.
 const sortedCache = {};
 const sortKey = t => t.en.replace(/^[^a-z0-9]+/i, '');
 const sortedTerms = cat => sortedCache[cat] ||= poolFor(cat).slice().sort((a, b) => sortKey(a).localeCompare(sortKey(b), 'en', { sensitivity: 'base' }));
@@ -126,7 +122,6 @@ export function renderCategory(id) {
   app.style.setProperty('--gbar', document.getElementById('gbar').offsetHeight + 'px');
 }
 
-/** Якщо список прокручено нижче початку — повертає до початку, щоб новий результат було видно. */
 function toListTop() {
   const list = document.getElementById('glist'), bar = document.getElementById('gbar');
   if (!list || !bar) return;
@@ -167,7 +162,6 @@ function renderMore() {
   } else if (gv.shown < gv.items.length) renderMore();
 }
 
-// Повернення «Назад» у довгий список: спершу домалювати рядки до місця, де користувач зупинився.
 onRestoreScroll(y => {
   while (document.getElementById('glist') && gv.shown < gv.items.length && document.documentElement.scrollHeight < y + innerHeight) renderMore();
 });

@@ -1,4 +1,3 @@
-// Запуск режиму тренажера за адресою #/train/<режим>?cat=<розділ> і клавіатура на комп'ютері.
 import { catById } from '../../data.js';
 import { onAction } from '../../ui/events.js';
 import { route } from '../../router.js';
@@ -21,10 +20,8 @@ export function runMode(mode, cat) {
   location.hash = '#/train';
 }
 
-// «Ще раз» / «Нова колода» — почати поточний режим заново.
 onAction('restart', () => route());
 
-// 1–4 — варіант відповіді, Enter — далі, ← → — «Ні/Так» у спринті й «Ще вчу/Знаю» в картках, пробіл — перевернути картку.
 document.addEventListener('keydown', e => {
   if (!location.hash.startsWith('#/train/') || e.target.tagName === 'INPUT' || e.metaKey || e.ctrlKey || e.altKey) return;
   const btn = /^[1-4]$/.test(e.key) ? document.querySelector(`.opt:nth-child(${e.key}):not(:disabled)`)

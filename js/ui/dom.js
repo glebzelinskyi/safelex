@@ -1,11 +1,7 @@
-// Спільне для всіх екранів: контейнер сторінки, вібрація.
-
-/** <main id="app"> — сюди кожен екран малює свій вміст. */
 export const app = document.getElementById('app');
 
 export const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// iPhone не має navigator.vibrate, але дає легкий відгук, коли перемикається <input switch>.
 let hapticLabel = null;
 function iosHaptic() {
   if (!hapticLabel) {

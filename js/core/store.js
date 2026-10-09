@@ -1,8 +1,3 @@
-// Обгортка над localStorage. Пошкоджені дані, дані не того типу, заборонене
-// чи переповнене сховище не ламають застосунок: get повертає значення за замовчуванням,
-// set і remove мовчки нічого не роблять.
-
-/** Чи має v той самий «тип», що й значення за замовчуванням def. */
 export const sameShape = (v, def) => Array.isArray(def) ? Array.isArray(v)
   : def !== null && typeof def === 'object' ? v !== null && typeof v === 'object' && !Array.isArray(v)
   : typeof v === typeof def && (typeof v !== 'number' || Number.isFinite(v));

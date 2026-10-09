@@ -1,12 +1,5 @@
-// Підготовка бази термінів з data/terms.js: нормалізація полів, пошукові форми
-// та перевірка помилок. Чисті функції — без DOM і без глобальних змінних.
 import { lookup } from './util.js';
 
-/**
- * Усі варіанти написання терміна, які має знаходити пошук:
- * "hose (pipe)" → ["hose pipe", "hose"], "fire [smoke] alarm" → ["fire alarm", "smoke alarm"].
- * Дужки з "pl ..." (множина) не розгортаються.
- */
 export function formsOf(en) {
   const out = new Set(), todo = [String(en)];
   while (todo.length && out.size < 24) {
@@ -26,10 +19,8 @@ export function formsOf(en) {
   return [...out].filter(Boolean);
 }
 
-/** Однаковий апостроф в українських словах: п'ять, пʼять, п`ять → п’ять. */
 export const apos = str => typeof str === 'string' ? str.replace(/([а-яіїєґ])['ʼ`]([а-яіїєґ])/gi, '$1’$2') : str;
 
-/** Доповнює терміни полями, потрібними застосунку. Змінює об'єкти на місці, як і раніше. */
 function normalize(t) {
   if (!t || !t.en || !t.ua) return;
   t.cat = t.cat || t.topic;
@@ -41,17 +32,11 @@ function normalize(t) {
   t.find = [t.en, ...t.forms, ...(t.syn || [])].map(x => String(x).toLowerCase());
 }
 
-/** Причина, з якої термін не можна показати, або '' — якщо все гаразд. */
 export function termProblem(t, ids, catById) {
   return !t || !t.id ? 'немає id' : !t.en || !t.ua ? 'немає en або ua' : ids.has(t.id) ? `id «${t.id}» повторюється`
     : !catById[t.cat] ? `невідомий розділ «${t.cat}»` : '';
 }
 
-/**
- * Будує базу з глобальних змінних data/terms.js.
- * Підтримує поточний формат (TOPICS + TERMS + SOURCES) і старий (CATEGORIES + TERMS + MARCH_STEPS).
- * Помилкові терміни пропускаються з попередженням у консолі — решта бази працює.
- */
 export function createDb(src, warn = (...a) => console.warn(...a)) {
   let cats = [], terms = [], march = [], sources = {};
   if (src.TOPICS) {
@@ -72,7 +57,6 @@ export function createDb(src, warn = (...a) => console.warn(...a)) {
     if (why) { warn(`SafeLex: термін пропущено — ${why}:`, t); return false; }
     ids.add(t.id); return true;
   });
-  // Той самий масив, що й window.TERMS: data/terms.js та інструменти бачать перевірену базу.
   terms.length = 0;
   valid.forEach(t => terms.push(t));
 

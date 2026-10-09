@@ -1,4 +1,3 @@
-// Картка «Встановіть на телефон» на головній.
 import { store } from '../core/store.js';
 import { I } from './icons.js';
 import { onAction } from './events.js';
@@ -29,7 +28,6 @@ export function installCard() {
     </div>`;
 }
 
-/** afterPrompt — що зробити, коли користувач відповів на системний запит (перемалювати екран). */
 export function initInstall(afterPrompt) {
   if (isStandalone()) document.documentElement.classList.add('standalone');
   onAction('install', () => {

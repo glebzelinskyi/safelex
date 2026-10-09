@@ -19,8 +19,6 @@
   <meta name="apple-mobile-web-app-title" content="SafeLex">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-  <!-- Заставка має з'явитися одразу цілою: плитка — та сама картинка, що й значок застосунку,
-       а шрифти назви приходять разом зі сторінкою, щоб текст не перемальовувався іншим шрифтом. -->
   <link rel="preload" href="icons/icon-512.png" as="image" fetchpriority="high">
   <link rel="preload" href="icons/emblem.png" as="image">
   <link rel="preload" href="icons/ldubzhd-logo-white.png" as="image">
@@ -30,7 +28,6 @@
 
   <link rel="stylesheet" href="css/style.css">
   <script src="js/boot.js"></script>
-  <!-- Усі модулі завантажуються паралельно, а не ланцюжком імпортів. Список перевіряє tests/unit/assets.test.js. -->
   <link rel="modulepreload" href="js/main.js">
   <link rel="modulepreload" href="js/config.js">
   <link rel="modulepreload" href="js/core/dates.js">
