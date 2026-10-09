@@ -65,9 +65,9 @@ function start() {
     else if (a.dataset.tab === 'home') document.getElementById('q')?.focus();
   });
 
-  warmSearch();
   startRouter();
-  hideSplash();
+  // Пошуковий індекс — після заставки, щоб не забирати процесор у її анімації.
+  hideSplash().then(warmSearch);
   registerServiceWorker();
 }
 
