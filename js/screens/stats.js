@@ -134,7 +134,7 @@ export function renderStats() {
           <span class="l"><b>${p.learning}</b>вчу</span>
           <span class="n"><b>${p.new}</b>нові</span>
         </div>
-        <div class="sc-list">${CATEGORIES.map(c => {
+        <div class="sc-list" style="--d:${Math.max(3, ...CATEGORIES.map(c => String((byCat[c.id] || []).length).length))}">${CATEGORIES.map(c => {
           const list = byCat[c.id] || [], pc = progressOf(list), n = list.length || 1;
           return `<a class="sc-row" href="#/guide/${c.id}">
             <span class="sc-name">${esc(short(c))}</span>

@@ -775,7 +775,7 @@ details > summary::-webkit-details-marker { display: none; }
 .sc .l { --c: var(--c-l); --ct: #F2C46B; }
 .sc .n { --c: var(--c-n); --ct: var(--muted); }
 .sc-sum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 4px 0 2px; }
-.sc-sum span { position: relative; display: flex; flex-direction: column; gap: 2px; padding: 10px 12px 9px; border-radius: 12px; background: var(--surface-2); box-shadow: inset 0 3px 0 var(--c); font-size: 12px; font-weight: 500; color: var(--muted); }
+.sc-sum span { position: relative; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding: 10px 12px 9px; border-radius: 12px; background: var(--surface-2); box-shadow: inset 0 3px 0 var(--c); font-size: 12px; font-weight: 500; color: var(--muted); }
 .sc-sum b { font-size: 22px; font-weight: 800; line-height: 1.1; letter-spacing: -.5px; color: var(--ct); font-variant-numeric: tabular-nums; }
 .sc-sum .n b { color: var(--text-2); }
 .sc-list { display: flex; flex-direction: column; }
@@ -783,7 +783,7 @@ details > summary::-webkit-details-marker { display: none; }
 .sc-row:first-child { border-top: none; }
 .sc-name { font-size: 15px; font-weight: 500; line-height: 1.25; }
 .sc-nums { display: flex; }
-.sc-nums b { width: 40px; text-align: right; font-size: 14px; font-weight: 700; color: var(--ct); font-variant-numeric: tabular-nums; }
+.sc-nums b { width: calc(var(--d, 3) * 1ch + 20px); text-align: right; font-size: 14px; font-weight: 700; color: var(--ct); font-variant-numeric: tabular-nums; }
 .sc-row .stack { grid-column: 1 / -1; height: 5px; margin: 7px 0 0; }
 .sc-row:active { background: rgba(255, 255, 255, .03); }
 .st-wrong { font-size: 12px; font-weight: 600; color: var(--bad-line); white-space: nowrap; }
