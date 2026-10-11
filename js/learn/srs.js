@@ -12,6 +12,7 @@ export function sanitizeSrs(srs) {
     if (!isRecord(s)) { delete srs[id]; continue; }
     s.checks = Number.isFinite(s.checks) ? Math.max(0, Math.min(MASTERED, Math.round(s.checks))) : undefined;
     s.due = num(s.due); s.wrong = Math.max(0, num(s.wrong)); s.day = typeof s.day === 'string' ? s.day : '';
+    if ('fixed' in s) s.fixed = Math.max(0, Math.min(s.wrong, num(s.fixed)));
     const b = num(s.box);
     if (s.checks === undefined) s.checks = b >= 4 ? MASTERED : b >= 2 ? 1 : 0;
   }
@@ -51,6 +52,13 @@ export function noteMistake(id) {
   save(); logAnswer(false);
 }
 
+export function resolveMistake(id) {
+  const s = srs[id];
+  if (!s || !s.wrong) return;
+  s.fixed = s.wrong;
+  save();
+}
+
 export function resetSrs() { for (const id in srs) delete srs[id]; }
 
 export const boxOf = id => srs[id]?.checks ?? 0;
@@ -59,7 +67,7 @@ export const statusOf = id => !srs[id] ? 'new' : srs[id].checks >= MASTERED ? 'm
 export function progressOf(list) { const r = { new: 0, learning: 0, mastered: 0 }; list.forEach(t => r[statusOf(t.id)]++); return r; }
 
 export const poolFor = cat => cat === 'all' ? TERMS : cat === 'core' ? CORE : cat === 'fav' ? TERMS.filter(t => favs.has(t.id)) : (byCat[cat] || []);
-export const mistakesIn = cat => poolFor(cat).filter(t => srs[t.id]?.wrong > 0 && srs[t.id].checks < MASTERED);
+export const mistakesIn = cat => poolFor(cat).filter(t => { const s = srs[t.id]; return !!s && s.wrong > (s.fixed || 0) && s.checks < MASTERED; });
 
 export function pickTerms(pool, n) {
   const byBox = (a, b) => boxOf(a.id) - boxOf(b.id);

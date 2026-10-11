@@ -1,5 +1,5 @@
-const VERSION = 29;
-const CACHE = 'safelex-v' + VERSION;
+const VERSION = 30;
+const CACHE = 'safelex-v' + VERSION, NEXT = CACHE + '-next';
 const NET_TIMEOUT_MS = 3000, SLOW_WINDOW_MS = 30000;
 let slowUntil = 0;
 const ASSETS = [
@@ -69,11 +69,17 @@ const ASSETS = [
   './icons/apple-touch-icon.png'
 ];
 
+const urlOf = a => { const u = new URL(a, location.href); return u.origin + u.pathname; };
+const ASSET_URLS = ASSETS.map(urlOf), READY = urlOf('./__ready'), INDEX = urlOf('./index.html');
+const isAsset = new Set(ASSET_URLS);
+const live = () => caches.open(CACHE);
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 self.addEventListener('install', event => {
+  const add = (cache, a) => cache.add(new Request(a, { cache: 'no-cache' }));
   event.waitUntil(
-    caches.open(CACHE)
-      .then(cache => Promise.all(ASSETS.map(a =>
-        cache.add(new Request(a, { cache: 'no-cache' })).catch(() => console.warn('SafeLex: не знайдено файл', a)))))
+    live()
+      .then(cache => Promise.all(ASSETS.map(a => add(cache, a).catch(() => add(cache, a)))))
       .then(() => self.skipWaiting())
   );
 });
@@ -81,10 +87,65 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k.startsWith('safelex-v') && k !== CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k.startsWith('safelex-v') && k !== CACHE && k !== NEXT).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
+
+async function same(old, res) {
+  if (!old) return false;
+  const tag = res.headers.get('etag');
+  if (tag && tag === old.headers.get('etag')) return true;
+  const [a, b] = (await Promise.all([old.arrayBuffer(), res.clone().arrayBuffer()])).map(x => new Uint8Array(x));
+  return a.length === b.length && a.every((v, i) => v === b[i]);
+}
+
+async function stage() {
+  const fresh = await Promise.all(ASSET_URLS.map(async u => {
+    const res = await fetch(u, { cache: 'no-cache' });
+    if (!res.ok || res.type !== 'basic') throw new Error(u);
+    return res;
+  }));
+  const cache = await live();
+  const unchanged = await Promise.all(fresh.map(async (res, i) => same(await cache.match(ASSET_URLS[i]), res)));
+  if (unchanged.every(Boolean)) return false;
+  await caches.delete(NEXT);
+  const next = await caches.open(NEXT);
+  await Promise.all(fresh.map((res, i) => next.put(ASSET_URLS[i], res)));
+  await next.put(READY, new Response('ok'));
+  return true;
+}
+
+let refreshing = null;
+const refresh = () => refreshing ||= stage().catch(() => false).finally(() => { refreshing = null; });
+
+async function promote() {
+  if (!await caches.has(NEXT)) return;
+  const next = await caches.open(NEXT);
+  if (!await next.match(READY)) return;
+  const cache = await live();
+  await Promise.all(ASSET_URLS.map(async u => { const res = await next.match(u); if (res) await cache.put(u, res); }));
+  await caches.delete(NEXT);
+}
+
+const announce = () => self.clients.matchAll({ type: 'window' }).then(list => list.forEach(c => c.postMessage({ type: 'update' })));
+
+async function navigate(event, key) {
+  await promote().catch(() => {});
+  const wait = Date.now() < slowUntil ? 0 : NET_TIMEOUT_MS;
+  const fresh = refresh();
+  const late = Symbol();
+  const got = await Promise.race([fresh, sleep(wait).then(() => late)]);
+  if (got === late) {
+    if (wait) slowUntil = Date.now() + SLOW_WINDOW_MS;
+    event.waitUntil(fresh.then(changed => changed && announce()));
+  } else if (got) await promote().catch(() => {});
+  const cache = await live();
+  const hit = await cache.match(key);
+  if (hit) return hit;
+  if (!isAsset.has(key)) { try { return await fetch(event.request); } catch {} }
+  return await cache.match(INDEX) || fetch(event.request);
+}
 
 self.addEventListener('fetch', event => {
   const req = event.request;
@@ -92,25 +153,14 @@ self.addEventListener('fetch', event => {
   const url = new URL(req.url);
   if (url.origin !== location.origin) return;
   const key = url.origin + url.pathname;
+  if (req.mode === 'navigate') return event.respondWith(navigate(event, key));
 
-  const fromCache = () => caches.match(key)
-    .then(hit => hit || (req.mode === 'navigate' ? caches.match('./index.html') : undefined));
-  let saved;
-  const fromNetwork = fetch(req, { cache: 'no-cache' }).then(res => {
-    if (res && res.ok && res.type === 'basic') {
-      const copy = res.clone();
-      saved = caches.open(CACHE).then(c => c.put(key, copy));
-    }
-    return res.ok ? res : caches.match(key).then(hit => hit || res);
+  const fromNetwork = () => fetch(req, { cache: 'no-cache' }).then(res => {
+    if (res.ok && res.type === 'basic') { const copy = res.clone(); event.waitUntil(live().then(c => c.put(key, copy)).catch(() => {})); }
+    return res;
   });
-  event.waitUntil(fromNetwork.then(() => saved).catch(() => {}));
-  const wait = Date.now() < slowUntil ? 0 : NET_TIMEOUT_MS;
-  const slowNetwork = new Promise(resolve => setTimeout(resolve, wait))
-    .then(() => caches.match(key)).then(hit => {
-      if (!hit) return fromNetwork;
-      if (wait) slowUntil = Date.now() + SLOW_WINDOW_MS;
-      return hit;
-    });
-
-  event.respondWith(Promise.race([fromNetwork, slowNetwork]).catch(fromCache));
+  const fromCache = () => live().then(c => c.match(key));
+  event.respondWith(isAsset.has(key)
+    ? fromCache().then(hit => hit || fromNetwork())
+    : fromNetwork().then(res => res.ok ? res : fromCache().then(hit => hit || res), () => fromCache().then(hit => hit || Response.error())));
 });

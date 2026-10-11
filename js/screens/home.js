@@ -1,4 +1,4 @@
-import { esc, plural, nDays, sample, hashStr } from '../core/util.js';
+import { esc, num, plural, nDays, sample, hashStr } from '../core/util.js';
 import { dayKey } from '../core/dates.js';
 import { store } from '../core/store.js';
 import { DAILY_LEN, MAX_RESULTS } from '../config.js';
@@ -140,7 +140,7 @@ function dailyCard() {
         <span class="daily-txt">
           <span class="k">${days ? 'Серія' : 'Серія ще не почалася'}</span>
           <span class="t">${done ? 'Сьогодні виконано' : 'Завдання дня'}</span>
-          <span class="s">${done && res.date === dayKey() ? `Результат ${res.score} з ${res.total} · наступне — завтра` : `${DAILY_LEN} питань з усієї бази`}</span>
+          <span class="s">${done && res.date === dayKey() ? `Результат ${num(res.score)} з ${num(res.total)} · наступне — завтра` : `${DAILY_LEN} питань з усієї бази`}</span>
         </span>
         <span class="go">${done ? I.check : I.chev}</span>
       </span>

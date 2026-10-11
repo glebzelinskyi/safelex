@@ -84,9 +84,12 @@ function matchTap(side, id) {
   }
 }
 
+const fullGame = () => mt.rounds.flat().length === MATCH_ROUNDS * MATCH_PAIRS;
+
 function finishMatch() {
   stopTicker();
   mt.over = true; mt.time = Math.max(1, Math.round((Date.now() - mt.start) / 1000));
+  if (!fullGame()) return;
   const best = store.get('safelex:matchBest', 0);
   if (!best || mt.time < best) { mt.record = !!best; store.set('safelex:matchBest', mt.time); }
 }
@@ -99,7 +102,7 @@ function drawMatch() {
     app.innerHTML = `<div class="trainer">${trainBar(title, 1, 1, fmtTime(mt.time))}
       <div class="result-screen">
         <span class="score">${fmtTime(mt.time)}</span>
-        <span class="msg">${mt.record ? 'Новий рекорд!' : `Рекорд: ${fmtTime(best)}`} · ${mt.mistakes ? `${mt.mistakes} ${plural(mt.mistakes, 'помилка', 'помилки', 'помилок')}` : 'без жодної помилки'}</span>
+        <span class="msg">${!fullGame() ? 'Скорочена гра — без рекорду' : mt.record ? 'Новий рекорд!' : `Рекорд: ${fmtTime(best)}`} · ${mt.mistakes ? `${mt.mistakes} ${plural(mt.mistakes, 'помилка', 'помилки', 'помилок')}` : 'без жодної помилки'}</span>
       </div>
       ${missList(mt.rounds.flat().filter(t => mt.bad.has(t.id)))}
       <button class="btn" data-action="restart">Ще раз</button>

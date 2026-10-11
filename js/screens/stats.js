@@ -2,7 +2,7 @@ import { esc, plural, fmtTime, nAnswers } from '../core/util.js';
 import { dayKey, keyToDate, dayLabel, ymd } from '../core/dates.js';
 import { store } from '../core/store.js';
 import { TERMS, CATEGORIES, termById, byCat, short } from '../data.js';
-import { srs, boxOf, progressOf } from '../learn/srs.js';
+import { srs, boxOf, progressOf, mistakesIn } from '../learn/srs.js';
 import { actLog } from '../learn/activity.js';
 import { doneDays, bestStreak } from '../learn/streak.js';
 import { I } from '../ui/icons.js';
@@ -143,7 +143,7 @@ export function renderStats() {
           </a>`;
         }).join('')}</div>
       </div>
-      <div class="section-head"><h2>Найскладніші</h2>${hard.length ? `<a href="#/train/mistakes?cat=all">Тренувати</a>` : ''}</div>
+      <div class="section-head"><h2>Найскладніші</h2>${mistakesIn('all').length ? `<a href="#/train/mistakes?cat=all">Тренувати</a>` : ''}</div>
       ${hard.length ? `<div class="list">${hard.map(t => `
         <a class="row" href="#/term/${t.id}">
           <span class="body"><span class="en">${esc(t.en)}</span><span class="sub">${esc(t.ua)}</span></span>

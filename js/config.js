@@ -10,7 +10,6 @@ export const SPRINT_SEC = 60;
 export const MAX_RESULTS = 50;
 export const GUIDE_CHUNK = 120;
 
-export const VERSION = '3.0';
 export const AUTHORS = [
   { name: 'Зелінський Гліб Сергійович' },
   { name: 'Пальчевська Олександра Святославівна', role: 'доцент кафедри іноземних мов та перекладознавства' }
