@@ -53,6 +53,8 @@ function start() {
   });
 
   onSaveFail(showSaveToast);
+  window.addEventListener('hashchange', keepProgress);
+  window.addEventListener('appinstalled', () => { askedToKeep = false; keepProgress(); });
   startRouter();
   hideSplash().then(() => { warmSearch(); registerServiceWorker(); keepProgress(); });
 }
@@ -63,15 +65,17 @@ function showSaveToast() {
   saveWarned = true;
   const t = document.createElement('button');
   t.className = 'update-toast save-toast';
-  t.innerHTML = '<b>Прогрес не зберігається</b><span>Браузер не дає записати дані: вийдіть із приватного режиму або звільніть місце на пристрої</span>';
-  t.addEventListener('click', () => t.remove());
+  t.innerHTML = '<b>Прогрес не зберігається</b><span>Браузер не дає записати дані: вийдіть із приватного режиму або звільніть місце на пристрої. Торкніться, щоб закрити.</span>';
+  t.addEventListener('click', () => { if (t.classList.contains('open')) t.remove(); else t.classList.add('open'); });
   document.body.appendChild(t);
-  setTimeout(() => t.remove(), 8000);
+  setTimeout(() => { if (!t.classList.contains('open')) t.remove(); }, 8000);
 }
 
-function keepProgress() {
-  if (!Object.keys(srs).length) return;
-  try { navigator.storage?.persist?.().catch(() => {}); } catch {}
+let askedToKeep = false;
+async function keepProgress() {
+  if (askedToKeep || !Object.keys(srs).length) return;
+  askedToKeep = true;
+  try { if (!await navigator.storage.persisted()) await navigator.storage.persist(); } catch {}
 }
 
 function showUpdateToast() {
