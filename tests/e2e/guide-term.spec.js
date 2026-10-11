@@ -1,4 +1,4 @@
-import { test, expect, seed, open, storage } from '../helpers.js';
+import { test, expect, seed, open, storage, scrollBy } from '../helpers.js';
 
 test.beforeEach(async ({ page }) => { await seed(page); });
 
@@ -41,7 +41,7 @@ test.describe('Довідник', () => {
     await expect(rows.first()).toBeVisible();
     const before = await rows.count();
     expect(before).toBeLessThan(3000);
-    for (let i = 0; i < 5; i++) await page.mouse.wheel(0, 20000);
+    for (let i = 0; i < 5; i++) await scrollBy(page, 20000);
     await expect.poll(() => rows.count()).toBeGreaterThan(before);
   });
 
@@ -105,7 +105,7 @@ test.describe('Картка терміна', () => {
 test.describe('Навігація', () => {
   test('кнопка «Назад» повертає на попередній екран і зберігає прокрутку', async ({ page }) => {
     await open(page, '#/guide/all');
-    await page.mouse.wheel(0, 1500);
+    await scrollBy(page, 1500);
     await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(500);
     const y = await page.evaluate(() => scrollY);
     // Рядок посередині екрана: натискання не має прокручувати сторінку.

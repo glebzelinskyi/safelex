@@ -104,6 +104,14 @@ describe('store', () => {
     expect(() => full.set('k', 'v')).not.toThrow();
   });
 
+  test('set повідомляє, чи вдалося записати', () => {
+    const failed = [];
+    const full = createStore(() => ({ getItem: () => null, setItem() { throw new Error('QuotaExceeded'); }, removeItem() {} }), k => failed.push(k));
+    expect(full.set('k', 'v')).toBe(false);
+    expect(failed).toEqual(['k']);
+    expect(createStore(() => memory()).set('k', 'v')).toBe(true);
+  });
+
   test('sameShape розрізняє масиви, об’єкти й числа', () => {
     expect(sameShape([], [])).toBe(true);
     expect(sameShape({}, [])).toBe(false);

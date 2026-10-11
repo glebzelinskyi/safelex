@@ -19,6 +19,8 @@ export default defineConfig({
   },
   projects: [
     { name: 'e2e', testDir: 'tests/e2e', use: { reducedMotion: 'reduce' } },
+    // Ті самі тести на рушії Safari з розмірами iPhone.
+    { name: 'ios', testDir: 'tests/e2e', use: { ...devices['iPhone 14'], reducedMotion: 'reduce' } },
     // Без трейсу: його знімки DOM на десятки тисяч вузлів самі гальмують сторінку й спотворюють заміри.
     { name: 'stress', testDir: 'tests/stress', timeout: 180_000, fullyParallel: false, use: { trace: 'off' } }
   ],

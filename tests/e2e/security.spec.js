@@ -135,6 +135,98 @@ test.describe('Пошкоджені або недоступні дані', () =>
     await expect(page.locator('.rank-hero')).toBeVisible();
   });
 
+  test('плашка «Прогрес не зберігається» з’являється один раз і сама зникає', async ({ page }) => {
+    await page.clock.install();
+    await page.addInitScript(() => {
+      Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('denied', 'SecurityError'); } });
+    });
+    await page.goto('./#/term/arson');
+    const toast = page.locator('.save-toast');
+    await expect(toast).toContainText('Прогрес не зберігається');
+    // Компактна: не закриває кнопку «Назад» і вміщується в один рядок, пояснення — після дотику.
+    await expect(toast.locator('span')).toBeHidden();
+    const box = await toast.boundingBox(), back = await page.locator('[data-action="back"]').boundingBox();
+    expect(box.height).toBeLessThan(44);
+    expect(box.x).toBeGreaterThan(back.x + back.width);
+    await page.locator('[data-action="back"]').click({ trial: true });
+    await page.goto('./#/term/arsonist');
+    await expect(page.locator('.term-head')).toContainText('arsonist');
+    await expect(page.locator('.save-toast')).toHaveCount(1);
+    await page.clock.fastForward(9000);
+    await expect(page.locator('.save-toast')).toHaveCount(0);
+    await page.goto('./#/term/arson');
+    await expect(page.locator('.term-head')).toContainText('arson');
+    await expect(page.locator('.save-toast')).toHaveCount(0);
+  });
+
+  test('плашка розгортається дотиком, тоді не зникає сама й закривається другим дотиком', async ({ page }) => {
+    await page.clock.install();
+    await seed(page);
+    await page.addInitScript(() => {
+      Storage.prototype.setItem = function () { throw new DOMException('full', 'QuotaExceededError'); };
+    });
+    await page.goto('./#/term/arson');
+    const toast = page.locator('.save-toast');
+    await toast.click();
+    await expect(toast.locator('span')).toContainText('приватного режиму');
+    await page.clock.fastForward(9000);
+    await expect(toast).toBeVisible();
+    await toast.click();
+    await expect(toast).toHaveCount(0);
+  });
+
+  test('плашки немає, коли прогрес зберігається нормально', async ({ page }) => {
+    await seed(page);
+    await open(page, '#/train/quiz?cat=water');
+    await finishQuiz(page);
+    await expect(page.locator('.result-screen')).toBeVisible();
+    await expect(page.locator('.save-toast')).toHaveCount(0);
+  });
+
+  test('постійне сховище запитується лише тоді, коли вже є прогрес', async ({ page, context }) => {
+    const stub = () => { window.__persist = 0; StorageManager.prototype.persist = function () { window.__persist++; return Promise.resolve(true); }; };
+    await seed(page);
+    await page.addInitScript(stub);
+    await open(page);
+    await expect(page.locator('#splash')).toHaveCount(0);
+    expect(await page.evaluate(() => window.__persist)).toBe(0);
+
+    const other = await context.newPage();
+    await seed(other, { data: { 'safelex:srs': { arson: { checks: 1, day: '', due: 0, wrong: 0 } } } });
+    await other.addInitScript(stub);
+    await open(other);
+    await expect.poll(() => other.evaluate(() => window.__persist)).toBe(1);
+    await other.goto('./#/guide');
+    await other.goto('./#/me');
+    await expect(other.locator('.rank-hero')).toBeVisible();
+    expect(await other.evaluate(() => window.__persist)).toBe(1);
+  });
+
+  test('постійне сховище запитується одразу після першого тренування, а не лише з наступного запуску', async ({ page }) => {
+    await seed(page);
+    await page.addInitScript(() => { window.__persist = 0; StorageManager.prototype.persist = function () { window.__persist++; return Promise.resolve(true); }; });
+    await open(page, '#/train/quiz?cat=water');
+    await finishQuiz(page);
+    await expect(page.locator('.result-screen')).toBeVisible();
+    expect(await page.evaluate(() => window.__persist)).toBe(0);
+    await page.goto('./#/me');
+    await expect.poll(() => page.evaluate(() => window.__persist)).toBe(1);
+  });
+
+  test('постійне сховище не запитується повторно, якщо браузер уже його надав', async ({ page }) => {
+    await seed(page, { data: { 'safelex:srs': { arson: { checks: 1, day: '', due: 0, wrong: 0 } } } });
+    await page.addInitScript(() => {
+      window.__persist = 0;
+      StorageManager.prototype.persisted = () => Promise.resolve(true);
+      StorageManager.prototype.persist = function () { window.__persist++; return Promise.resolve(true); };
+    });
+    await open(page);
+    await expect(page.locator('#splash')).toHaveCount(0);
+    await page.goto('./#/me');
+    await expect(page.locator('.rank-hero')).toBeVisible();
+    expect(await page.evaluate(() => window.__persist)).toBe(0);
+  });
+
   test('порожня база (terms.js не завантажився або зламаний) — жоден екран не падає', async ({ page }) => {
     await seed(page);
     await page.route('**/data/terms.js', r => r.fulfill({ contentType: 'text/javascript', body: '' }));
@@ -155,5 +247,6 @@ test.describe('Пошкоджені або недоступні дані', () =>
     await open(page, '#/train/quiz?cat=water');
     await finishQuiz(page);
     await expect(page.locator('.result-screen')).toBeVisible();
+    await expect(page.locator('.save-toast')).toHaveText(/Прогрес не зберігається/);
   });
 });

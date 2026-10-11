@@ -8,8 +8,9 @@
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "vitest run",
     "test:e2e": "playwright test --project=e2e",
+    "test:ios": "playwright test --project=ios",
     "test:stress": "playwright test --project=stress",
-    "test:all": "vitest run && playwright test --project=e2e && playwright test --project=stress"
+    "test:all": "vitest run && playwright test --project=e2e && playwright test --project=ios && playwright test --project=stress"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.0",

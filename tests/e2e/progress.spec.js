@@ -155,8 +155,11 @@ test('тисячі збережених показуються частинам�
   const rows = page.locator('#savedList a.row'), more = page.locator('[data-action="saved-more"]');
   await expect(rows).toHaveCount(50);
   await expect(more).toHaveText('Показати ще · 70');
+  // Спершу догортати: рядки списку набувають справжньої висоти лише на екрані, і кнопка зсувається.
+  await more.scrollIntoViewIfNeeded();
   await more.click();
   await expect(rows).toHaveCount(100);
+  await more.scrollIntoViewIfNeeded();
   await more.click();
   await expect(rows).toHaveCount(120);
   await expect(more).toHaveCount(0);

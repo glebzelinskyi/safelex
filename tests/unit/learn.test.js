@@ -197,6 +197,19 @@ describe('скидання прогресу', () => {
   });
 });
 
+// localStorage вміщує близько 5 млн символів на весь сайт. Якщо тест упав — словник виріс настільки,
+// що прогрес час переносити в IndexedDB або стискати (див. README, «Де зберігається прогрес»).
+describe('запас місця для прогресу', () => {
+  test('усі терміни вивчені й збережені, 400 днів журналу — менше 1 млн символів', async () => {
+    const { data: { TERMS } } = await fresh();
+    const srs = Object.fromEntries(TERMS.map(t => [t.id, { checks: MASTERED, day: '2026-10-09', due: Date.now() + 10 * DAY, wrong: 99 }]));
+    const days = Array.from({ length: 400 }, (_, i) => key(2026, 1 + i % 12, 1 + i % 28) + i);
+    const log = Object.fromEntries(days.map(d => [d, { a: 9999, r: 9999 }]));
+    const size = [srs, log, days, TERMS.map(t => t.id)].reduce((n, v) => n + JSON.stringify(v).length, 0);
+    expect(size).toBeLessThan(1_000_000);
+  });
+});
+
 describe('питання', () => {
   test('blankOut замінює термін у прикладі на пропуск', async () => {
     const { questions: { blankOut } } = await fresh();

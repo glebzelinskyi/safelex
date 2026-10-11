@@ -23,7 +23,7 @@ export function runMode(mode, cat) {
 onAction('restart', () => route());
 
 document.addEventListener('keydown', e => {
-  if (!location.hash.startsWith('#/train/') || e.target.tagName === 'INPUT' || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (!location.hash.startsWith('#/train/') || e.target.matches?.('input:not([type=checkbox])') || e.metaKey || e.ctrlKey || e.altKey) return;
   const btn = /^[1-4]$/.test(e.key) ? document.querySelector(`.opt:nth-child(${e.key}):not(:disabled)`)
     : e.key === 'Enter' ? document.querySelector('[data-action="next"],[data-action="sprint-go"]')
     : e.key === 'ArrowRight' ? document.querySelector('[data-sprint="1"],[data-action="card-yes"]')

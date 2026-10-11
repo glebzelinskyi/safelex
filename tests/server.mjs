@@ -21,7 +21,10 @@ createServer(async (req, res) => {
     const file = normalize(join(ROOT, path));
     if (file !== ROOT && !file.startsWith(ROOT + sep)) { res.writeHead(403).end(); return; }
     if (!(await stat(file)).isFile()) throw new Error('not a file');
-    const body = await readFile(file);
+    let body = await readFile(file);
+    // Для тесту оновлення: /sw.js?version=N віддає той самий service worker з іншим номером версії.
+    const version = new URL(req.url, 'http://x').searchParams.get('version');
+    if (path === '/sw.js' && /^\d+$/.test(version || '')) body = Buffer.from(String(body).replace(/const VERSION = \d+;/, `const VERSION = ${version};`));
     res.writeHead(200, { 'Content-Type': TYPES[extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-cache' });
     res.end(req.method === 'HEAD' ? undefined : body);
   } catch {

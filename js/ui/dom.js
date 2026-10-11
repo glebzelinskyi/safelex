@@ -11,6 +11,8 @@ function iosHaptic() {
     hapticLabel.innerHTML = '<input type="checkbox" switch tabindex="-1">';
     document.body.appendChild(hapticLabel);
   }
+  const prev = document.activeElement, box = hapticLabel.firstChild;
   hapticLabel.click();
+  if (document.activeElement === box) { box.blur(); if (prev && prev !== document.body) prev.focus?.({ preventScroll: true }); }
 }
 export const vibrate = p => { try { navigator.vibrate ? navigator.vibrate(p) : iosHaptic(); } catch {} };
