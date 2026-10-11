@@ -1,7 +1,7 @@
 import { esc, plural, shuffle, nDays } from '../../core/util.js';
 import { QUIZ_LEN, MASTERED } from '../../config.js';
 import { catTitle } from '../../data.js';
-import { grade, poolFor, mistakesIn, pickTerms } from '../../learn/srs.js';
+import { grade, poolFor, mistakesIn, pickTerms, resolveMistake } from '../../learn/srs.js';
 import { makeQuestion, typedRight, dailyTerms } from '../../learn/questions.js';
 import { RANKS, rankOf, nextRank } from '../../learn/ranks.js';
 import { streak, bestStreak, finishDaily } from '../../learn/streak.js';
@@ -14,10 +14,10 @@ import { checksHtml } from '../../ui/learn.js';
 import { trainBar, emptyMode, missList, gainLine, inTrainMode } from './shared.js';
 
 const QUIZ_TITLE = { quiz: 'Тест', mistakes: 'Робота над помилками', daily: 'Завдання дня' };
-const tr = { mode: 'quiz', cat: 'all', qs: [], base: 0, i: 0, score: 0, ans: null, done: false, missed: [], rank: null, gained: 0, learned: 0 };
+const tr = { mode: 'quiz', cat: 'all', qs: [], base: 0, i: 0, score: 0, ans: null, done: false, missed: [], rank: null, counted: false, gained: 0, learned: 0 };
 
 export function startQuiz(mode, cat) {
-  Object.assign(tr, { mode, cat, i: 0, score: 0, ans: null, done: false, missed: [], rank: null, gained: 0, learned: 0 });
+  Object.assign(tr, { mode, cat, i: 0, score: 0, ans: null, done: false, missed: [], rank: null, counted: false, gained: 0, learned: 0 });
   if (mode === 'daily') tr.qs = dailyTerms().map(t => makeQuestion(t, null, true));
   else if (mode === 'mistakes') tr.qs = shuffle(mistakesIn(cat)).slice(0, QUIZ_LEN).map(t => makeQuestion(t, 'en2ua'));
   else tr.qs = pickTerms(poolFor(cat), QUIZ_LEN).map(t => makeQuestion(t));
@@ -39,17 +39,16 @@ function answer(right, extra) {
       tr.missed.push(q.t);
       tr.qs.splice(Math.min(tr.i + 3, tr.qs.length), 0, Object.assign(makeQuestion(q.t, q.kind === 'en2ua' ? 'ua2en' : 'en2ua'), { retry: true }));
     }
+    if (tr.mode === 'mistakes' && right) resolveMistake(q.t.id);
   }
+  if (tr.mode === 'daily' && !tr.counted && tr.i + 1 >= tr.qs.length) { tr.counted = true; tr.rank = finishDaily(tr.score, tr.base); }
   drawQuiz();
   document.querySelector('[data-action="next"]')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
 function nextQuestion() {
   tr.ans = null;
-  if (++tr.i >= tr.qs.length) {
-    tr.done = true; tr.i = tr.qs.length - 1;
-    if (tr.mode === 'daily') tr.rank = finishDaily(tr.score, tr.base);
-  }
+  if (++tr.i >= tr.qs.length) { tr.done = true; tr.i = tr.qs.length - 1; }
   drawQuiz();
   window.scrollTo(0, 0);
   if (tr.done && tr.rank) setTimeout(() => { if (inTrainMode('daily')) celebrate(tr.rank); }, 350);

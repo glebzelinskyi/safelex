@@ -101,6 +101,18 @@ describe('grade — з сховищем і журналом', () => {
     expect(srs.isDue('arson')).toBe(true);
   });
 
+  test('правильна відповідь у «Роботі над помилками» прибирає термін зі списку до наступної помилки', async () => {
+    let { srs } = await fresh();
+    srs.grade('arson', false);
+    srs.resolveMistake('arson');
+    expect(srs.mistakesIn('all')).toEqual([]);
+    ({ srs } = await fresh());
+    expect(srs.mistakesIn('all')).toEqual([]);
+    expect(srs.srs.arson.wrong).toBe(1);
+    srs.grade('arson', false);
+    expect(srs.mistakesIn('all').map(t => t.id)).toEqual(['arson']);
+  });
+
   test('журнал зберігає не більше 400 днів', async () => {
     const log = {};
     for (let i = 0; i < 500; i++) log[`2000-${String(i).padStart(5, '0')}`] = { a: 1, r: 1 };
@@ -141,6 +153,15 @@ describe('серія днів і звання', () => {
     setDays(2, 3);
     const { streak } = await fresh();
     expect(streak.streak()).toBe(0);
+  });
+
+  test('серія понад 400 днів не обрізається після перезапуску', async () => {
+    const ago = n => { const d = new Date(2026, 9, 9 - n); return key(d.getFullYear(), d.getMonth() + 1, d.getDate()); };
+    localStorage.setItem('safelex:days', JSON.stringify(Array.from({ length: 499 }, (_, i) => ago(i + 1))));
+    let m = await fresh();
+    expect(m.streak.finishDaily(10, 10)).toMatchObject({ title: 'Підполковник', days: 500 });
+    m = await fresh();
+    expect(m.streak.streak()).toBe(500);
   });
 
   test('завдання дня на третій день присвоює «Рядовий» лише один раз', async () => {

@@ -17,7 +17,7 @@ export function runMode(mode, cat) {
   if (mode === 'cards') return startCards(cat);
   if (mode === 'match') return startMatch(cat);
   if (mode === 'sprint') return startSprint(cat);
-  location.hash = '#/train';
+  location.replace('#/train');
 }
 
 onAction('restart', () => route());

@@ -1,4 +1,4 @@
-import { test, expect, seed, open, storage, finishQuiz } from '../helpers.js';
+import { test, expect, seed, open, storage, finishQuiz, solveQuestion } from '../helpers.js';
 
 test.describe('Завдання дня й серія', () => {
   test('виконане завдання дня починає серію', async ({ page }) => {
@@ -38,6 +38,35 @@ test.describe('Завдання дня й серія', () => {
     await expect(page.locator('.me-stats > span').nth(0).locator('em')).toHaveText('0');
     await expect(page.locator('.me-stats > span').nth(1).locator('em')).toHaveText('3');
     await expect(page.locator('.rank-hero .rh-body > b')).toHaveText('Рядовий');
+  });
+
+  test('завдання дня зараховується з останньою відповіддю, навіть якщо не відкрити результат', async ({ page }) => {
+    await seed(page);
+    await open(page, '#/train/daily');
+    // Помилка додає повторне питання, тож відповідаємо, доки кнопка «Далі» не стане кнопкою «Результат».
+    for (let n = 0; n < 40; n++) {
+      const s = await solveQuestion(page);
+      if (s.ids.length) await page.locator(`.opt[data-pick="${s.id ?? s.ids[0]}"]`).click();
+      else if (s.en) { await page.locator('#ans').fill(s.en); await page.locator('[data-action="check"]').click(); }
+      else await page.locator('[data-action="giveup"]').click();
+      if (await page.locator('[data-action="next"]').textContent() === 'Результат') break;
+      await page.locator('[data-action="next"]').click();
+    }
+    await expect(page.locator('[data-action="next"]')).toHaveText('Результат');
+    await page.goto('./#/');
+    await expect(page.locator('a.daily')).toHaveClass(/done/);
+    await expect(page.locator('a.daily .s')).toContainText(/Результат \d+ з 10/);
+  });
+
+  test('застосунок провисів у фоні до наступного дня — головна показує нове завдання дня', async ({ page }) => {
+    await page.clock.install();
+    await seed(page, { days: [0] });
+    await open(page);
+    await expect(page.locator('a.daily')).toHaveClass(/done/);
+    await page.clock.setFixedTime(Date.now() + 24 * 3600 * 1000);
+    await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+    await expect(page.locator('a.daily')).not.toHaveClass(/done/);
+    await expect(page.locator('a.daily .fire b')).toHaveText('1');
   });
 
   test('завдання дня не повторюється вдруге за день', async ({ page }) => {

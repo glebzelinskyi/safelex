@@ -15,7 +15,7 @@ export const bestStreak = () => Math.max(store.get('safelex:best', 0), streak())
 
 export function finishDaily(score, total) {
   doneDays.add(dayKey());
-  store.set('safelex:days', [...doneDays].sort().slice(-400));
+  store.set('safelex:days', [...doneDays].sort());
   store.set('safelex:dailyScore', { date: dayKey(), score, total });
   const s = streak(), prevBest = store.get('safelex:best', 0);
   store.set('safelex:best', Math.max(prevBest, s));

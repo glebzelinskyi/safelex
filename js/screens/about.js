@@ -1,5 +1,4 @@
 import { esc, nTerms } from '../core/util.js';
-import { VERSION } from '../config.js';
 import { TERMS, CATEGORIES, CORE, SOURCES, MARCH_STEPS } from '../data.js';
 import { I } from '../ui/icons.js';
 import { app } from '../ui/dom.js';
@@ -51,7 +50,6 @@ export function renderAbout() {
         <img src="icons/ldubzhd-logo-white.png" alt="Львівський державний університет безпеки життєдіяльності">
         <span class="about-dep">Кафедра іноземних мов та перекладознавства</span>
       </div>
-      <p class="meta" style="text-align:center">Версія ${VERSION} · ${new Date().getFullYear()}</p>
       <p class="meta" style="text-align:center">© 2026 Зелінський Г. С., Пальчевська О. С. Усі права захищено.<br>Копіювання, зміна й поширення застосунку без письмового дозволу авторів заборонені.</p>
     </section>`;
 }

@@ -1,4 +1,5 @@
 import * as storage from './core/store.js';
+import { dayKey } from './core/dates.js';
 import { srs } from './learn/srs.js';
 import { app } from './ui/dom.js';
 import { onAction } from './ui/events.js';
@@ -55,8 +56,17 @@ function start() {
   storage.onSaveFail?.(showSaveToast);
   window.addEventListener('hashchange', keepProgress);
   window.addEventListener('appinstalled', () => { askedToKeep = false; keepProgress(); });
+  document.addEventListener('visibilitychange', newDay);
+  window.addEventListener('pageshow', newDay);
   startRouter();
   hideSplash().then(() => { warmSearch(); registerServiceWorker(); keepProgress(); });
+}
+
+let shownDay = dayKey();
+function newDay() {
+  if (document.visibilityState !== 'visible' || shownDay === dayKey()) return;
+  shownDay = dayKey();
+  if (!location.hash.startsWith('#/train/')) route();
 }
 
 let saveWarned = false;
@@ -91,9 +101,10 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
   const hadController = !!navigator.serviceWorker.controller;
   navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController) showUpdateToast(); });
+  navigator.serviceWorker.addEventListener('message', e => { if (e.data?.type === 'update') showUpdateToast(); });
   const register = () => navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible' && navigator.onLine) reg.update().catch(() => {});
+      if (document.visibilityState === 'visible' && navigator.onLine) reg?.update().catch(() => {});
     });
   }).catch(() => {});
   document.readyState === 'complete' ? register() : window.addEventListener('load', register);

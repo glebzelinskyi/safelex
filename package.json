@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "serve": "node tests/server.mjs",
+    "ids": "node tests/ids.mjs",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "vitest run",
     "test:e2e": "playwright test --project=e2e",

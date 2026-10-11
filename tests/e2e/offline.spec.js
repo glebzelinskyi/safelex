@@ -116,3 +116,50 @@ test('оновлення не чіпає кеші інших застосунк�
   await expect.poll(() => page.evaluate(() => caches.keys())).toEqual(expect.arrayContaining(['safelex-v9998', 'other-app-v1']));
   await expect.poll(() => page.evaluate(async () => (await caches.keys()).length)).toBe(2);
 });
+
+/** Сервер починає віддавати змінений style.css; delay — затримка відповіді, мс. */
+const changeStyle = (context, mark, delay = 0) => context.route(/\/css\/style\.css$/, async r => {
+  // Затримана відповідь може надійти вже після кінця тесту — тоді її нема кому віддавати.
+  try {
+    const body = await (await r.fetch()).text() + `\n/* ${mark} */`;
+    if (delay) await new Promise(done => setTimeout(done, delay));
+    await r.fulfill({ contentType: 'text/css; charset=utf-8', body });
+  } catch {}
+});
+const cachedStyle = page => page.evaluate(async () => (await (await caches.match(new URL('css/style.css', location.href).href)).text()).slice(-20));
+const ready = async page => {
+  await seed(page);
+  await open(page);
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await expect.poll(() => missing(page)).toEqual([]);
+};
+
+test.describe('оновлення файлів на сервері', () => {
+  // У WebKit підміна відповіді в тесті спрацьовує ще до service worker.
+  test.skip(({ browserName }) => browserName === 'webkit');
+  test.afterEach(({ context }) => context.unrouteAll({ behavior: 'ignoreErrors' }));
+
+  test('з інтернетом наступний запуск одразу бере нові файли — усі разом', async ({ page, context }) => {
+    await ready(page);
+    await changeStyle(context, 'fresh-1');
+    await page.reload();
+    await expect(page.locator('#q')).toBeVisible();
+    expect(await cachedStyle(page)).toContain('fresh-1');
+    expect(await page.evaluate(() => caches.keys())).toHaveLength(1);
+    await expect(page.locator('.update-toast')).toHaveCount(0);
+  });
+
+  test('повільна мережа: відкривається стара версія цілком, нова — після плашки «Є оновлення»', async ({ page, context }) => {
+    await ready(page);
+    await changeStyle(context, 'fresh-2', 4000);
+    await page.reload();
+    await expect(page.locator('#q')).toBeVisible();
+    expect(await cachedStyle(page)).not.toContain('fresh-2');
+    await expect(page.locator('.update-toast')).toContainText('Є оновлення', { timeout: 10_000 });
+    expect(await cachedStyle(page)).not.toContain('fresh-2');
+    await page.locator('.update-toast').click();
+    await expect(page.locator('#q')).toBeVisible();
+    await expect.poll(() => cachedStyle(page)).toContain('fresh-2');
+    await expect.poll(() => page.evaluate(() => caches.keys())).toHaveLength(1);
+  });
+});
