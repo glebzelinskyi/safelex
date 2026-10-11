@@ -1,4 +1,4 @@
-import { onSaveFail } from './core/store.js';
+import * as storage from './core/store.js';
 import { srs } from './learn/srs.js';
 import { app } from './ui/dom.js';
 import { onAction } from './ui/events.js';
@@ -52,7 +52,7 @@ function start() {
     else if (a.dataset.tab === 'home') document.getElementById('q')?.focus();
   });
 
-  onSaveFail(showSaveToast);
+  storage.onSaveFail?.(showSaveToast);
   window.addEventListener('hashchange', keepProgress);
   window.addEventListener('appinstalled', () => { askedToKeep = false; keepProgress(); });
   startRouter();
