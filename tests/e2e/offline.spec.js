@@ -86,3 +86,33 @@ test('оновлення: нова версія замінює кеш цілко
   await page.goto('./#/me');
   await expect(page.locator('.legend')).toContainText('Вивчено 1');
 });
+
+test('сервер віддає помилку (збій хостингу) — застосунок запускається з кешу', async ({ page, context, browserName }) => {
+  // У WebKit підміна відповіді в тесті спрацьовує ще до service worker, тож його реакцію там не перевірити.
+  test.skip(browserName === 'webkit');
+  await seed(page);
+  await open(page);
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await expect.poll(() => missing(page)).toEqual([]);
+  let broken = 0;
+  await context.route(/\/(js|css|data)\/.*|\/$|index\.html$/, r => { broken++; r.fulfill({ status: 503, body: 'down' }); });
+  await page.reload();
+  await expect(page.locator('#q')).toBeVisible();
+  await page.locator('#q').fill('arson');
+  await expect(page.locator('.best .best-ua')).toHaveText('підпал');
+  await page.goto('./#/guide/water');
+  await expect(page.locator('#glist a.row').first()).toBeVisible();
+  expect(broken).toBeGreaterThan(10);
+});
+
+test('оновлення не чіпає кеші інших застосунків на тій самій адресі', async ({ page }) => {
+  await seed(page);
+  await open(page);
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await page.reload();
+  await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+  await page.evaluate(async () => { await (await caches.open('other-app-v1')).put('/x', new Response('x')); });
+  await page.evaluate(() => { navigator.serviceWorker.register('sw.js?version=9998'); });
+  await expect.poll(() => page.evaluate(() => caches.keys())).toEqual(expect.arrayContaining(['safelex-v9998', 'other-app-v1']));
+  await expect.poll(() => page.evaluate(async () => (await caches.keys()).length)).toBe(2);
+});

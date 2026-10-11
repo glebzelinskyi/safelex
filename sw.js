@@ -1,4 +1,4 @@
-const VERSION = 28;
+const VERSION = 29;
 const CACHE = 'safelex-v' + VERSION;
 const NET_TIMEOUT_MS = 3000, SLOW_WINDOW_MS = 30000;
 let slowUntil = 0;
@@ -81,7 +81,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k.startsWith('safelex-v') && k !== CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -101,7 +101,7 @@ self.addEventListener('fetch', event => {
       const copy = res.clone();
       saved = caches.open(CACHE).then(c => c.put(key, copy));
     }
-    return res;
+    return res.ok ? res : caches.match(key).then(hit => hit || res);
   });
   event.waitUntil(fromNetwork.then(() => saved).catch(() => {}));
   const wait = Date.now() < slowUntil ? 0 : NET_TIMEOUT_MS;
