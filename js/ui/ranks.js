@@ -85,7 +85,7 @@ export function celebrate(r) {
       <span class="cel-days">${I.flame}${nDays(r.days)} поспіль</span>
       <p>${esc(r.text)}</p>
       ${next ? `<span class="cel-next">Наступне — «${esc(next.title)}» за серію ${nDays(next.days)}</span>` : ''}
-      <button class="btn" data-action="cel-close">Служу Україні!</button>
+      <button class="btn" data-action="cel-close">Служу Українському народові!</button>
     </div>`;
   el.addEventListener('click', e => { if (e.target === el) el.remove(); });
   const onKey = e => { if (e.key === 'Escape') el.remove(); if (!el.isConnected) document.removeEventListener('keydown', onKey); };
