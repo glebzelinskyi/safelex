@@ -33,6 +33,23 @@ describe('файли застосунку', () => {
     for (const a of ASSETS.filter(a => a !== './')) expect(existsSync(resolve(ROOT, a)), a).toBe(true);
   });
 
+  test('шрифти, картинки й стилі, на які посилаються сторінка, CSS і код, є в sw.js', () => {
+    const clean = p => './' + posix.normalize(p).replace(/[?#].*$/, '');
+    const used = new Set();
+    for (const f of walk('css')) for (const m of read(f).matchAll(/url\(\s*['"]?([^'")]+?)['"]?\s*\)/g))
+      if (!/^(data:|https?:)/.test(m[1])) used.add(clean(posix.join('css', m[1])));
+    for (const m of html.matchAll(/\b(?:src|href)="([^"#:]+)"/g)) used.add(clean(m[1]));
+    for (const f of modules) for (const m of read(f).matchAll(/\b(?:icons|fonts)\/[\w.-]+\.(?:png|svg|woff2)/g)) used.add(clean(m[0]));
+    expect(used.size).toBeGreaterThan(20);
+    for (const u of used) expect(ASSETS, `${u} використовується, але його немає в ASSETS у sw.js — без інтернету не завантажиться`).toContain(u);
+  });
+
+  test('sw.js не кешує файли, якими застосунок не користується', () => {
+    const everything = [html, read('manifest.webmanifest'), ...walk('css').map(read), ...modules.map(read)].join('\n');
+    for (const a of ASSETS.filter(a => /\.(png|svg|woff2)$/.test(a)))
+      expect(everything, `${a} є в ASSETS, але ніде не використовується`).toContain(posix.basename(a));
+  });
+
   test('index.html підключає базу термінів до модулів і не має inline-скриптів', () => {
     expect(html.indexOf('src="data/terms.js"')).toBeLessThan(html.indexOf('type="module" src="js/main.js"'));
     expect(html).not.toMatch(/<script(?![^>]*\bsrc=)[^>]*>/);

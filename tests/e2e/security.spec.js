@@ -135,6 +135,46 @@ test.describe('Пошкоджені або недоступні дані', () =>
     await expect(page.locator('.rank-hero')).toBeVisible();
   });
 
+  test('плашка «Прогрес не зберігається» з’являється один раз і сама зникає', async ({ page }) => {
+    await page.clock.install();
+    await page.addInitScript(() => {
+      Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('denied', 'SecurityError'); } });
+    });
+    await page.goto('./#/term/arson');
+    await expect(page.locator('.save-toast')).toContainText('Прогрес не зберігається');
+    await page.goto('./#/term/arsonist');
+    await expect(page.locator('.term-head')).toContainText('arsonist');
+    await expect(page.locator('.save-toast')).toHaveCount(1);
+    await page.clock.fastForward(9000);
+    await expect(page.locator('.save-toast')).toHaveCount(0);
+    await page.goto('./#/term/arson');
+    await expect(page.locator('.term-head')).toContainText('arson');
+    await expect(page.locator('.save-toast')).toHaveCount(0);
+  });
+
+  test('плашки немає, коли прогрес зберігається нормально', async ({ page }) => {
+    await seed(page);
+    await open(page, '#/train/quiz?cat=water');
+    await finishQuiz(page);
+    await expect(page.locator('.result-screen')).toBeVisible();
+    await expect(page.locator('.save-toast')).toHaveCount(0);
+  });
+
+  test('постійне сховище запитується лише тоді, коли вже є прогрес', async ({ page, context }) => {
+    const stub = () => { window.__persist = 0; StorageManager.prototype.persist = function () { window.__persist++; return Promise.resolve(true); }; };
+    await seed(page);
+    await page.addInitScript(stub);
+    await open(page);
+    await expect(page.locator('#splash')).toHaveCount(0);
+    expect(await page.evaluate(() => window.__persist)).toBe(0);
+
+    const other = await context.newPage();
+    await seed(other, { data: { 'safelex:srs': { arson: { checks: 1, day: '', due: 0, wrong: 0 } } } });
+    await other.addInitScript(stub);
+    await open(other);
+    await expect.poll(() => other.evaluate(() => window.__persist)).toBe(1);
+  });
+
   test('порожня база (terms.js не завантажився або зламаний) — жоден екран не падає', async ({ page }) => {
     await seed(page);
     await page.route('**/data/terms.js', r => r.fulfill({ contentType: 'text/javascript', body: '' }));
