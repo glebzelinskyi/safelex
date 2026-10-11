@@ -155,5 +155,6 @@ test.describe('Пошкоджені або недоступні дані', () =>
     await open(page, '#/train/quiz?cat=water');
     await finishQuiz(page);
     await expect(page.locator('.result-screen')).toBeVisible();
+    await expect(page.locator('.save-toast')).toHaveText(/Прогрес не зберігається/);
   });
 });

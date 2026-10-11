@@ -1,3 +1,5 @@
+import { onSaveFail } from './core/store.js';
+import { srs } from './learn/srs.js';
 import { app } from './ui/dom.js';
 import { onAction } from './ui/events.js';
 import { initInstall, isIOS, isStandalone } from './ui/install.js';
@@ -50,8 +52,26 @@ function start() {
     else if (a.dataset.tab === 'home') document.getElementById('q')?.focus();
   });
 
+  onSaveFail(showSaveToast);
   startRouter();
-  hideSplash().then(() => { warmSearch(); registerServiceWorker(); });
+  hideSplash().then(() => { warmSearch(); registerServiceWorker(); keepProgress(); });
+}
+
+let saveWarned = false;
+function showSaveToast() {
+  if (saveWarned) return;
+  saveWarned = true;
+  const t = document.createElement('button');
+  t.className = 'update-toast save-toast';
+  t.innerHTML = '<b>Прогрес не зберігається</b><span>Браузер не дає записати дані: вийдіть із приватного режиму або звільніть місце на пристрої</span>';
+  t.addEventListener('click', () => t.remove());
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 8000);
+}
+
+function keepProgress() {
+  if (!Object.keys(srs).length) return;
+  try { navigator.storage?.persist?.().catch(() => {}); } catch {}
 }
 
 function showUpdateToast() {

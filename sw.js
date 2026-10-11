@@ -1,4 +1,4 @@
-const VERSION = 26;
+const VERSION = 27;
 const CACHE = 'safelex-v' + VERSION;
 const NET_TIMEOUT_MS = 3000, SLOW_WINDOW_MS = 30000;
 let slowUntil = 0;
@@ -7,6 +7,8 @@ const ASSETS = [
   './index.html',
   './css/style.css',
   './css/fonts.css',
+  './fonts/jetbrains-mono-cyrillic-wght-normal.woff2',
+  './fonts/jetbrains-mono-latin-wght-normal.woff2',
   './fonts/onest-cyrillic-wght-normal.woff2',
   './fonts/onest-latin-wght-normal.woff2',
   './fonts/unbounded-cyrillic-wght-normal.woff2',
@@ -63,9 +65,7 @@ const ASSETS = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/emblem.png',
-  './icons/ldubzhd-logo.png',
   './icons/ldubzhd-logo-white.png',
-  './icons/ldubzhd-crest.png',
   './icons/apple-touch-icon.png'
 ];
 
@@ -73,7 +73,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE)
       .then(cache => Promise.all(ASSETS.map(a =>
-        cache.add(new Request(a, { cache: 'reload' })).catch(() => console.warn('SafeLex: не знайдено файл', a)))))
+        cache.add(new Request(a, { cache: 'no-cache' })).catch(() => console.warn('SafeLex: не знайдено файл', a)))))
       .then(() => self.skipWaiting())
   );
 });

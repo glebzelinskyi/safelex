@@ -226,6 +226,7 @@ mark { background: rgba(242, 193, 78, .25); color: inherit; border-radius: 3px; 
   box-shadow: 0 8px 24px rgba(0,0,0,.4);
 }
 .update-toast b { font-size: 15px; }
+.save-toast { background: var(--surface); color: var(--text); border: 1px solid var(--line-2); }
 
 .tod {
   border-radius: var(--r); padding: 16px;

@@ -42,6 +42,9 @@ export async function open(page, hash = '#/') {
   await expect(page.locator('#app > *').first()).toBeVisible();
 }
 
+/** Гортає сторінку. Не через mouse.wheel: у мобільному WebKit (iPhone) коліщатка немає. */
+export const scrollBy = (page, dy) => page.evaluate(y => window.scrollBy(0, y), dy);
+
 export const storage = (page, key) => page.evaluate(k => JSON.parse(localStorage.getItem(k)), key);
 
 /**
