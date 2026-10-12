@@ -1,9 +1,4 @@
-var SOURCES = {
-  shunevych2016: {
-    title: "Словник Шуневича 2016",
-    note: "Англо-український словник з пожежної безпеки, «Пожежна безпека», зб. наук. праць ЛДУ БЖД, № 26. Літери A–C."
-  }
-};
+var SOURCES = {};
 
 var TOPICS = [
 
@@ -10232,7 +10227,6 @@ var TOPICS = [
       .replace(/^-+|-+$/g, "");
   }
 
-  var DEFAULT_SRC = "shunevych2016";
   var terms = [];
   var core = [];
   var byId = {};
@@ -10242,7 +10236,7 @@ var TOPICS = [
     topicById[topic.id] = topic;
     topic.terms.forEach(function (term) {
       term.topic = topic.id;
-      term.src = term.src || topic.src || DEFAULT_SRC;
+      term.src = term.src || topic.src || "";
       term.id = term.id || slug(term.en);
       if (byId[term.id]) {
         term.id = topic.id + "-" + term.id;
