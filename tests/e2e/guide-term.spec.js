@@ -65,7 +65,7 @@ test.describe('Картка терміна', () => {
     await expect(page.locator('.core-tag')).toBeVisible();
     await expect(page.locator('.ex-en')).not.toBeEmpty();
     await expect(page.locator('details.learn')).toContainText('Новий термін');
-    await expect(page.locator('.src-note')).toContainText('Шуневича');
+    await expect(page.locator('.src-note')).toHaveCount(0);
   });
 
   test('потрапляє в «Нещодавні» на головній', async ({ page }) => {

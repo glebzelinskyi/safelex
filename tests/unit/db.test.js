@@ -102,9 +102,9 @@ describe('база data/terms.js', () => {
     }
   });
 
-  test('є ключові терміни й джерело', () => {
+  test('є ключові терміни; вказане джерело є в SOURCES', () => {
     expect(db.CORE.length).toBeGreaterThan(100);
-    for (const t of db.TERMS) expect(db.SOURCES[t.src], t.id).toBeTruthy();
+    for (const t of db.TERMS) if (t.src) expect(db.SOURCES[t.src], t.id).toBeTruthy();
   });
 
   test('пов’язані терміни (related) посилаються на існуючі id', () => {
