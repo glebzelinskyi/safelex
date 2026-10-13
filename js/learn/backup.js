@@ -7,9 +7,9 @@ import { RANKS } from './ranks.js';
 import { sanitizeSrs } from './srs.js';
 import { sanitizeLog, LOG_DAYS } from './activity.js';
 
-export const BACKUP_VERSION = 1;
+const BACKUP_VERSION = 1;
 export const MAX_BACKUP_CHARS = 2e6;
-export const REMIND_DAYS = 7, LATER_DAYS = 3, MIN_DAYS = 3;
+const REMIND_DAYS = 7, LATER_DAYS = 3, MIN_DAYS = 3;
 
 const KEYS = ['srs', 'days', 'best', 'ranksSeen', 'matchBest', 'sprintBest', 'log', 'favs'];
 const EMPTY = { srs: {}, days: [], best: 0, ranksSeen: [], matchBest: 0, sprintBest: 0, log: {}, favs: [] };
@@ -23,10 +23,6 @@ export class BackupError extends Error {
 const whole = v => Math.max(0, Math.round(num(v)));
 const uniq = arr => [...new Set(arr)];
 
-/**
- * Приводить прогрес до одного вигляду: лише відомі терміни й поля, усе відсортовано.
- * `lastDay` і `now` обмежують дати з чужого файлу; свої дані читаються без обмежень.
- */
 export function cleanProgress(raw, lastDay = ANY_DAY, now = Infinity) {
   const d = isRecord(raw) ? raw : {};
   const isDay = k => typeof k === 'string' && DATE.test(k) && k <= lastDay;
@@ -79,13 +75,11 @@ export function parseBackup(text, now = Date.now()) {
   try { file = JSON.parse(text.replace(/^\uFEFF/, '')); } catch { throw new BackupError('format'); }
   if (!isRecord(file) || file.app !== 'safelex' || !isRecord(file.data) || !Number.isFinite(file.v)) throw new BackupError('format');
   if (file.v > BACKUP_VERSION) throw new BackupError('version');
-  // День запасу: файл могли зберегти в іншому часовому поясі.
   const data = cleanProgress(file.data, dayKey(-1), now);
   data.best = Math.min(data.best, data.days.length);
   return data;
 }
 
-// Найдовша серія днів поспіль: після злиття вона може виявитися довшою за обидва рекорди.
 function longestRun(days) {
   let best = 0, run = 0, prev = null;
   for (const k of days) {
@@ -96,11 +90,9 @@ function longestRun(days) {
   return best;
 }
 
-// Запис терміна: більше галочок; за рівності — новіший день; інакше лишається свій.
 const better = (mine, theirs) => !mine ? theirs : !theirs ? mine
   : theirs.checks > mine.checks || (theirs.checks === mine.checks && theirs.day > mine.day) ? theirs : mine;
 
-/** Зливає прогрес із файлу з прогресом на телефоні так, щоб нічого зароблене не зменшилося. */
 export function mergeProgress(mine, theirs) {
   const srs = {}, log = {};
   for (const id of new Set([...Object.keys(mine.srs), ...Object.keys(theirs.srs)])) srs[id] = better(mine.srs[id], theirs.srs[id]);
@@ -119,10 +111,6 @@ export function mergeProgress(mine, theirs) {
   });
 }
 
-/**
- * Додає прогрес із файлу до збереженого на телефоні. Після успіху сторінку треба перезавантажити:
- * модулі навчання читають сховище лише під час запуску.
- */
 export function restoreBackup(text, now = Date.now()) {
   const theirs = parseBackup(text, now), mine = readProgress(), merged = mergeProgress(mine, theirs);
   const summary = { days: merged.days.length, terms: Object.keys(merged.srs).length, favs: merged.favs.length };
@@ -138,7 +126,6 @@ export function restoreBackup(text, now = Date.now()) {
 
 export const lastBackupAt = () => store.get('safelex:backupAt', 0);
 
-// Відбиток прогресу для нагадування. Рахується на кожному показі головної, тому без сортування й копій.
 function progressSig() {
   const p = Object.fromEntries(KEYS.map(k => [k, store.get('safelex:' + k, EMPTY[k])]));
   let h = 7;
@@ -159,7 +146,6 @@ export function snoozeBackup(now = Date.now()) { store.set('safelex:backupLater'
 
 const recently = (at, days, now) => at > 0 && at <= now && now - at < days * DAY;
 
-/** Чи пора нагадати про копію: є що зберігати (3 дні завдань дня або тренувань), давно не зберігали, і прогрес відтоді змінився. */
 export function backupDue(now = Date.now()) {
   if (store.get('safelex:days', []).length < MIN_DAYS && Object.keys(store.get('safelex:log', {})).length < MIN_DAYS) return false;
   if (recently(lastBackupAt(), REMIND_DAYS, now) || recently(store.get('safelex:backupLater', 0), LATER_DAYS, now)) return false;

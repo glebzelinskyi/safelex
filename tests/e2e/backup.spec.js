@@ -28,10 +28,19 @@ const stubShare = (page, mode) => page.addInitScript(mode => {
 const backupFile = (data, name = 'safelex-progress-2026-01-01.txt') =>
   ({ name, mimeType: 'text/plain', buffer: Buffer.from(typeof data === 'string' ? data : JSON.stringify({ app: 'safelex', v: 1, saved: '2026-01-01', data })) });
 
-async function pickFile(page, file, button = page.locator('.card.backup [data-action="backup-restore"]')) {
+async function pickFile(page, file, button = null) {
+  if (!button) {
+    await page.locator('[data-action="backup-open"]').click();
+    button = page.locator('.backup-sheet [data-action="backup-restore"]');
+  }
   const chooser = page.waitForEvent('filechooser');
   await button.click();
   await (await chooser).setFiles(file);
+}
+
+async function saveFromSheet(page, how = 'click') {
+  await page.locator('[data-action="backup-open"]').click();
+  await page.locator('.backup-sheet [data-action="backup-save"]')[how]();
 }
 
 const nextDialog = page => new Promise(resolve => page.once('dialog', async d => { const m = d.message(); await d.accept(); resolve(m); }));
@@ -42,9 +51,12 @@ test.describe('Зберегти прогрес', () => {
     await seed(page, { days: DAYS, data: PROGRESS });
     await open(page, '#/me');
     await expect(page.locator('.bk-last')).toHaveText('Копію ще не зберігали');
-    await page.locator('.card.backup [data-action="backup-save"]').click();
+    await expect(page.locator('.backup-link')).toHaveClass(/due/);
+    await saveFromSheet(page);
     await expect(page.locator('.note-toast b')).toHaveText('Копію прогресу створено');
     await expect(page.locator('.bk-last')).toHaveText('Остання копія: сьогодні');
+    await expect(page.locator('.sheet-wrap')).toHaveCount(0);
+    await expect(page.locator('.backup-link')).not.toHaveClass(/due/);
 
     const [shared] = await page.evaluate(() => window.__shared);
     expect(shared.name).toMatch(/^safelex-progress-\d{4}-\d\d-\d\d\.txt$/);
@@ -63,7 +75,7 @@ test.describe('Зберегти прогрес', () => {
     await seed(page, { days: DAYS, data: PROGRESS });
     await open(page, '#/me');
     const download = page.waitForEvent('download');
-    await page.locator('.card.backup [data-action="backup-save"]').click();
+    await saveFromSheet(page);
     const d = await download;
     expect(d.suggestedFilename()).toMatch(/^safelex-progress-\d{4}-\d\d-\d\d\.txt$/);
     const file = JSON.parse(readFileSync(await d.path(), 'utf8'));
@@ -91,7 +103,7 @@ test.describe('Зберегти прогрес', () => {
     await seed(page, { days: DAYS, data: PROGRESS });
     await open(page, '#/me');
     const download = page.waitForEvent('download');
-    await page.locator('.card.backup [data-action="backup-save"]').click();
+    await saveFromSheet(page);
     expect((await download).suggestedFilename()).toContain('safelex-progress-');
     await expect(page.locator('.bk-last')).toHaveText('Остання копія: сьогодні');
   });
@@ -115,7 +127,7 @@ test.describe('Зберегти прогрес: крайні випадки', ()
     await open(page, '#/me');
     let downloads = 0;
     page.on('download', () => downloads++);
-    await page.locator('.card.backup [data-action="backup-save"]').dblclick();
+    await saveFromSheet(page, 'dblclick');
     await expect(page.locator('.note-toast b')).toHaveText('Копію прогресу створено');
     expect(await page.evaluate(() => window.__calls)).toBe(1);
     expect(downloads).toBe(0);
@@ -139,7 +151,7 @@ test.describe('Зберегти прогрес: крайні випадки', ()
     await expect(page.locator('.save-toast')).toHaveCount(0);
     await page.goto('./#/me');
     const download = page.waitForEvent('download');
-    await page.locator('.card.backup [data-action="backup-save"]').click();
+    await saveFromSheet(page);
     expect(JSON.parse(readFileSync(await (await download).path(), 'utf8')).data.days).toEqual([]);
   });
 });
@@ -149,7 +161,7 @@ test.describe('Відновити з файлу', () => {
     await stubShare(page, 'ok');
     await seed(page, { days: DAYS, data: PROGRESS });
     await open(page, '#/me');
-    await page.locator('.card.backup [data-action="backup-save"]').click();
+    await saveFromSheet(page);
     await expect(page.locator('.note-toast')).toBeVisible();
     const [shared] = await page.evaluate(() => window.__shared);
 

@@ -69,7 +69,6 @@ const TABS = ['', '#', '#/', '#/guide', '#/train', '#/me'];
 const hashOf = u => { const i = u.indexOf('#'); return i < 0 ? '' : u.slice(i); };
 
 export function startRouter() {
-  // Два швидкі переходи поспіль: перший відкладений показ уже малює кінцеву адресу, другий її не повторює.
   const show = () => { if (location.hash !== shownHash) route(); };
   window.addEventListener('hashchange', e => {
     if (!document.startViewTransition || reducedMotion() || app.style.transform || document.hidden) return show();

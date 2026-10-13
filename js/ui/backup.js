@@ -6,6 +6,8 @@ import { srs } from '../learn/srs.js';
 import { doneDays } from '../learn/streak.js';
 import { MAX_BACKUP_CHARS, BackupError, backupDue, backupName, buildBackup, lastBackupAt, markBackedUp, restoreBackup, snoozeBackup } from '../learn/backup.js';
 import { onAction } from './events.js';
+import { I } from './icons.js';
+import { openSheet } from './sheet.js';
 
 const HINT_DAYS = 7;
 const RESTORED_KEY = 'safelex:restored';
@@ -19,17 +21,37 @@ export function backupCard() {
   if (!backupDue()) return '';
   return `
     <div class="backup-card">
-      <b>Збережіть прогрес</b>
-      <span>Він зберігається лише на цьому телефоні. Надішліть файл собі в Telegram → «Збережене».</span>
-      <span class="row-btns"><button class="btn" data-action="backup-save">Зберегти</button><button class="btn outline" data-action="backup-later">Пізніше</button></span>
+      <button class="bc-main" data-action="backup-save">
+        <span class="body"><b>Збережіть прогрес</b><span>${lastBackupAt() ? lastBackupText() : 'Лише на цьому телефоні'}</span></span>
+        <span class="bc-go">${I.save}Зберегти</span>
+      </button>
+      <button class="x" data-action="backup-later" aria-label="Нагадати пізніше">${I.x}</button>
     </div>`;
 }
 
-/** Рядок для тих, хто щойно встановив застосунок на новий телефон. */
+export function backupLink() {
+  return `
+    <button class="stats-link backup-link ${backupDue() ? 'due' : ''}" data-action="backup-open">
+      <span class="sl-ic">${I.save}</span>
+      <span class="body"><b>Копія прогресу</b><span class="bk-last">${lastBackupText()}</span></span>${I.chev}
+    </button>`;
+}
+
+let sheet = null;
+onAction('backup-open', () => {
+  sheet = openSheet(`
+    <span class="bs-ic">${I.save}</span>
+    <h2 class="bs-title">Копія прогресу</h2>
+    <span class="bs-last">${lastBackupText()}</span>
+    <p>Прогрес зберігається лише на цьому телефоні, без акаунта й сервера. Збережіть файл і надішліть собі — наприклад, у Telegram → «Збережене».</p>
+    <button class="btn" data-action="backup-save">${I.save}Зберегти прогрес</button>
+    <button class="btn outline" data-action="backup-restore">Відновити з файлу</button>
+    <small>Потрібен лише найновіший файл. Відновлення додає прогрес до того, що вже є, і нічого не стирає. На iPhone спершу збережіть файл із Telegram у «Файли».</small>`, 'backup-sheet');
+});
+
 export function restoreHint() {
   if (doneDays.size || favs.size || Object.keys(srs).length) return '';
   const now = Date.now(), first = store.get('safelex:firstSeen', 0);
-  // Напряму, а не через store: якщо сховище недоступне, плашка про збій запису тут зайва.
   if (!first) try { localStorage.setItem('safelex:firstSeen', String(now)); } catch {}
   else if (now - first > HINT_DAYS * DAY) return '';
   return `<p class="restore-hint">Вже займалися раніше? <button class="link-sm" data-action="backup-restore">Відновити з файлу</button></p>`;
@@ -44,7 +66,7 @@ function toast(title, text) {
   document.querySelector('.note-toast')?.remove();
   const t = document.createElement('button');
   t.className = 'note-toast';
-  t.innerHTML = `<b>${esc(title)}</b><span>${esc(text)}</span>`;
+  t.innerHTML = `<i class="nt-ic">${I.check}</i><span class="nt-body"><b>${esc(title)}</b><small>${esc(text)}</small></span>`;
   t.addEventListener('click', () => t.remove());
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 7000);
@@ -58,7 +80,6 @@ function download(text, name) {
   setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
-/** Повертає 'shared', 'downloaded' або '' (користувач закрив меню «Поділитися»). */
 async function exportBackup() {
   const text = buildBackup(), name = backupName();
   let file = null;
@@ -77,17 +98,18 @@ let saving = false;
 onAction('backup-save', async () => {
   if (saving) return;
   saving = true;
-  // Деякі браузери не завершують share(), якщо меню закрили, — кнопка не має лишитися мертвою.
   setTimeout(() => { saving = false; }, 4000);
   try {
     const how = await exportBackup();
     if (!how) return;
     markBackedUp();
     document.querySelector('.backup-card')?.remove();
+    document.querySelector('.backup-link')?.classList.remove('due');
     const last = document.querySelector('.bk-last');
     if (last) last.textContent = lastBackupText();
+    sheet?.close(); sheet = null;
     toast('Копію прогресу створено', how === 'shared'
-      ? 'Щоб повернути прогрес: «Моє» → «Відновити з файлу».'
+      ? 'Відновити можна в «Моє» → «Копія прогресу».'
       : `Файл ${backupName()} — у завантаженнях. Надішліть його собі, щоб не загубити.`);
   } finally { saving = false; }
 });
@@ -117,7 +139,6 @@ onAction('backup-restore', () => {
   input.click();
 });
 
-/** Після відновлення сторінка перезавантажується — тут показуємо, що саме повернулося. */
 export function initBackup() {
   let res = null;
   try { res = JSON.parse(sessionStorage.getItem(RESTORED_KEY)); sessionStorage.removeItem(RESTORED_KEY); } catch {}
