@@ -6,6 +6,7 @@ import { onAction } from './ui/events.js';
 import { initInstall, isIOS, isStandalone } from './ui/install.js';
 import { initSwipeBack } from './ui/gestures.js';
 import { hideSplash } from './ui/splash.js';
+import { initBackup } from './ui/backup.js';
 import './ui/fav.js';
 import { warmSearch } from './search/index.js';
 import { addRoute, setFallback, startRouter, route, goBack, STOP } from './router.js';
@@ -59,6 +60,7 @@ function start() {
   document.addEventListener('visibilitychange', newDay);
   window.addEventListener('pageshow', newDay);
   startRouter();
+  initBackup();
   hideSplash().then(() => { warmSearch(); registerServiceWorker(); keepProgress(); });
 }
 

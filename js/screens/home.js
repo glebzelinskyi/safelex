@@ -14,6 +14,7 @@ import { app } from '../ui/dom.js';
 import { onClick, onAction } from '../ui/events.js';
 import { badge } from '../ui/badge.js';
 import { installCard } from '../ui/install.js';
+import { backupCard, restoreHint } from '../ui/backup.js';
 
 const TRY_Q = ['arson', 'горіння', 'fire alarm', 'breathing apparatus', 'вогнегасник', 'first aid', 'задимлення', 'false alarm'];
 
@@ -61,7 +62,7 @@ function drawHome() {
       ? `<span class="qc-label">Ви шукали</span>${qHist.map(h => `<button class="chip qc" data-q="${esc(h)}">${esc(h)}</button>`).join('')}<button class="chip qc-x" data-action="qhist-clear" aria-label="Очистити історію">${I.x}</button>`
       : tryChips();
     chips.removeAttribute('hidden');
-    body.innerHTML = installCard() + dailyCard() + termOfDayCard() + recentBlock(); return;
+    body.innerHTML = installCard() + dailyCard() + backupCard() + restoreHint() + termOfDayCard() + recentBlock(); return;
   }
   const all = smartSearch(q);
   const counts = {};

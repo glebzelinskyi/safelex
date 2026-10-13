@@ -29,9 +29,10 @@ export function goBack() {
   if (navDepth > 0) history.back(); else location.hash = '#/';
 }
 
-let enterTimer = 0;
+let enterTimer = 0, shownHash = null;
 
 export function route() {
+  shownHash = location.hash;
   const h = location.hash.slice(1) || '/';
   const [path, qs] = h.split('?');
   const parts = path.split('/').filter(Boolean);
@@ -68,12 +69,14 @@ const TABS = ['', '#', '#/', '#/guide', '#/train', '#/me'];
 const hashOf = u => { const i = u.indexOf('#'); return i < 0 ? '' : u.slice(i); };
 
 export function startRouter() {
+  // Два швидкі переходи поспіль: перший відкладений показ уже малює кінцеву адресу, другий її не повторює.
+  const show = () => { if (location.hash !== shownHash) route(); };
   window.addEventListener('hashchange', e => {
-    if (!document.startViewTransition || reducedMotion() || app.style.transform || document.hidden) return route();
+    if (!document.startViewTransition || reducedMotion() || app.style.transform || document.hidden) return show();
     const html = document.documentElement;
     html.dataset.nav = TABS.includes(hashOf(e.oldURL)) && TABS.includes(hashOf(e.newURL)) ? 'tab' : navDir;
     html.classList.add('vt');
-    const vt = document.startViewTransition(route);
+    const vt = document.startViewTransition(show);
     vt.ready.catch(() => {});
     vt.finished.catch(() => {}).finally(() => {
       clearTimeout(enterTimer);

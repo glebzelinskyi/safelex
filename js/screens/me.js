@@ -11,6 +11,7 @@ import { onAction } from '../ui/events.js';
 import { badge } from '../ui/badge.js';
 import { rankHero } from '../ui/ranks.js';
 import { learnHelp } from '../ui/learn.js';
+import { lastBackupText } from '../ui/backup.js';
 
 const streakLv = d => d >= 100 ? 4 : d >= 10 ? 3 : d >= 3 ? 2 : d >= 1 ? 1 : 0;
 const masteredLv = f => f >= .6 ? 4 : f >= .3 ? 3 : f >= .1 ? 2 : f > 0 ? 1 : 0;
@@ -80,6 +81,13 @@ export function renderMe() {
       <div class="section-head"><h2>Збережені</h2>${saved.length >= 2 ? `<a href="#/train?cat=fav">Тренувати</a>` : ''}</div>
       ${saved.length ? `<div class="list" id="savedList">${savedRows(saved, 0)}</div>${moreBtn(saved.length)}`
       : `<div class="empty"><b>Поки що порожньо</b>Натисніть ☆ на картці терміна, щоб зберегти його сюди і вчити окремо.</div>`}
+      <div class="section-head"><h2>Копія прогресу</h2><span class="meta bk-last">${lastBackupText()}</span></div>
+      <div class="card backup">
+        <p>Прогрес зберігається лише на цьому телефоні, без акаунта й сервера, тому копію робите ви самі. Збережіть файл і надішліть собі — наприклад, у Telegram → «Збережене».</p>
+        <button class="btn" data-action="backup-save">Зберегти прогрес</button>
+        <button class="btn outline" data-action="backup-restore">Відновити з файлу</button>
+        <small>Потрібен лише найновіший файл. Відновлення додає прогрес із файлу до того, що вже є, і нічого не стирає. На iPhone спершу збережіть файл із Telegram у «Файли».</small>
+      </div>
       <button class="link-btn" data-action="reset">Скинути прогрес навчання</button>
     </section>`;
 }

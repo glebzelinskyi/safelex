@@ -1,4 +1,4 @@
-const VERSION = 30;
+const VERSION = 31;
 const CACHE = 'safelex-v' + VERSION, NEXT = CACHE + '-next';
 const NET_TIMEOUT_MS = 3000, SLOW_WINDOW_MS = 30000;
 let slowUntil = 0;
@@ -22,6 +22,7 @@ const ASSETS = [
   './js/core/util.js',
   './js/data.js',
   './js/learn/activity.js',
+  './js/learn/backup.js',
   './js/learn/questions.js',
   './js/learn/ranks.js',
   './js/learn/reset.js',
@@ -47,6 +48,7 @@ const ASSETS = [
   './js/search/index.js',
   './js/search/text.js',
   './js/ui/authors.js',
+  './js/ui/backup.js',
   './js/ui/badge.js',
   './js/ui/dom.js',
   './js/ui/events.js',
