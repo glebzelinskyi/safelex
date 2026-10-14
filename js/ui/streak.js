@@ -1,5 +1,5 @@
 import { nDays } from '../core/util.js';
-import { dayKey, keyToDate } from '../core/dates.js';
+import { keyToDate } from '../core/dates.js';
 import { restoreOffer, restoreStreak } from '../learn/streak.js';
 import { I } from './icons.js';
 import { onAction } from './events.js';
@@ -38,9 +38,10 @@ onAction('streak-restore', el => {
 
 function doRestore() {
   const res = restoreStreak();
-  if (!res) return;
+  // Пропозиція встигла зникнути (минула північ, відновили в іншій вкладці) — просто перемалювати екран.
+  if (!res) { afters.forEach(f => f()); return; }
   vibrate([20, 40, 20]);
   afters.forEach(f => f());
   if (res.rank) celebrate(res.rank);
-  else toast('Серію відновлено', `${nDays(res.streak)} поспіль. Відновлення за ${keyToDate(dayKey(1)).toLocaleDateString('uk-UA', { month: 'long' })} використано.`);
+  else toast('Серію відновлено', `${nDays(res.streak)} поспіль. Відновлення за ${keyToDate(res.day).toLocaleDateString('uk-UA', { month: 'long' })} використано.`);
 }

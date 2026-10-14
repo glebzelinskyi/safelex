@@ -1628,3 +1628,6 @@ input { caret-color: var(--accent-2); }
 .streak-back.relit .sb-ic svg { fill: #FFB45C; transform: scale(1.2); filter: drop-shadow(0 0 10px rgba(255, 170, 80, .85)); animation: flicker 1s ease-in-out infinite; transform-origin: 50% 90%; }
 .streak-back.relit .sb-ic i { animation: none; opacity: 0; transition: opacity .2s; }
 .streak-back.relit .sb-go { pointer-events: none; }
+
+/* Відновлений день у календарі: обведення жовтим, без крапки «завдання дня». */
+.hm-cell.rs { box-shadow: inset 0 0 0 1.5px var(--yellow); }

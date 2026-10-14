@@ -48,7 +48,7 @@ export function restoreStreak() {
   const prevBest = store.get('safelex:best', 0);
   restoredDays.add(offer.day);
   store.set('safelex:restoredDays', [...restoredDays].sort());
-  return { streak: streak(), rank: recordStreak(prevBest) };
+  return { day: offer.day, streak: streak(), rank: recordStreak(prevBest) };
 }
 
 export function rankDate(need) {

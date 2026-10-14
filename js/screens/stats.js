@@ -20,14 +20,13 @@ let hmSel = '';
 function dayText(k) {
   const d = actLog[k];
   const when = k === dayKey() ? 'Сьогодні' : dayLabel(k);
-  if (!d || !d.a) return `<b>${esc(when)}</b> · ${doneDays.has(k) ? 'завдання дня виконано' : restoredDays.has(k) ? 'серію відновлено' : 'без практики'}`;
-  return `<b>${esc(when)}</b> · ${nAnswers(d.a)} · ${pct(d.r, d.a)}% правильних${doneDays.has(k) ? ' · завдання дня ✓' : ''}`;
+  const rs = restoredDays.has(k) ? ' · серію відновлено' : '';
+  if (!d || !d.a) return `<b>${esc(when)}</b> · ${doneDays.has(k) ? 'завдання дня виконано' : 'без практики'}${rs}`;
+  return `<b>${esc(when)}</b> · ${nAnswers(d.a)} · ${pct(d.r, d.a)}% правильних${doneDays.has(k) ? ' · завдання дня ✓' : ''}${rs}`;
 }
 
-// Відновлений день зараховано в серію — у календарі він теж не порожній.
-const kept = k => doneDays.has(k) || restoredDays.has(k);
-const heatLevel = k => { const a = actLog[k]?.a || 0; return a >= 50 ? 4 : a >= 25 ? 3 : a >= 10 ? 2 : a > 0 || kept(k) ? 1 : 0; };
-const practiced = k => !!(actLog[k]?.a) || kept(k);
+const heatLevel = k => { const a = actLog[k]?.a || 0; return a >= 50 ? 4 : a >= 25 ? 3 : a >= 10 ? 2 : a > 0 || doneDays.has(k) ? 1 : 0; };
+const practiced = k => !!(actLog[k]?.a) || doneDays.has(k);
 
 function heatmap() {
   const today = dayKey(), now = new Date();
@@ -39,10 +38,10 @@ function heatmap() {
   for (let d = 1; d <= len; d++) {
     const k = ymd(new Date(y, m, d));
     if (k > today) { cells += `<span class="hm-cell future">${d}</span>`; continue; }
-    const a = actLog[k]?.a || 0, done = kept(k);
+    const a = actLog[k]?.a || 0, done = doneDays.has(k);
     if (practiced(k)) inMonth++;
     const tip = `${dayLabel(k)}: ${a ? nAnswers(a) : 'без відповідей'}${doneDays.has(k) ? ', завдання дня виконано' : restoredDays.has(k) ? ', серію відновлено' : ''}`;
-    cells += `<button class="hm-cell l${heatLevel(k)} ${done ? 'done' : ''} ${k === today ? 'today' : ''} ${k === hmSel ? 'sel' : ''}" data-day="${k}" title="${esc(tip)}" aria-label="${esc(tip)}">${d}</button>`;
+    cells += `<button class="hm-cell l${heatLevel(k)} ${done ? 'done' : ''} ${restoredDays.has(k) ? 'rs' : ''} ${k === today ? 'today' : ''} ${k === hmSel ? 'sel' : ''}" data-day="${k}" title="${esc(tip)}" aria-label="${esc(tip)}">${d}</button>`;
   }
   const elapsed = hmOffset ? len : now.getDate();
   return `<div class="hm-nav">
@@ -64,7 +63,7 @@ export function renderStats() {
   hmOffset = 0; hmSel = '';
   const keys = Object.keys(actLog);
   const total = keys.reduce((n, k) => n + actLog[k].a, 0), right = keys.reduce((n, k) => n + actLog[k].r, 0);
-  const active = new Set([...keys.filter(k => actLog[k].a), ...doneDays, ...restoredDays]).size;
+  const active = new Set([...keys.filter(k => actLog[k].a), ...doneDays]).size;
   const p = progressOf(TERMS);
   const today = dayKey();
 
@@ -123,7 +122,7 @@ export function renderStats() {
         <div class="st-head"><span class="label">Календар практики</span></div>
         <div id="hmBox">${heatmap()}</div>
         <div class="hm-legend">
-          <span class="hm-key"><i class="hm-cell l1 done"></i>завдання дня</span>
+          <span class="hm-key"><i class="hm-cell l1 done"></i>завдання дня</span>${restoredDays.size ? '<span class="hm-key"><i class="hm-cell rs"></i>відновлено</span>' : ''}
           <span class="hm-key">Менше <i class="hm-cell l0"></i><i class="hm-cell l1"></i><i class="hm-cell l2"></i><i class="hm-cell l3"></i><i class="hm-cell l4"></i> Більше</span>
         </div>
         <span class="st-read" aria-live="polite">Торкніться дня, щоб побачити деталі</span>
