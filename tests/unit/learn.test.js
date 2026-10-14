@@ -202,6 +202,79 @@ describe('серія днів і звання', () => {
   });
 });
 
+describe('відновлення серії', () => {
+  const ago = n => { const d = new Date(2026, 9, 9 - n); return key(d.getFullYear(), d.getMonth() + 1, d.getDate()); };
+  const setDays = (...n) => localStorage.setItem('safelex:days', JSON.stringify(n.map(ago)));
+  const stored = k => JSON.parse(localStorage.getItem('safelex:' + k));
+
+  test('пропущений учора день повертає серію, а рекорд і звання оновлюються', async () => {
+    setDays(2, 3, 4, 5, 6, 7, 8, 9, 10);
+    localStorage.setItem('safelex:best', '9');
+    localStorage.setItem('safelex:ranksSeen', '[3]');
+    const { streak } = await fresh();
+    expect(streak.streak()).toBe(0);
+    expect(streak.restoreOffer()).toEqual({ day: key(2026, 10, 8), lost: 9 });
+    expect(streak.restoreStreak()).toMatchObject({ streak: 10, rank: { title: 'Сержант' } });
+    expect(streak.streak()).toBe(10);
+    expect(stored('best')).toBe(10);
+    expect(stored('restoredDays')).toEqual([key(2026, 10, 8)]);
+    expect(streak.doneToday()).toBe(false);
+    expect(streak.finishDaily(10, 10)).toBeNull();
+    expect(streak.streak()).toBe(11);
+  });
+
+  test('можна відновити й після того, як сьогодні вже виконано', async () => {
+    setDays(0, 2, 3, 4);
+    const { streak } = await fresh();
+    expect(streak.streak()).toBe(1);
+    expect(streak.restoreStreak().streak).toBe(5);
+  });
+
+  test('відновлений день зберігається після перезапуску', async () => {
+    setDays(2, 3, 4);
+    let m = await fresh();
+    m.streak.restoreStreak();
+    m = await fresh();
+    expect(m.streak.streak()).toBe(4);
+    expect(m.streak.restoreOffer()).toBeNull();
+  });
+
+  test('лише один раз на місяць', async () => {
+    setDays(2, 3, 4);
+    localStorage.setItem('safelex:restoredDays', JSON.stringify([key(2026, 10, 2)]));
+    const { streak } = await fresh();
+    expect(streak.restoreOffer()).toBeNull();
+    expect(streak.restoreStreak()).toBeNull();
+    expect(streak.streak()).toBe(0);
+  });
+
+  test('у новому місяці відновлення знову доступне', async () => {
+    at(2026, 11, 3);
+    localStorage.setItem('safelex:days', JSON.stringify([key(2026, 10, 30), key(2026, 10, 31), key(2026, 11, 1)]));
+    localStorage.setItem('safelex:restoredDays', JSON.stringify([key(2026, 10, 20)]));
+    const { streak } = await fresh();
+    expect(streak.restoreOffer()).toEqual({ day: key(2026, 11, 2), lost: 3 });
+  });
+
+  test('не пропонується: пропущено два дні, коротка серія або вчора все виконано', async () => {
+    setDays(3, 4, 5, 6);
+    expect((await fresh()).streak.restoreOffer()).toBeNull();
+    setDays(2, 3);
+    expect((await fresh()).streak.restoreOffer()).toBeNull();
+    setDays(1, 2, 3);
+    expect((await fresh()).streak.restoreOffer()).toBeNull();
+  });
+
+  test('«Скинути прогрес» прибирає й відновлені дні', async () => {
+    setDays(2, 3, 4);
+    const m = await fresh();
+    m.streak.restoreStreak();
+    m.reset.resetProgress();
+    expect(localStorage.getItem('safelex:restoredDays')).toBeNull();
+    expect(m.streak.streak()).toBe(0);
+  });
+});
+
 describe('скидання прогресу', () => {
   test('стирає навчання, але не збережені терміни', async () => {
     localStorage.setItem('safelex:favs', '["arson"]');

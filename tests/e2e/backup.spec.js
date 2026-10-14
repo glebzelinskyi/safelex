@@ -1,12 +1,12 @@
-// Копія прогресу: збереження у файл (меню «Поділитися» або завантаження), відновлення, нагадування на головній.
+// Копія прогресу: збереження у файл (меню «Поділитися» або завантаження), відновлення, нагадування в «Моє».
 import { readFileSync } from 'node:fs';
 import { test, expect, seed, open, storage } from '../helpers.js';
 
 const PROGRESS = {
-  'safelex:best': 4, 'safelex:favs': ['arson'], 'safelex:sprintBest': 12,
+  'safelex:best': 7, 'safelex:favs': ['arson'], 'safelex:sprintBest': 12,
   'safelex:srs': { arson: { checks: 3, day: '2026-01-01', due: 0, wrong: 0 }, arsonist: { checks: 1, day: '2026-01-02', due: 0, wrong: 2 } }
 };
-const DAYS = [0, 1, 2, 3];
+const DAYS = [0, 1, 2, 3, 4, 5, 6];
 
 /** Підміняє меню «Поділитися»: mode — 'ok', 'abort' (користувач закрив меню), 'fail' (система відмовила) або 'none' (меню немає). */
 const stubShare = (page, mode) => page.addInitScript(mode => {
@@ -50,7 +50,7 @@ test.describe('Зберегти прогрес', () => {
     await stubShare(page, 'ok');
     await seed(page, { days: DAYS, data: PROGRESS });
     await open(page, '#/me');
-    await expect(page.locator('.bk-last')).toHaveText('Копію ще не зберігали');
+    await expect(page.locator('.bk-last')).toHaveText('Є новий прогрес — пора зберегти');
     await expect(page.locator('.backup-link')).toHaveClass(/due/);
     await saveFromSheet(page);
     await expect(page.locator('.note-toast b')).toHaveText('Копію прогресу створено');
@@ -63,10 +63,10 @@ test.describe('Зберегти прогрес', () => {
     expect(shared.type).toBe('text/plain');
     const file = JSON.parse(shared.text);
     expect(file).toMatchObject({ app: 'safelex', v: 1 });
-    expect(file.data.days).toHaveLength(4);
+    expect(file.data.days).toHaveLength(7);
     expect(file.data.srs.arson.checks).toBe(3);
     expect(file.data.favs).toEqual(['arson']);
-    expect(file.data).toMatchObject({ best: 4, sprintBest: 12 });
+    expect(file.data).toMatchObject({ best: 7, sprintBest: 12 });
     expect(await storage(page, 'safelex:backupAt')).toBeGreaterThan(0);
   });
 
@@ -79,7 +79,7 @@ test.describe('Зберегти прогрес', () => {
     const d = await download;
     expect(d.suggestedFilename()).toMatch(/^safelex-progress-\d{4}-\d\d-\d\d\.txt$/);
     const file = JSON.parse(readFileSync(await d.path(), 'utf8'));
-    expect(file.data.days).toHaveLength(4);
+    expect(file.data.days).toHaveLength(7);
     await expect(page.locator('.note-toast span')).toContainText('у завантаженнях');
     await expect(page.locator('.bk-last')).toHaveText('Остання копія: сьогодні');
   });
@@ -87,12 +87,12 @@ test.describe('Зберегти прогрес', () => {
   test('закрите меню «Поділитися» не вважається збереженням', async ({ page }) => {
     await stubShare(page, 'abort');
     await seed(page, { days: DAYS, data: PROGRESS });
-    await open(page);
+    await open(page, '#/me');
     let downloads = 0;
     page.on('download', () => downloads++);
-    await page.locator('.backup-card [data-action="backup-save"]').click();
+    await saveFromSheet(page);
     await page.waitForTimeout(300);
-    await expect(page.locator('.backup-card')).toBeVisible();
+    await expect(page.locator('.backup-sheet')).toBeVisible();
     await expect(page.locator('.note-toast')).toHaveCount(0);
     expect(await storage(page, 'safelex:backupAt')).toBeNull();
     expect(downloads).toBe(0);
@@ -133,14 +133,6 @@ test.describe('Зберегти прогрес: крайні випадки', ()
     expect(downloads).toBe(0);
   });
 
-  test('подія встановлення застосунку не прибирає картку про копію', async ({ page }) => {
-    await seed(page, { days: DAYS, data: { ...PROGRESS, 'safelex:hideInstall': true } });
-    await open(page);
-    await expect(page.locator('.backup-card')).toBeVisible();
-    await page.evaluate(() => window.dispatchEvent(new Event('appinstalled')));
-    await expect(page.locator('.backup-card')).toBeVisible();
-  });
-
   test('недоступне сховище: головна без плашки про збій, файл однаково зберігається', async ({ page }) => {
     await stubShare(page, 'none');
     await page.addInitScript(() => {
@@ -174,10 +166,10 @@ test.describe('Відновити з файлу', () => {
     await pickFile(phone, { name: shared.name, mimeType: shared.type, buffer: Buffer.from(shared.text) }, phone.locator('.restore-hint [data-action="backup-restore"]'));
 
     await expect(phone.locator('.note-toast b')).toHaveText('Прогрес відновлено');
-    await expect(phone.locator('.note-toast span')).toContainText('4 дні занять · 2 терміни із прогресом');
-    await expect(phone.locator('a.daily .fire b')).toHaveText('4');
+    await expect(phone.locator('.note-toast span')).toContainText('7 днів занять · 2 терміни із прогресом');
+    await expect(phone.locator('a.daily .fire b')).toHaveText('7');
     await expect(phone.locator('.restore-hint')).toHaveCount(0);
-    await expect(phone.locator('.backup-card')).toHaveCount(0);   // щойно відновлене не просимо зберігати знову
+    await expect(phone.locator('.tabbar a[data-tab="me"]')).not.toHaveClass(/dot/);   // щойно відновлене не просимо зберігати знову
     await phone.goto('./#/me');
     await expect(phone.locator('.legend')).toContainText('Вивчено 1');
     await expect(phone.locator('.legend')).toContainText('Вчу 1');
@@ -206,8 +198,8 @@ test.describe('Відновити з файлу', () => {
     const srs = await storage(page, 'safelex:srs');
     expect(srs.arson.checks).toBe(3);
     expect(Object.keys(srs).sort()).toEqual(['alarm', 'arson', 'arsonist']);
-    await expect(page.locator('.me-stats > span').nth(0).locator('em')).toHaveText('2');
-    await expect(page.locator('.me-stats > span').nth(1).locator('em')).toHaveText('3');
+    await expect(page.locator('.me-streak .ms-v b')).toHaveText('3');
+    await expect(page.locator('.me-streak .ms-now')).toHaveCount(0);
   });
 
   for (const [name, body] of [
@@ -220,7 +212,7 @@ test.describe('Відновити з файлу', () => {
     const dialog = nextDialog(page);
     await pickFile(page, backupFile(body, 'notes.txt'));
     expect(await dialog).toContain('Це не файл прогресу SafeLex');
-    expect(await storage(page, 'safelex:days')).toHaveLength(4);
+    expect(await storage(page, 'safelex:days')).toHaveLength(7);
     expect((await storage(page, 'safelex:srs')).arson.checks).toBe(3);
     await expect(page.locator('.note-toast')).toHaveCount(0);
   });
@@ -258,53 +250,78 @@ test.describe('Відновити з файлу', () => {
   });
 });
 
-test.describe('Нагадування на головній', () => {
-  test('з’являється з третього дня занять і зникає після збереження', async ({ page }) => {
+const meTab = page => page.locator('.tabbar a[data-tab="me"]');
+
+test.describe('Нагадування про копію', () => {
+  test('після тижня занять — крапка на вкладці «Моє» і підказка в рядку; після збереження зникають', async ({ page }) => {
     await stubShare(page, 'ok');
-    await seed(page, { days: [0, 1, 2] });
+    await seed(page, { days: DAYS });
     await open(page);
-    await expect(page.locator('.backup-card b')).toHaveText('Збережіть прогрес');
-    await page.locator('.backup-card [data-action="backup-save"]').click();
-    await expect(page.locator('.backup-card')).toHaveCount(0);
+    await expect(meTab(page)).toHaveClass(/dot/);
+    await meTab(page).click();
+    await expect(page.locator('.backup-link')).toHaveClass(/due/);
+    await expect(page.locator('.bk-last')).toHaveText('Є новий прогрес — пора зберегти');
+    await saveFromSheet(page);
+    await expect(page.locator('.bk-last')).toHaveText('Остання копія: сьогодні');
+    await expect(meTab(page)).not.toHaveClass(/dot/);
     await page.reload();
-    await expect(page.locator('a.daily')).toBeVisible();
-    await expect(page.locator('.backup-card')).toHaveCount(0);
+    await expect(page.locator('.backup-link')).not.toHaveClass(/due/);
+    await expect(meTab(page)).not.toHaveClass(/dot/);
   });
 
-  test('«Пізніше» ховає картку на три дні', async ({ page }) => {
+  test('відкрив шторку, але не зберіг — крапка зникає на місяць', async ({ page }) => {
     await page.clock.install();
-    await seed(page, { days: [0, 1, 2] });
-    await open(page);
-    await page.locator('.backup-card [data-action="backup-later"]').click();
-    await expect(page.locator('.backup-card')).toHaveCount(0);
+    await seed(page, { days: DAYS });
+    await open(page, '#/me');
+    await expect(meTab(page)).toHaveClass(/dot/);
+    await page.locator('[data-action="backup-open"]').click();
+    await expect(page.locator('.backup-sheet')).toBeVisible();
+    await expect(meTab(page)).not.toHaveClass(/dot/);
     await page.reload();
-    await expect(page.locator('a.daily')).toBeVisible();
-    await expect(page.locator('.backup-card')).toHaveCount(0);
-    await page.clock.setFixedTime(Date.now() + 3 * 24 * 3600 * 1000 + 60000);
+    await expect(page.locator('.backup-link')).toBeVisible();
+    await expect(meTab(page)).not.toHaveClass(/dot/);
+    await expect(page.locator('.bk-last')).toHaveText('Копію ще не зберігали');
+    await page.clock.setFixedTime(Date.now() + 30 * 24 * 3600 * 1000 + 60000);
     await page.reload();
-    await expect(page.locator('.backup-card')).toBeVisible();
+    await expect(meTab(page)).toHaveClass(/dot/);
   });
 
-  test('через тиждень нагадує знову, лише якщо прогрес змінився', async ({ page }) => {
+  test('через місяць нагадує знову, лише якщо прогрес змінився', async ({ page }) => {
     await page.clock.install();
     await stubShare(page, 'ok');
-    await seed(page, { days: [0, 1, 2] });
-    await open(page);
-    await page.locator('.backup-card [data-action="backup-save"]').click();
-    await expect(page.locator('.backup-card')).toHaveCount(0);
-    await page.clock.setFixedTime(Date.now() + 8 * 24 * 3600 * 1000);
+    await seed(page, { days: DAYS });
+    await open(page, '#/me');
+    await saveFromSheet(page);
+    // Крапка гасне вже від відкриття шторки — чекаємо, поки збереження справді завершиться.
+    await expect(page.locator('.note-toast b')).toHaveText('Копію прогресу створено');
+    await expect(meTab(page)).not.toHaveClass(/dot/);
+    await page.clock.setFixedTime(Date.now() + 31 * 24 * 3600 * 1000);
     await page.reload();
-    await expect(page.locator('a.daily')).toBeVisible();
-    await expect(page.locator('.backup-card')).toHaveCount(0);
+    await expect(page.locator('.backup-link')).toBeVisible();
+    await expect(meTab(page)).not.toHaveClass(/dot/);
     await page.evaluate(() => localStorage.setItem('safelex:favs', '["arson"]'));
     await page.reload();
-    await expect(page.locator('.backup-card')).toBeVisible();
+    await expect(meTab(page)).toHaveClass(/dot/);
   });
 
-  test('новачкові картку не показуємо, а пропонуємо відновити з файлу', async ({ page }) => {
-    await seed(page, { days: [0, 1], firstLaunch: true });
+  test('крапка з’являється одразу після заняття, без перезавантаження', async ({ page }) => {
+    await seed(page, { days: [1, 2, 3, 4, 5, 6], data: { 'safelex:best': 6 } });
     await open(page);
-    await expect(page.locator('.backup-card')).toHaveCount(0);
+    await expect(meTab(page)).not.toHaveClass(/dot/);
+    await page.evaluate(() => {
+      const d = new Date(), pad = n => String(n).padStart(2, '0');
+      const days = JSON.parse(localStorage.getItem('safelex:days'));
+      days.push(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`);
+      localStorage.setItem('safelex:days', JSON.stringify(days));
+    });
+    await page.locator('.tabbar a[data-tab="guide"]').click();
+    await expect(meTab(page)).toHaveClass(/dot/);
+  });
+
+  test('новачкові нічого не нагадуємо, а пропонуємо відновити з файлу', async ({ page }) => {
+    await seed(page, { days: [0, 1, 2, 3, 4, 5], firstLaunch: true });
+    await open(page);
+    await expect(meTab(page)).not.toHaveClass(/dot/);
     await expect(page.locator('.restore-hint')).toHaveCount(0);   // прогрес уже є
 
     const fresh = await page.context().newPage();

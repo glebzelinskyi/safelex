@@ -35,8 +35,8 @@ test.describe('Завдання дня й серія', () => {
   test('пропущений день обнуляє серію, але рекорд лишається', async ({ page }) => {
     await seed(page, { days: [2, 3, 4], data: { 'safelex:best': 3 } });
     await open(page, '#/me');
-    await expect(page.locator('.me-stats > span').nth(0).locator('em')).toHaveText('0');
-    await expect(page.locator('.me-stats > span').nth(1).locator('em')).toHaveText('3');
+    await expect(page.locator('.me-streak .ms-v b')).toHaveText('3');
+    await expect(page.locator('.me-streak .ms-now')).toHaveCount(0);
     await expect(page.locator('.rank-hero .rh-body > b')).toHaveText('Рядовий');
   });
 
@@ -170,7 +170,7 @@ test.describe('Демо-режим', () => {
     await page.goto('./#/me');
     await expect(page.locator('.legend')).toContainText('Вивчено 1298');
     await page.goto('./#/stats');
-    await expect(page.locator('.sc-sum')).toHaveText(/1298\s*вивчено\s*402\s*вчу\s*1653\s*нові/);
+    await expect(page.locator('.sc-sum')).toHaveText('1298 вивчено · 402 вчу · 1653 нові');
     await expect(page.locator('.sc-row')).toHaveCount(14);
   });
 });

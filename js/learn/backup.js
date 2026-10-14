@@ -9,10 +9,10 @@ import { sanitizeLog, LOG_DAYS } from './activity.js';
 
 const BACKUP_VERSION = 1;
 export const MAX_BACKUP_CHARS = 2e6;
-const REMIND_DAYS = 7, LATER_DAYS = 3, MIN_DAYS = 3;
+const REMIND_DAYS = 30, LATER_DAYS = 30, MIN_DAYS = 7;
 
-const KEYS = ['srs', 'days', 'best', 'ranksSeen', 'matchBest', 'sprintBest', 'log', 'favs'];
-const EMPTY = { srs: {}, days: [], best: 0, ranksSeen: [], matchBest: 0, sprintBest: 0, log: {}, favs: [] };
+const KEYS = ['srs', 'days', 'restoredDays', 'best', 'ranksSeen', 'matchBest', 'sprintBest', 'log', 'favs'];
+const EMPTY = { srs: {}, days: [], restoredDays: [], best: 0, ranksSeen: [], matchBest: 0, sprintBest: 0, log: {}, favs: [] };
 const DATE = /^\d{4}-\d\d-\d\d$/;
 const ANY_DAY = '9999-99-99';
 
@@ -53,6 +53,7 @@ export function cleanProgress(raw, lastDay = ANY_DAY, now = Infinity) {
   return {
     srs,
     days: uniq(list(d.days).filter(isDay)).sort(),
+    restoredDays: uniq(list(d.restoredDays).filter(isDay)).sort(),
     best: whole(d.best),
     ranksSeen: uniq(list(d.ranksSeen).filter(n => n > 0 && RANKS.some(r => r.days === n))).sort((a, b) => a - b),
     matchBest: Math.max(0, num(d.matchBest)),
@@ -76,7 +77,7 @@ export function parseBackup(text, now = Date.now()) {
   if (!isRecord(file) || file.app !== 'safelex' || !isRecord(file.data) || !Number.isFinite(file.v)) throw new BackupError('format');
   if (file.v > BACKUP_VERSION) throw new BackupError('version');
   const data = cleanProgress(file.data, dayKey(-1), now);
-  data.best = Math.min(data.best, data.days.length);
+  data.best = Math.min(data.best, data.days.length + data.restoredDays.length);
   return data;
 }
 
@@ -100,10 +101,10 @@ export function mergeProgress(mine, theirs) {
     const a = mine.log[k], b = theirs.log[k];
     log[k] = !a ? b : !b ? a : b.a > a.a ? b : a;
   }
-  const days = uniq([...mine.days, ...theirs.days]).sort();
+  const days = uniq([...mine.days, ...theirs.days]).sort(), restoredDays = uniq([...mine.restoredDays, ...theirs.restoredDays]).sort();
   return cleanProgress({
-    srs, log, days,
-    best: Math.max(mine.best, theirs.best, longestRun(days)),
+    srs, log, days, restoredDays,
+    best: Math.max(mine.best, theirs.best, longestRun(uniq([...days, ...restoredDays]).sort())),
     ranksSeen: [...mine.ranksSeen, ...theirs.ranksSeen],
     matchBest: mine.matchBest && theirs.matchBest ? Math.min(mine.matchBest, theirs.matchBest) : mine.matchBest || theirs.matchBest,
     sprintBest: Math.max(mine.sprintBest, theirs.sprintBest),
@@ -132,7 +133,7 @@ function progressSig() {
   const add = v => { h = (h * 31 + (Number.isFinite(v) ? v % 1e9 : hashStr(String(v)))) >>> 0; };
   for (const id in p.srs) { const s = p.srs[id]; if (isRecord(s)) { add(id.length); add(s.checks); add(s.due); add(s.wrong); } }
   for (const k in p.log) add(p.log[k]?.a);
-  p.days.forEach(add); p.favs.forEach(add);
+  p.days.forEach(add); p.restoredDays.forEach(add); p.favs.forEach(add);
   add(p.best); add(p.matchBest); add(p.sprintBest);
   return `${Object.keys(p.srs).length}:${p.days.length}:${p.favs.length}:${h}`;
 }

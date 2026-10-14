@@ -1,10 +1,10 @@
 import { esc, plural, fmtTime, nAnswers } from '../core/util.js';
 import { dayKey, keyToDate, dayLabel, ymd } from '../core/dates.js';
 import { store } from '../core/store.js';
-import { TERMS, CATEGORIES, termById, byCat, short } from '../data.js';
+import { TERMS, CATEGORIES, termById, byCat, short, toneOf } from '../data.js';
 import { srs, boxOf, progressOf, mistakesIn } from '../learn/srs.js';
 import { actLog } from '../learn/activity.js';
-import { doneDays, bestStreak } from '../learn/streak.js';
+import { doneDays, restoredDays, bestStreak } from '../learn/streak.js';
 import { I } from '../ui/icons.js';
 import { app } from '../ui/dom.js';
 import { onClick, onAction } from '../ui/events.js';
@@ -20,12 +20,14 @@ let hmSel = '';
 function dayText(k) {
   const d = actLog[k];
   const when = k === dayKey() ? 'Сьогодні' : dayLabel(k);
-  if (!d || !d.a) return `<b>${esc(when)}</b> · ${doneDays.has(k) ? 'завдання дня виконано' : 'без практики'}`;
+  if (!d || !d.a) return `<b>${esc(when)}</b> · ${doneDays.has(k) ? 'завдання дня виконано' : restoredDays.has(k) ? 'серію відновлено' : 'без практики'}`;
   return `<b>${esc(when)}</b> · ${nAnswers(d.a)} · ${pct(d.r, d.a)}% правильних${doneDays.has(k) ? ' · завдання дня ✓' : ''}`;
 }
 
-const heatLevel = k => { const a = actLog[k]?.a || 0; return a >= 50 ? 4 : a >= 25 ? 3 : a >= 10 ? 2 : a > 0 || doneDays.has(k) ? 1 : 0; };
-const practiced = k => !!(actLog[k]?.a) || doneDays.has(k);
+// Відновлений день зараховано в серію — у календарі він теж не порожній.
+const kept = k => doneDays.has(k) || restoredDays.has(k);
+const heatLevel = k => { const a = actLog[k]?.a || 0; return a >= 50 ? 4 : a >= 25 ? 3 : a >= 10 ? 2 : a > 0 || kept(k) ? 1 : 0; };
+const practiced = k => !!(actLog[k]?.a) || kept(k);
 
 function heatmap() {
   const today = dayKey(), now = new Date();
@@ -37,9 +39,9 @@ function heatmap() {
   for (let d = 1; d <= len; d++) {
     const k = ymd(new Date(y, m, d));
     if (k > today) { cells += `<span class="hm-cell future">${d}</span>`; continue; }
-    const a = actLog[k]?.a || 0, done = doneDays.has(k);
+    const a = actLog[k]?.a || 0, done = kept(k);
     if (practiced(k)) inMonth++;
-    const tip = `${dayLabel(k)}: ${a ? nAnswers(a) : 'без відповідей'}${done ? ', завдання дня виконано' : ''}`;
+    const tip = `${dayLabel(k)}: ${a ? nAnswers(a) : 'без відповідей'}${doneDays.has(k) ? ', завдання дня виконано' : restoredDays.has(k) ? ', серію відновлено' : ''}`;
     cells += `<button class="hm-cell l${heatLevel(k)} ${done ? 'done' : ''} ${k === today ? 'today' : ''} ${k === hmSel ? 'sel' : ''}" data-day="${k}" title="${esc(tip)}" aria-label="${esc(tip)}">${d}</button>`;
   }
   const elapsed = hmOffset ? len : now.getDate();
@@ -62,7 +64,7 @@ export function renderStats() {
   hmOffset = 0; hmSel = '';
   const keys = Object.keys(actLog);
   const total = keys.reduce((n, k) => n + actLog[k].a, 0), right = keys.reduce((n, k) => n + actLog[k].r, 0);
-  const active = new Set([...keys.filter(k => actLog[k].a), ...doneDays]).size;
+  const active = new Set([...keys.filter(k => actLog[k].a), ...doneDays, ...restoredDays]).size;
   const p = progressOf(TERMS);
   const today = dayKey();
 
@@ -87,6 +89,14 @@ export function renderStats() {
 
   const matchBest = store.get('safelex:matchBest', 0), sprintBest = store.get('safelex:sprintBest', 0);
   const best = bestStreak();
+
+  // Розділи від найкраще вивчених; найслабший — окремою підказкою з кнопкою, щоб було ясно, що робити далі.
+  const cats = CATEGORIES.map(c => {
+    const list = byCat[c.id] || [], pc = progressOf(list), n = list.length || 1;
+    return { c, pc, n, pct: pct(pc.mastered, n) };
+  }).sort((x, y) => y.pct - x.pct || (y.pc.learning / y.n) - (x.pc.learning / x.n));
+  const open = cats.filter(x => x.pc.mastered < x.n);
+  const weak = p.mastered + p.learning && open.length ? open[open.length - 1] : null;
 
   app.innerHTML = `
     <header class="hero" style="gap:14px">
@@ -129,19 +139,18 @@ export function renderStats() {
       </div>
       <div class="card sc">
         <span class="label">За розділами</span>
-        <div class="sc-sum">
-          <span class="m"><b>${p.mastered}</b>вивчено</span>
-          <span class="l"><b>${p.learning}</b>вчу</span>
-          <span class="n"><b>${p.new}</b>нові</span>
-        </div>
-        <div class="sc-list" style="--d:${Math.max(3, ...CATEGORIES.map(c => String((byCat[c.id] || []).length).length))}">${CATEGORIES.map(c => {
-          const list = byCat[c.id] || [], pc = progressOf(list), n = list.length || 1;
-          return `<a class="sc-row" href="#/guide/${c.id}">
+        <p class="sc-sum"><b>${p.mastered}</b> вивчено · <b>${p.learning}</b> вчу · <b>${p.new}</b> нові</p>
+        ${weak ? `<div class="sc-focus ${toneOf(weak.c.id)}">
+          <span class="body"><span>Найменше вивчено</span><b>${esc(short(weak.c))} · ${weak.pct}%</b></span>
+          <a class="pill" href="#/train/quiz?cat=${weak.c.id}">${I.target}Тренувати</a>
+        </div>` : ''}
+        <div class="sc-list">${cats.map(({ c, pc, n, pct: v }) => `
+          <a class="sc-row ${toneOf(c.id)} ${pc.mastered === n ? 'full' : ''}" href="#/guide/${c.id}">
             <span class="sc-name">${esc(short(c))}</span>
-            <span class="sc-nums"><b class="m">${pc.mastered}</b><b class="l">${pc.learning}</b><b class="n">${pc.new}</b></span>
-            <span class="stack"><span class="s-mastered" style="width:${pc.mastered / n * 100}%"></span><span class="s-learning" style="width:${pc.learning / n * 100}%"></span></span>
-          </a>`;
-        }).join('')}</div>
+            <span class="sc-pct">${pc.mastered === n ? I.check : `${v}<small>%</small>`}</span>
+            <span class="stack"><span class="fill"><span class="s-mastered" style="width:${pc.mastered / n * 100}%"></span><span class="s-learning" style="width:${pc.learning / n * 100}%"></span></span></span>
+            <span class="sc-sub">${pc.mastered} з ${n} вивчено${pc.learning ? ` · ${pc.learning} вчу` : ''}</span>
+          </a>`).join('')}</div>
       </div>
       <div class="section-head"><h2>Найскладніші</h2>${mistakesIn('all').length ? `<a href="#/train/mistakes?cat=all">Тренувати</a>` : ''}</div>
       ${hard.length ? `<div class="list">${hard.map(t => `
@@ -149,7 +158,7 @@ export function renderStats() {
           <span class="body"><span class="en">${esc(t.en)}</span><span class="sub">${esc(t.ua)}</span></span>
           <span class="st-wrong">${srs[t.id].wrong} ${plural(srs[t.id].wrong, 'помилка', 'помилки', 'помилок')}</span>
         </a>`).join('')}</div>`
-      : `<div class="empty"><b>Помилок ще немає</b>Тут з’являться терміни, у яких ви помиляєтеся найчастіше.</div>`}
+      : `<div class="empty-box"><span class="eb-ic">${I.check}</span><b>Помилок ще немає</b><span>Тут з’являться терміни, у яких ви помиляєтеся найчастіше.</span></div>`}
       <div class="section-head"><h2>Рекорди</h2></div>
       <div class="st-due st-rec">
         <span><b>${best}</b>${plural(best, 'день', 'дні', 'днів')} серії</span>

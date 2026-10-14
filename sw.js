@@ -1,4 +1,4 @@
-const VERSION = 31;
+const VERSION = 32;
 const CACHE = 'safelex-v' + VERSION, NEXT = CACHE + '-next';
 const NET_TIMEOUT_MS = 3000, SLOW_WINDOW_MS = 30000;
 let slowUntil = 0;
@@ -60,6 +60,7 @@ const ASSETS = [
   './js/ui/ranks.js',
   './js/ui/sheet.js',
   './js/ui/splash.js',
+  './js/ui/streak.js',
   './js/user.js',
   './data/terms.js',
   './manifest.webmanifest',

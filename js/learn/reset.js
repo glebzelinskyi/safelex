@@ -4,7 +4,7 @@ import { resetActivity } from './activity.js';
 import { resetStreak } from './streak.js';
 
 export const PROGRESS_KEYS = ['safelex:srs', 'safelex:days', 'safelex:best', 'safelex:ranksSeen', 'safelex:dailyScore',
-  'safelex:matchBest', 'safelex:sprintBest', 'safelex:log'];
+  'safelex:matchBest', 'safelex:sprintBest', 'safelex:log', 'safelex:restoredDays'];
 
 export function resetProgress() {
   PROGRESS_KEYS.forEach(k => store.remove(k));

@@ -31,6 +31,21 @@ export function goBack() {
 
 let enterTimer = 0, shownHash = null;
 
+// Підсвітка активної вкладки переїжджає до нової, а не спалахує на місці.
+const tabInd = document.querySelector('.tab-ind');
+function placeTabInd() {
+  if (!tabInd) return;
+  const icon = document.querySelector('.tabbar a.active svg');
+  tabInd.classList.toggle('off', !icon);
+  if (!icon?.getClientRects().length) return;
+  const r = icon.getBoundingClientRect(), bar = tabInd.parentElement.getBoundingClientRect();
+  const box = tabInd.parentElement;
+  tabInd.style.transform = `translate(${r.left - bar.left - box.clientLeft}px, ${r.top - bar.top - box.clientTop}px)`;
+  if (!tabInd.classList.contains('ready')) requestAnimationFrame(() => tabInd.classList.add('ready'));
+}
+window.addEventListener('resize', placeTabInd);
+document.fonts?.ready.then(placeTabInd);
+
 export function route() {
   shownHash = location.hash;
   const h = location.hash.slice(1) || '/';
@@ -49,6 +64,7 @@ export function route() {
   const tab = (routes.get(parts[0] ?? '') || fallback)(parts, params);
   if (tab === STOP) return;
   document.querySelectorAll('.tabbar a').forEach(a => a.classList.toggle('active', a.dataset.tab === tab));
+  placeTabInd();
 
   const y = restoreY; restoreY = null;
   if (y) {

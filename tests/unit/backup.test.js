@@ -13,7 +13,7 @@ const ids = () => window.TERMS.slice(0, 6).map(t => t.id);
 
 const OLD_PHONE = () => ({
   srs: { [ids()[0]]: rec(3, '2026-09-20'), [ids()[1]]: rec(1, '2026-10-01', 2) },
-  days: ['2026-10-05', '2026-10-06', '2026-10-07'],
+  days: ['2026-10-05', '2026-10-06', '2026-10-07'], restoredDays: [],
   best: 3, ranksSeen: [3], matchBest: 42, sprintBest: 17,
   log: { '2026-10-07': { a: 10, r: 8 } },
   favs: [ids()[2]]
@@ -99,7 +99,7 @@ describe('перевірка файлу', () => {
     }));
     expect(data).toEqual({
       srs: { [ids()[0]]: { checks: 3, day: '', due: 0, wrong: 0, fixed: 0 } },
-      days: ['2026-10-07'], best: 0, ranksSeen: [3], matchBest: 0, sprintBest: 4,
+      days: ['2026-10-07'], restoredDays: [], best: 0, ranksSeen: [3], matchBest: 0, sprintBest: 4,
       log: { '2026-10-07': { a: 5, r: 5 } },
       favs: [ids()[2]]
     });
@@ -223,6 +223,29 @@ describe('злиття', () => {
   });
 });
 
+describe('відновлені дні серії у копії', () => {
+  test('потрапляють у файл, об’єднуються при злитті й рахуються в серію та рекорд', async () => {
+    put({ days: ['2026-10-05', '2026-10-06'], restoredDays: ['2026-10-07'], best: 3 });
+    let b = await fresh();
+    const text = b.buildBackup();
+    expect(JSON.parse(text).data.restoredDays).toEqual(['2026-10-07']);
+    localStorage.clear();
+    put({ days: ['2026-10-08', '2026-10-09'] });
+    b = await fresh();
+    b.restoreBackup(text);
+    expect(get('restoredDays')).toEqual(['2026-10-07']);
+    expect(get('best')).toBe(5);
+    vi.resetModules();
+    const { streak } = await import('../../js/learn/streak.js');
+    expect(streak()).toBe(5);
+  });
+
+  test('рекорд із файлу обмежується днями занять разом із відновленими', async () => {
+    const b = await fresh();
+    expect(b.parseBackup(fileOf({ best: 50, days: ['2026-10-07', '2026-10-08'], restoredDays: ['2026-10-06'] })).best).toBe(3);
+  });
+});
+
 describe('збій запису', () => {
   test('якщо сховище переповнене, старий прогрес лишається і повертається помилка', async () => {
     put({ days: ['2026-10-09'], best: 1 });
@@ -243,45 +266,46 @@ describe('збій запису', () => {
 describe('нагадування про копію', () => {
   const days = n => Array.from({ length: n }, (_, i) => `2026-10-0${9 - i}`);
 
-  test('не з’являється, поки занять менше трьох днів', async () => {
-    put({ days: days(2) });
+  test('не з’являється, поки занять менше семи днів', async () => {
+    put({ days: days(6) });
     expect((await fresh()).backupDue()).toBe(false);
   });
 
-  test('тренування без завдань дня теж рахуються: три дні відповідей у журналі', async () => {
-    put({ log: { '2026-10-07': { a: 5, r: 4 }, '2026-10-08': { a: 5, r: 4 } } });
+  test('тренування без завдань дня теж рахуються: сім днів відповідей у журналі', async () => {
+    const log = n => Object.fromEntries(days(n).map(k => [k, { a: 5, r: 4 }]));
+    put({ log: log(6) });
     expect((await fresh()).backupDue()).toBe(false);
-    put({ log: { '2026-10-07': { a: 5, r: 4 }, '2026-10-08': { a: 5, r: 4 }, '2026-10-09': { a: 1, r: 1 } } });
+    put({ log: log(7) });
     expect((await fresh()).backupDue()).toBe(true);
   });
 
-  test('з’являється з третього дня, якщо копії ще не було', async () => {
-    put({ days: days(3) });
+  test('з’являється з сьомого дня занять, якщо копії ще не було', async () => {
+    put({ days: days(7) });
     expect((await fresh()).backupDue()).toBe(true);
   });
 
-  test('після збереження мовчить тиждень, а далі нагадує лише за наявності нового прогресу', async () => {
-    put({ days: days(3) });
+  test('після збереження мовчить місяць, а далі нагадує лише за наявності нового прогресу', async () => {
+    put({ days: days(7) });
     const b = await fresh();
     b.markBackedUp();
     expect(b.backupDue()).toBe(false);
-    put({ days: days(4) });
-    expect(b.backupDue(Date.now() + 6 * DAY)).toBe(false);
-    expect(b.backupDue(Date.now() + 7 * DAY)).toBe(true);
-    b.markBackedUp(Date.now() + 7 * DAY);
-    expect(b.backupDue(Date.now() + 30 * DAY)).toBe(false);   // прогрес не змінювався
+    put({ days: days(8) });
+    expect(b.backupDue(Date.now() + 29 * DAY)).toBe(false);
+    expect(b.backupDue(Date.now() + 30 * DAY)).toBe(true);
+    b.markBackedUp(Date.now() + 30 * DAY);
+    expect(b.backupDue(Date.now() + 90 * DAY)).toBe(false);   // прогрес не змінювався
   });
 
-  test('«Пізніше» відкладає на три дні', async () => {
-    put({ days: days(3) });
+  test('відкрив шторку й не зберіг — наступне нагадування через місяць', async () => {
+    put({ days: days(7) });
     const b = await fresh();
     b.snoozeBackup();
-    expect(b.backupDue(Date.now() + 2 * DAY)).toBe(false);
-    expect(b.backupDue(Date.now() + 3 * DAY)).toBe(true);
+    expect(b.backupDue(Date.now() + 29 * DAY)).toBe(false);
+    expect(b.backupDue(Date.now() + 30 * DAY)).toBe(true);
   });
 
   test('годинник перевели назад — нагадування не зникає назавжди', async () => {
-    put({ days: days(3), backupAt: Date.now() + 100 * DAY, backupSig: 'старий' });
+    put({ days: days(7), backupAt: Date.now() + 100 * DAY, backupSig: 'старий' });
     expect((await fresh()).backupDue()).toBe(true);
   });
 
@@ -289,6 +313,6 @@ describe('нагадування про копію', () => {
     const b = await fresh();
     b.restoreBackup(fileOf(OLD_PHONE()));
     expect(b.backupDue()).toBe(false);
-    expect(b.backupDue(Date.now() + 30 * DAY)).toBe(false);
+    expect(b.backupDue(Date.now() + 60 * DAY)).toBe(false);
   });
 });

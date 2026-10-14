@@ -37,7 +37,7 @@ export function renderGuide() {
       <h1>Довідник</h1>
       <p class="lead">${nTerms(TERMS.length)} у ${CATEGORIES.length} розділах</p>
       <div class="g-prog">
-        <div class="stack"><span class="s-mastered" style="width:${p.mastered / n * 100}%"></span><span class="s-learning" style="width:${p.learning / n * 100}%"></span></div>
+        <div class="stack"><span class="fill"><span class="s-mastered" style="width:${p.mastered / n * 100}%"></span><span class="s-learning" style="width:${p.learning / n * 100}%"></span></span></div>
         <span>Вивчено <b>${p.mastered}</b> · вчу <b>${p.learning}</b></span>
       </div>
     </header>

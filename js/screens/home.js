@@ -14,7 +14,8 @@ import { app } from '../ui/dom.js';
 import { onClick, onAction } from '../ui/events.js';
 import { badge } from '../ui/badge.js';
 import { installCard } from '../ui/install.js';
-import { backupCard, restoreHint } from '../ui/backup.js';
+import { restoreHint } from '../ui/backup.js';
+import { streakBackCard, onStreakRestored } from '../ui/streak.js';
 
 const TRY_Q = ['arson', 'горіння', 'fire alarm', 'breathing apparatus', 'вогнегасник', 'first aid', 'задимлення', 'false alarm'];
 
@@ -62,7 +63,7 @@ function drawHome() {
       ? `<span class="qc-label">Ви шукали</span>${qHist.map(h => `<button class="chip qc" data-q="${esc(h)}">${esc(h)}</button>`).join('')}<button class="chip qc-x" data-action="qhist-clear" aria-label="Очистити історію">${I.x}</button>`
       : tryChips();
     chips.removeAttribute('hidden');
-    body.innerHTML = installCard() + dailyCard() + backupCard() + restoreHint() + termOfDayCard() + recentBlock(); return;
+    body.innerHTML = installCard() + streakBackCard() + dailyCard() + restoreHint() + termOfDayCard() + recentBlock(); return;
   }
   const all = smartSearch(q);
   const counts = {};
@@ -139,7 +140,7 @@ function dailyCard() {
       <span class="daily-top">
         <span class="fire ${days ? 'lit' : ''}">${I.flame}<b class="len${String(days).length}">${days}</b><small>${plural(days, 'день', 'дні', 'днів')}</small></span>
         <span class="daily-txt">
-          <span class="k">${days ? 'Серія' : 'Серія ще не почалася'}</span>
+          <span class="k">${days ? 'Серія' : best ? 'Серію перервано' : 'Серія ще не почалася'}</span>
           <span class="t">${done ? 'Сьогодні виконано' : 'Завдання дня'}</span>
           <span class="s">${done && res.date === dayKey() ? `Результат ${num(res.score)} з ${num(res.total)} · наступне — завтра` : `${DAILY_LEN} питань з усієї бази`}</span>
         </span>
@@ -207,3 +208,4 @@ onAction('tod-next', () => {
   const box = document.querySelector('.tod');
   if (box) { box.outerHTML = termOfDayCard(); document.querySelector('.tod').classList.add('swap'); }
 });
+onStreakRestored(() => { if (document.getElementById('homeBody')) drawHome(); });

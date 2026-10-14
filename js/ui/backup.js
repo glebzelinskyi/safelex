@@ -1,11 +1,12 @@
 import { store } from '../core/store.js';
 import { DAY } from '../core/dates.js';
-import { esc, nDays, nTerms } from '../core/util.js';
+import { nDays, nTerms } from '../core/util.js';
 import { favs } from '../user.js';
 import { srs } from '../learn/srs.js';
 import { doneDays } from '../learn/streak.js';
 import { MAX_BACKUP_CHARS, BackupError, backupDue, backupName, buildBackup, lastBackupAt, markBackedUp, restoreBackup, snoozeBackup } from '../learn/backup.js';
 import { onAction } from './events.js';
+import { toast } from './dom.js';
 import { I } from './icons.js';
 import { openSheet } from './sheet.js';
 
@@ -17,28 +18,22 @@ const ERRORS = {
   write: 'Не вдалося записати прогрес: браузер не дає зберегти дані. Вийдіть із приватного режиму або звільніть місце на пристрої.'
 };
 
-export function backupCard() {
-  if (!backupDue()) return '';
-  return `
-    <div class="backup-card">
-      <button class="bc-main" data-action="backup-save">
-        <span class="body"><b>Збережіть прогрес</b><span>${lastBackupAt() ? lastBackupText() : 'Лише на цьому телефоні'}</span></span>
-        <span class="bc-go">${I.save}Зберегти</span>
-      </button>
-      <button class="x" data-action="backup-later" aria-label="Нагадати пізніше">${I.x}</button>
-    </div>`;
-}
+const meTab = () => document.querySelector('.tabbar a[data-tab="me"]');
+const TAB_ROOTS = ['', '#', '#/', '#/guide', '#/train', '#/me'];
+function syncDot() { meTab()?.classList.toggle('dot', backupDue()); }
 
 export function backupLink() {
+  const due = backupDue();
   return `
-    <button class="stats-link backup-link ${backupDue() ? 'due' : ''}" data-action="backup-open">
+    <button class="stats-link backup-link ${due ? 'due' : ''}" data-action="backup-open">
       <span class="sl-ic">${I.save}</span>
-      <span class="body"><b>Копія прогресу</b><span class="bk-last">${lastBackupText()}</span></span>${I.chev}
+      <span class="body"><b>Копія прогресу</b><span class="bk-last">${due ? 'Є новий прогрес — пора зберегти' : lastBackupText()}</span></span>${I.chev}
     </button>`;
 }
 
 let sheet = null;
 onAction('backup-open', () => {
+  if (backupDue()) { snoozeBackup(); syncDot(); }
   sheet = openSheet(`
     <span class="bs-ic">${I.save}</span>
     <h2 class="bs-title">Копія прогресу</h2>
@@ -60,16 +55,6 @@ export function restoreHint() {
 export function lastBackupText() {
   const at = lastBackupAt(), ago = Math.floor((Date.now() - at) / DAY);
   return !at || ago < 0 ? 'Копію ще не зберігали' : `Остання копія: ${ago ? `${nDays(ago)} тому` : 'сьогодні'}`;
-}
-
-function toast(title, text) {
-  document.querySelector('.note-toast')?.remove();
-  const t = document.createElement('button');
-  t.className = 'note-toast';
-  t.innerHTML = `<i class="nt-ic">${I.check}</i><span class="nt-body"><b>${esc(title)}</b><small>${esc(text)}</small></span>`;
-  t.addEventListener('click', () => t.remove());
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 7000);
 }
 
 function download(text, name) {
@@ -103,8 +88,8 @@ onAction('backup-save', async () => {
     const how = await exportBackup();
     if (!how) return;
     markBackedUp();
-    document.querySelector('.backup-card')?.remove();
     document.querySelector('.backup-link')?.classList.remove('due');
+    syncDot();
     const last = document.querySelector('.bk-last');
     if (last) last.textContent = lastBackupText();
     sheet?.close(); sheet = null;
@@ -113,8 +98,6 @@ onAction('backup-save', async () => {
       : `Файл ${backupName()} — у завантаженнях. Надішліть його собі, щоб не загубити.`);
   } finally { saving = false; }
 });
-
-onAction('backup-later', el => { snoozeBackup(); el.closest('.backup-card')?.remove(); });
 
 async function restoreFrom(file) {
   try {
@@ -142,5 +125,7 @@ onAction('backup-restore', () => {
 export function initBackup() {
   let res = null;
   try { res = JSON.parse(sessionStorage.getItem(RESTORED_KEY)); sessionStorage.removeItem(RESTORED_KEY); } catch {}
+  syncDot();
+  window.addEventListener('hashchange', () => { if (TAB_ROOTS.includes(location.hash)) syncDot(); });
   if (res) toast('Прогрес відновлено', `${nDays(res.days | 0)} занять · ${nTerms(res.terms | 0)} із прогресом`);
 }

@@ -1,3 +1,6 @@
+import { esc } from '../core/util.js';
+import { I } from './icons.js';
+
 export const app = document.getElementById('app');
 
 export const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -16,3 +19,13 @@ function iosHaptic() {
   if (document.activeElement === box) { box.blur(); if (prev && prev !== document.body) prev.focus?.({ preventScroll: true }); }
 }
 export const vibrate = p => { try { navigator.vibrate ? navigator.vibrate(p) : iosHaptic(); } catch {} };
+
+export function toast(title, text) {
+  document.querySelector('.note-toast')?.remove();
+  const t = document.createElement('button');
+  t.className = 'note-toast';
+  t.innerHTML = `<i class="nt-ic">${I.check}</i><span class="nt-body"><b>${esc(title)}</b><small>${esc(text)}</small></span>`;
+  t.addEventListener('click', () => t.remove());
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 7000);
+}
