@@ -8,6 +8,7 @@ test.describe('Відновлення серії', () => {
     const card = page.locator('.streak-back');
     await expect(card).toContainText('Серію на 5 днів ще можна врятувати');
     await expect(page.locator('a.daily .fire b')).toHaveText('0');
+    await expect(page.locator('a.daily .k')).toHaveText('Серія на паузі');
     await card.locator('[data-action="streak-restore"]').click();
     await expect(card).toHaveCount(0);
     await expect(page.locator('.note-toast b')).toHaveText('Серію відновлено');
@@ -37,11 +38,13 @@ test.describe('Відновлення серії', () => {
     await open(page, '#/me');
     const card = page.locator('.streak-back');
     await expect(card).toContainText('Серію на 3 дні ще можна врятувати');
-    await expect(page.locator('.me-streak .ms-now')).toHaveCount(0);
+    await expect(page.locator('.me-streak')).toHaveClass(/cold/);
+    await expect(page.locator('.me-streak .ms-now')).toHaveText('Серія на паузі — її ще можна врятувати');
     await card.locator('[data-action="streak-restore"]').click();
     await expect(card).toHaveCount(0);
     await expect(page.locator('.me-streak .ms-v b')).toHaveText('4');
     await expect(page.locator('.me-streak .ms-now')).toHaveText('Серія триває — це ваш рекорд');
+    await expect(page.locator('.me-streak')).not.toHaveClass(/cold/);
   });
 
   test('вдруге за місяць не пропонується', async ({ page }) => {

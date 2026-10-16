@@ -3,6 +3,9 @@ import { I } from './icons.js';
 
 export const app = document.getElementById('app');
 
+// Адреси головних екранів — тих, що відкриваються вкладками внизу.
+export const TAB_HASHES = ['', '#', '#/', '#/guide', '#/train', '#/me'];
+
 export const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 let hapticLabel = null;
@@ -20,12 +23,27 @@ function iosHaptic() {
 }
 export const vibrate = p => { try { navigator.vibrate ? navigator.vibrate(p) : iosHaptic(); } catch {} };
 
-export function toast(title, text) {
+// Постійна невидима область: читач екрана озвучує текст, що в ній з'являється.
+let live = null;
+function announce(text) {
+  if (!live) {
+    live = document.createElement('div');
+    live.className = 'sr-live'; live.setAttribute('role', 'status');
+    document.body.appendChild(live);
+  }
+  live.textContent = '';
+  requestAnimationFrame(() => { live.textContent = text; });
+}
+
+// kind: 'ok' — галочка, 'warn' — помилка (довше на екрані, бо текст треба встигнути прочитати).
+export function toast(title, text, kind = 'ok') {
   document.querySelector('.note-toast')?.remove();
-  const t = document.createElement('button');
-  t.className = 'note-toast';
-  t.innerHTML = `<i class="nt-ic">${I.check}</i><span class="nt-body"><b>${esc(title)}</b><small>${esc(text)}</small></span>`;
+  const t = document.createElement('div');
+  t.className = `note-toast ${kind}`;
+  t.setAttribute('aria-hidden', 'true');
+  t.innerHTML = `<i class="nt-ic">${kind === 'warn' ? I.x : I.check}</i><span class="nt-body"><b>${esc(title)}</b><small>${esc(text)}</small></span>`;
   t.addEventListener('click', () => t.remove());
   document.body.appendChild(t);
-  setTimeout(() => t.remove(), 7000);
+  announce(`${title}. ${text}`);
+  setTimeout(() => t.remove(), kind === 'warn' ? 10000 : 7000);
 }

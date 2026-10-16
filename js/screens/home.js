@@ -5,7 +5,7 @@ import { DAILY_LEN, MAX_RESULTS } from '../config.js';
 import { TERMS, CORE, termById, catById, short, toneOf } from '../data.js';
 import { favs, recent, qHist, rememberQuery, clearRecent, clearQueries } from '../user.js';
 import { RANKS, rankOf, nextRank } from '../learn/ranks.js';
-import { streak, bestStreak, doneToday } from '../learn/streak.js';
+import { streak, bestStreak, doneToday, restoreOffer } from '../learn/streak.js';
 import { smartSearch } from '../search/index.js';
 import { wordsOf } from '../search/text.js';
 import { highlight, exSnippet } from '../search/highlight.js';
@@ -140,7 +140,7 @@ function dailyCard() {
       <span class="daily-top">
         <span class="fire ${days ? 'lit' : ''}">${I.flame}<b class="len${String(days).length}">${days}</b><small>${plural(days, 'день', 'дні', 'днів')}</small></span>
         <span class="daily-txt">
-          <span class="k">${days ? 'Серія' : best ? 'Серію перервано' : 'Серія ще не почалася'}</span>
+          <span class="k">${days ? 'Серія' : best ? (restoreOffer() ? 'Серія на паузі' : 'Серію перервано') : 'Серія ще не почалася'}</span>
           <span class="t">${done ? 'Сьогодні виконано' : 'Завдання дня'}</span>
           <span class="s">${done && res.date === dayKey() ? `Результат ${num(res.score)} з ${num(res.total)} · наступне — завтра` : `${DAILY_LEN} питань з усієї бази`}</span>
         </span>

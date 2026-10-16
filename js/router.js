@@ -1,4 +1,4 @@
-import { app, reducedMotion } from './ui/dom.js';
+import { app, reducedMotion, TAB_HASHES } from './ui/dom.js';
 import { closeOverlays } from './ui/sheet.js';
 
 export const STOP = Symbol('stop');
@@ -81,7 +81,6 @@ export function route() {
   enterTimer = setTimeout(() => app.classList.remove('enter'), 700);
 }
 
-const TABS = ['', '#', '#/', '#/guide', '#/train', '#/me'];
 const hashOf = u => { const i = u.indexOf('#'); return i < 0 ? '' : u.slice(i); };
 
 export function startRouter() {
@@ -89,7 +88,7 @@ export function startRouter() {
   window.addEventListener('hashchange', e => {
     if (!document.startViewTransition || reducedMotion() || app.style.transform || document.hidden) return show();
     const html = document.documentElement;
-    html.dataset.nav = TABS.includes(hashOf(e.oldURL)) && TABS.includes(hashOf(e.newURL)) ? 'tab' : navDir;
+    html.dataset.nav = TAB_HASHES.includes(hashOf(e.oldURL)) && TAB_HASHES.includes(hashOf(e.newURL)) ? 'tab' : navDir;
     html.classList.add('vt');
     const vt = document.startViewTransition(show);
     vt.ready.catch(() => {});

@@ -94,8 +94,10 @@ export function renderStats() {
     const list = byCat[c.id] || [], pc = progressOf(list), n = list.length || 1;
     return { c, pc, n, pct: pct(pc.mastered, n) };
   }).sort((x, y) => y.pct - x.pct || (y.pc.learning / y.n) - (x.pc.learning / x.n));
-  const open = cats.filter(x => x.pc.mastered < x.n);
-  const weak = p.mastered + p.learning && open.length ? open[open.length - 1] : null;
+  // Серед однаково слабких — той, що вже почали, а далі менший: до нього реально дотягнутися.
+  const open = cats.filter(x => x.pc.mastered < x.n)
+    .sort((x, y) => x.pct - y.pct || y.pc.learning - x.pc.learning || x.n - y.n);
+  const weak = p.mastered + p.learning && open.length ? open[0] : null;
 
   app.innerHTML = `
     <header class="hero" style="gap:14px">

@@ -36,8 +36,19 @@ test.describe('Завдання дня й серія', () => {
     await seed(page, { days: [2, 3, 4], data: { 'safelex:best': 3 } });
     await open(page, '#/me');
     await expect(page.locator('.me-streak .ms-v b')).toHaveText('3');
-    await expect(page.locator('.me-streak .ms-now')).toHaveCount(0);
+    await expect(page.locator('.me-streak')).toHaveClass(/cold/);
+    await expect(page.locator('.me-streak .ms-now')).toHaveText('Серія на паузі — її ще можна врятувати');
     await expect(page.locator('.rank-hero .rh-body > b')).toHaveText('Рядовий');
+    // Наступне звання рахується від поточної серії — однаково в картці звання і в сітці.
+    await expect(page.locator('.rank-hero .rh-next b')).toHaveText('10 днів');
+    await expect(page.locator('.rank.nx .rk-d')).toHaveText('ще 10 днів');
+  });
+
+  test('коли врятувати вже не можна — «Моє» пропонує почати нову серію', async ({ page }) => {
+    await seed(page, { days: [3, 4, 5], data: { 'safelex:best': 3 } });
+    await open(page, '#/me');
+    await expect(page.locator('.streak-back')).toHaveCount(0);
+    await expect(page.locator('.me-streak .ms-now')).toHaveText('Серію перервано — почніть нову із завдання дня');
   });
 
   test('завдання дня зараховується з останньою відповіддю, навіть якщо не відкрити результат', async ({ page }) => {

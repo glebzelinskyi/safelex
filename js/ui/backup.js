@@ -6,7 +6,7 @@ import { srs } from '../learn/srs.js';
 import { doneDays } from '../learn/streak.js';
 import { MAX_BACKUP_CHARS, BackupError, backupDue, backupName, buildBackup, lastBackupAt, markBackedUp, restoreBackup, snoozeBackup } from '../learn/backup.js';
 import { onAction } from './events.js';
-import { toast } from './dom.js';
+import { toast, TAB_HASHES } from './dom.js';
 import { I } from './icons.js';
 import { openSheet } from './sheet.js';
 
@@ -19,8 +19,12 @@ const ERRORS = {
 };
 
 const meTab = () => document.querySelector('.tabbar a[data-tab="me"]');
-const TAB_ROOTS = ['', '#', '#/', '#/guide', '#/train', '#/me'];
-function syncDot() { meTab()?.classList.toggle('dot', backupDue()); }
+function syncDot() {
+  const tab = meTab(), due = backupDue();
+  if (!tab) return;
+  tab.classList.toggle('dot', due);
+  if (due) tab.setAttribute('aria-label', 'Моє — пора зберегти копію прогресу'); else tab.removeAttribute('aria-label');
+}
 
 export function backupLink() {
   const due = backupDue();
@@ -32,8 +36,15 @@ export function backupLink() {
 }
 
 let sheet = null;
-onAction('backup-open', () => {
+// Нагадування відкладається, лише якщо шторку закрили, так і не зберігши копію.
+function closedSheet() {
+  sheet = null;
   if (backupDue()) { snoozeBackup(); syncDot(); }
+  const link = document.querySelector('.backup-link');
+  if (link && !backupDue()) { link.classList.remove('due'); link.querySelector('.bk-last').textContent = lastBackupText(); }
+}
+
+onAction('backup-open', () => {
   sheet = openSheet(`
     <span class="bs-ic">${I.save}</span>
     <h2 class="bs-title">Копія прогресу</h2>
@@ -41,7 +52,7 @@ onAction('backup-open', () => {
     <p>Прогрес зберігається лише на цьому телефоні, без акаунта й сервера. Збережіть файл і надішліть собі — наприклад, у Telegram → «Збережене».</p>
     <button class="btn" data-action="backup-save">${I.save}Зберегти прогрес</button>
     <button class="btn outline" data-action="backup-restore">Відновити з файлу</button>
-    <small>Потрібен лише найновіший файл. Відновлення додає прогрес до того, що вже є, і нічого не стирає. На iPhone спершу збережіть файл із Telegram у «Файли».</small>`, 'backup-sheet');
+    <small>Потрібен лише найновіший файл. Відновлення додає прогрес до того, що вже є, і нічого не стирає. На iPhone спершу збережіть файл із Telegram у «Файли».</small>`, 'backup-sheet', closedSheet);
 });
 
 export function restoreHint() {
@@ -88,11 +99,8 @@ onAction('backup-save', async () => {
     const how = await exportBackup();
     if (!how) return;
     markBackedUp();
-    document.querySelector('.backup-link')?.classList.remove('due');
     syncDot();
-    const last = document.querySelector('.bk-last');
-    if (last) last.textContent = lastBackupText();
-    sheet?.close(); sheet = null;
+    sheet?.close();
     toast('Копію прогресу створено', how === 'shared'
       ? 'Відновити можна в «Моє» → «Копія прогресу».'
       : `Файл ${backupName()} — у завантаженнях. Надішліть його собі, щоб не загубити.`);
@@ -103,11 +111,12 @@ async function restoreFrom(file) {
   try {
     if (file.size > MAX_BACKUP_CHARS * 4) throw new BackupError('format');
     const res = restoreBackup(await file.text());
-    if (!res.changed) { alert('У цьому файлі немає нічого нового: весь цей прогрес уже є на телефоні.'); return; }
+    if (!res.changed) { sheet?.close(); toast('Нічого нового', 'Весь прогрес із цього файлу вже є на телефоні.'); return; }
     try { sessionStorage.setItem(RESTORED_KEY, JSON.stringify(res)); } catch {}
     location.reload();
   } catch (e) {
-    alert(ERRORS[e?.code] || ERRORS.format);
+    sheet?.close();
+    toast('Не вдалося відновити', ERRORS[e?.code] || ERRORS.format, 'warn');
   }
 }
 
@@ -126,6 +135,6 @@ export function initBackup() {
   let res = null;
   try { res = JSON.parse(sessionStorage.getItem(RESTORED_KEY)); sessionStorage.removeItem(RESTORED_KEY); } catch {}
   syncDot();
-  window.addEventListener('hashchange', () => { if (TAB_ROOTS.includes(location.hash)) syncDot(); });
+  window.addEventListener('hashchange', () => { if (TAB_HASHES.includes(location.hash)) syncDot(); });
   if (res) toast('Прогрес відновлено', `${nDays(res.days | 0)} занять · ${nTerms(res.terms | 0)} із прогресом`);
 }

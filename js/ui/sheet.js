@@ -1,17 +1,21 @@
 import { vibrate } from './dom.js';
 
-export function openSheet(html, cls = '') {
+// onClose — після закриття шторки її власним close() (жестом, клавішею чи кодом), але не переходом на інший екран.
+export function openSheet(html, cls = '', onClose = null) {
   document.querySelector('.sheet-wrap')?.remove();
   const wrap = document.createElement('div');
   wrap.className = 'sheet-wrap';
   wrap.innerHTML = `<div class="sheet ${cls}" role="dialog" aria-modal="true"><i class="sheet-grip"></i><div class="sheet-body">${html}</div></div>`;
   const sh = wrap.firstElementChild;
+  const title = sh.querySelector('h2');
+  if (title) { title.id ||= 'sheet-title'; sh.setAttribute('aria-labelledby', title.id); }
   const close = () => {
     if (wrap.classList.contains('out')) return;
     wrap.classList.add('out'); sh.style.transform = '';
     document.documentElement.classList.remove('sheet-open');
     setTimeout(() => wrap.remove(), 260);
     document.removeEventListener('keydown', onKey);
+    onClose?.();
   };
   const onKey = e => { if (e.key === 'Escape') close(); };
   document.addEventListener('keydown', onKey);

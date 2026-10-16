@@ -1,4 +1,4 @@
-const VERSION = 32;
+const VERSION = 33;
 const CACHE = 'safelex-v' + VERSION, NEXT = CACHE + '-next';
 const NET_TIMEOUT_MS = 3000, SLOW_WINDOW_MS = 30000;
 let slowUntil = 0;

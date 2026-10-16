@@ -2,7 +2,7 @@ import { esc, plural, nDays } from '../core/util.js';
 import { TERMS } from '../data.js';
 import { favs } from '../user.js';
 import { RANKS, rankOf, nextRank } from '../learn/ranks.js';
-import { streak, bestStreak } from '../learn/streak.js';
+import { streak, bestStreak, restoreOffer } from '../learn/streak.js';
 import { progressOf } from '../learn/srs.js';
 import { resetProgress } from '../learn/reset.js';
 import { I } from '../ui/icons.js';
@@ -40,11 +40,14 @@ export function renderMe() {
   const learnedPct = Math.round(p.mastered / n * 100), tier = fireTier(best);
   app.innerHTML = `
     <header class="hero me-top">
-      <div class="me-streak ${best ? '' : 'zero'} ${days && days >= best ? 'live' : ''} ft${tier}">
-        ${EMBERS[tier] ? `<span class="ms-embers" aria-hidden="true">${embers(tier)}</span>` : ''}
+      <div class="me-streak ${best ? '' : 'zero'} ${days ? 'live' : best ? 'cold' : ''} ft${tier}">
+        ${EMBERS[tier] && days ? `<span class="ms-embers" aria-hidden="true">${embers(tier)}</span>` : ''}
         <span class="ms-mark" aria-hidden="true">${I.flame}</span>
         <span class="ms-v"><b data-to="${best}">${best}</b><span class="ms-unit">${plural(best, 'день', 'дні', 'днів')}<small>рекорд серії</small></span></span>
-        ${!best ? '<span class="ms-now">Почніть із завдання дня</span>' : days >= best ? '<span class="ms-now">Серія триває — це ваш рекорд</span>' : ''}
+        <span class="ms-now">${!best ? 'Почніть із завдання дня'
+          : days >= best ? 'Серія триває — це ваш рекорд'
+          : days ? `Поточна серія — ${nDays(days)}`
+          : restoreOffer() ? 'Серія на паузі — її ще можна врятувати' : 'Серію перервано — почніть нову із завдання дня'}</span>
       </div>
       ${streakBackCard()}
       ${rankHero(rank, best, days)}
@@ -76,7 +79,7 @@ export function renderMe() {
         return `<button class="rank ${cur ? 'cur' : ''} ${nx ? 'nx' : ''} ${got ? 'got' : ''}" style="--i:${i}" data-rank="${i}" aria-label="${esc(r.title)}">
           ${got && !cur ? `<i class="rk-ok">${I.check}</i>` : ''}${badge(r, got, false, cur)}
           <span class="rk-t">${esc(r.title)}</span>
-          <span class="rk-d">${cur ? 'ви тут' : nx ? `ще ${nDays(r.days - best)}` : r.days ? nDays(r.days) : 'старт'}</span></button>`;
+          <span class="rk-d">${cur ? 'ви тут' : nx ? `ще ${nDays(r.days - days)}` : r.days ? nDays(r.days) : 'старт'}</span></button>`;
       }).join('')}</div>
       <div class="section-head"><h2>Збережені</h2>${saved.length >= 2 ? `<a href="#/train?cat=fav">Тренувати</a>` : ''}</div>
       ${saved.length ? `<div class="list" id="savedList">${savedRows(saved, 0)}</div>${moreBtn(saved.length)}`
